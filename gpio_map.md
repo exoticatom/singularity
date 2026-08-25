@@ -139,3 +139,62 @@ singularity_ota_password: "qqweaasdyyxc1123"
 - `wifi_ssid` / `wifi_password` belong to `dirac_iot` — never reference them in singularity configs.
 - The `secrets.yaml` file must **never** be committed to Git. Add it to `.gitignore` if not already present.
 - The `singularity_api_encryption_key` was generated on 2026-08-25. If regenerated, reflash the device — the key is baked into the firmware.
+
+---
+
+## Hardware Reference — ESP32-S3-DEV-KIT-NXRX
+
+### Board Overview
+
+![ESP32-S3-DEV-KIT-NXRX board components](assets/ESP32-S3-Devkit-n16r8_2.jpg)
+
+| Component | Description |
+|---|---|
+| Module | ESP32-S3-WROOM series |
+| USB | USB Type-C (USB & UART combined) |
+| USB to UART | Built-in converter for serial flashing |
+| USB HUB | On-board USB hub |
+| Boot Button | Hold during reset to enter download mode |
+| Reset Button | Resets the MCU |
+| RGB LED | Connected to GPIO 38 (WS2812) |
+| 3.3V Regulator | 5V → 3.3V on-board |
+| 3.3V Indicator | PWR LED confirms 3.3V rail is live |
+
+---
+
+### Full Pinout Diagram
+
+![ESP32-S3-DEV-KIT-NXRX pinout](assets/ESP32-S3-Devkit-n16r8.jpg)
+
+### Pin Legend
+
+| Colour | Function |
+|---|---|
+| Purple | ADC (Analog-to-Digital Converter) |
+| Cyan | JTAG / USB |
+| Orange | Touch sensor input |
+| Grey | Serial (debug/programming) |
+| Yellow-green | Miscellaneous / SPI |
+| Blue | RTC power domain |
+| Green | GPIO input/output |
+| Yellow | Other related functions |
+| Pink | Strapping pins |
+| Red | CLK output |
+| Red (PWR) | Power rails (3.3V and 5V) |
+| Black | Ground |
+
+### singularity Pin Assignments Cross-Reference
+
+| GPIO | Board label | Our use | Safe? |
+|---|---|---|---|
+| GPIO 21 | RTC | I2C SDA | ✅ |
+| GPIO 47 | SPICLK_P | I2C SCL | ✅ |
+| GPIO 48 | SPICLK_N | 1-Wire DS18B20 | ✅ |
+| GPIO 43 | U0TXD | RESERVED — UART0 TX | ❌ |
+| GPIO 44 | U0RXD | RESERVED — UART0 RX | ❌ |
+| GPIO 19 | USB_D− | RESERVED — USB | ❌ |
+| GPIO 20 | USB_D+ | RESERVED — USB | ❌ |
+| GPIO 46 | LOG | CAUTION — strapping | ⚠️ |
+| GPIO 0 | BOOT | CAUTION — strapping | ⚠️ |
+| GPIO 45 | VSPI | CAUTION — strapping | ⚠️ |
+| GPIO 38 | RGB LED | On-board RGB LED | ℹ️ avoid if not using LED |

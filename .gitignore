@@ -12,3 +12,6 @@ secrets.yaml
 
 # macOS
 .DS_Store
+
+# ESP32 info source images (copied to assets/ for documentation)
+esp32info/
