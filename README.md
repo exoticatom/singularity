@@ -151,6 +151,9 @@ Non-sensitive connection parameters are hardcoded in `deploy.yml`:
 - ESPHome add-on installed in HA
 - Tailscale add-on installed and connected in HA (`100.66.190.74`)
 - GitHub repository at `https://github.com/exoticatom/singularity`
+- HACS installed in HA — [installation guide](https://hacs.xyz/docs/use/)
+- HACS custom card: **mini-graph-card** by kalkih
+  - HACS → Frontend → search "mini-graph-card" → Download
 
 ### Step 1 — Clone the repository
 

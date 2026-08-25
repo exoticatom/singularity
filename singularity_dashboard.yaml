@@ -30,6 +30,28 @@ views:
             name: DS18B20-Kettle
             icon: mdi:thermometer-lines
 
+      # ── RIMS & Mash temperature graph (mini-graph-card) ───────────────────
+      # Requires: HACS → mini-graph-card by kalkih
+      - type: custom:mini-graph-card
+        name: RIMS & Mash Temperatures
+        icon: mdi:thermometer-lines
+        hours_to_show: 2
+        points_per_hour: 30
+        line_width: 2
+        smoothing: true
+        show:
+          labels: true
+          points: false
+          legend: true
+          state: true
+        entities:
+          - entity: sensor.ntc1_rims
+            name: NTC1-RIMS
+            color: "#e74c3c"
+          - entity: sensor.ntc2_mash
+            name: NTC2-MASH
+            color: "#3498db"
+
   - title: Hardware
     path: singularity-hardware
     icon: mdi:chip
