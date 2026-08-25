@@ -29,3 +29,55 @@ views:
           - entity: sensor.ds18b20_kettle
             name: DS18B20-Kettle
             icon: mdi:thermometer-lines
+
+  - title: Hardware
+    path: singularity-hardware
+    icon: mdi:chip
+    cards:
+      - type: markdown
+        title: ESP32-S3-DEV-KIT-NXRX — Board Overview
+        content: |
+          ![Board overview](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
+
+          | Component | Description |
+          |---|---|
+          | Module | ESP32-S3-WROOM series |
+          | USB | USB Type-C (USB & UART combined) |
+          | Boot Button | Hold during reset → download mode |
+          | Reset Button | Resets the MCU |
+          | RGB LED | GPIO 38 (WS2812) |
+          | 3.3V Regulator | 5V → 3.3V on-board |
+
+      - type: markdown
+        title: ESP32-S3-DEV-KIT-NXRX — Pinout
+        content: |
+          ![Pinout diagram](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8.jpg)
+
+      - type: markdown
+        title: singularity — Pin Assignments
+        content: |
+          | GPIO | Function | Role | Status |
+          |---|---|---|---|
+          | GPIO 21 | SDA | I2C data — ADS1115 | ✅ in use |
+          | GPIO 47 | SCL | I2C clock — ADS1115 | ✅ in use |
+          | GPIO 48 | 1-Wire DQ | DS18B20 temperature | ✅ in use |
+          | GPIO 43 | U0TXD | UART0 TX — serial console | ❌ reserved |
+          | GPIO 44 | U0RXD | UART0 RX — serial console | ❌ reserved |
+          | GPIO 19 | USB_D− | USB data | ❌ reserved |
+          | GPIO 20 | USB_D+ | USB data | ❌ reserved |
+          | GPIO 26–32 | Flash/PSRAM | Internal — do not use | ❌ reserved |
+          | GPIO 0 | BOOT | Strapping pin | ⚠️ caution |
+          | GPIO 45 | VSPI | Strapping pin | ⚠️ caution |
+          | GPIO 46 | LOG | Strapping pin | ⚠️ caution |
+
+      - type: markdown
+        title: I2C Bus — Connected Devices
+        content: |
+          **Bus:** SDA = GPIO 21 | SCL = GPIO 47
+
+          | Address | Device | Role |
+          |---|---|---|
+          | 0x48 | ADS1115 #1 | ADC — NTC1-RIMS (A0), NTC2-MASH (A1) |
+          | 0x49 | ADS1115 #2 | ADC — Flow meters (planned) |
+          | 0x60 | MCP4728 #1 | DAC — Proportional valve + 3 spare (planned) |
+          | 0x61 | MCP4728 #2 | DAC — 4 spare outputs (planned) |
