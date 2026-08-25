@@ -33,11 +33,11 @@ logger:
 # Keys are resolved from the global secrets.yaml on the HA instance.
 api:
   encryption:
-    key: !secret api_encryption_key
+    key: !secret singularity_api_encryption_key
 
 ota:
   - platform: esphome
-    password: !secret ota_password
+    password: !secret singularity_ota_password
 
 # ── Wi-Fi ──────────────────────────────────────────────────────────────────────
 # Uses singularity-specific secret keys — do NOT use the generic wifi_ssid /
