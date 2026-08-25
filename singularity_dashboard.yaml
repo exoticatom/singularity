@@ -1,21 +1,44 @@
 # singularity_dashboard.yaml
 #
 # Project: singularity
-# Purpose: Home Assistant Lovelace dashboard configuration for the singularity
-#          brewing controller. Automatically loaded by HA via the lovelace:
-#          dashboards entry in configuration.yaml (key: singularity).
-#          Deployed to /config/singularity_dashboard.yaml by the CI/CD workflow.
-#          Displays the three temperature sensors defined in esp32_singularity.yaml:
-#            • NTC1-RIMS      — RIMS outlet temperature (via ADS1115 A0)
-#            • NTC2-MASH      — Mash tun temperature    (via ADS1115 A1)
-#            • DS18B20-Kettle — Kettle temperature       (via 1-Wire GPIO 48)
+# Purpose: Home Assistant Lovelace dashboard for the singularity brewing
+#          controller. Auto-deployed to /config/ via CI/CD on every push
+#          to main. Loaded by HA via lovelace.dashboards.singularity-brewing
+#          in configuration.yaml.
+#
+# Tabs:
+#   1. Brewing Temperatures — live sensors, graphs, status, alarms
+#   2. Brew Session         — target setpoints, notes, session log
+#   3. Hardware             — pinout diagrams, pin assignments, I2C map
 
 title: singularity
 views:
+
+  # ── Tab 1: Brewing Temperatures ─────────────────────────────────────────────
   - title: Brewing Temperatures
     path: singularity-temps
     icon: mdi:thermometer
     cards:
+
+      # ── 1. Device Status ────────────────────────────────────────────────────
+      - type: entities
+        title: singularity — Device Status
+        show_header_toggle: false
+        entities:
+          - entity: binary_sensor.singularity_status
+            name: ESP32 Online
+            icon: mdi:chip
+          - entity: sensor.singularity_wifi_signal
+            name: Wi-Fi Signal (RSSI)
+            icon: mdi:wifi
+          - entity: sensor.singularity_uptime
+            name: Uptime
+            icon: mdi:clock-outline
+          - entity: update.singularity_firmware
+            name: Firmware
+            icon: mdi:chip-outline
+
+      # ── 2. Temperature Sensors with Last Updated ────────────────────────────
       - type: entities
         title: singularity — Temperature Sensors
         show_header_toggle: false
@@ -23,17 +46,164 @@ views:
           - entity: sensor.ntc1_rims
             name: NTC1-RIMS
             icon: mdi:thermometer-water
+            secondary_info: last-changed
           - entity: sensor.ntc2_mash
             name: NTC2-MASH
             icon: mdi:thermometer
+            secondary_info: last-changed
           - entity: sensor.ds18b20_kettle
             name: DS18B20-Kettle
             icon: mdi:thermometer-lines
+            secondary_info: last-changed
 
+      # ── 3. Temperature History Graphs ───────────────────────────────────────
+      - type: history-graph
+        title: RIMS Temperature — Last 2h
+        hours_to_show: 2
+        refresh_interval: 30
+        entities:
+          - entity: sensor.ntc1_rims
+            name: NTC1-RIMS
+          - entity: input_number.singularity_target_rims
+            name: Target RIMS
+
+      - type: history-graph
+        title: Mash Temperature — Last 2h
+        hours_to_show: 2
+        refresh_interval: 30
+        entities:
+          - entity: sensor.ntc2_mash
+            name: NTC2-MASH
+          - entity: input_number.singularity_target_mash
+            name: Target Mash
+
+      - type: history-graph
+        title: Kettle Temperature — Last 2h
+        hours_to_show: 2
+        refresh_interval: 30
+        entities:
+          - entity: sensor.ds18b20_kettle
+            name: DS18B20-Kettle
+
+      # ── 6. Alarm Status ─────────────────────────────────────────────────────
+      - type: conditional
+        conditions:
+          - condition: numeric_state
+            entity: sensor.ntc1_rims
+            above: input_number.singularity_temp_alarm_high
+        card:
+          type: markdown
+          content: >
+            ## ⚠️ ALARM — NTC1-RIMS HIGH
+            Temperature exceeded high alarm threshold!
+          card_mod:
+            style: |
+              ha-card { background: var(--error-color); color: white; }
+
+      - type: conditional
+        conditions:
+          - condition: numeric_state
+            entity: sensor.ntc2_mash
+            above: input_number.singularity_temp_alarm_high
+        card:
+          type: markdown
+          content: >
+            ## ⚠️ ALARM — NTC2-MASH HIGH
+            Temperature exceeded high alarm threshold!
+          card_mod:
+            style: |
+              ha-card { background: var(--error-color); color: white; }
+
+      - type: conditional
+        conditions:
+          - condition: numeric_state
+            entity: sensor.ntc1_rims
+            below: input_number.singularity_temp_alarm_low
+        card:
+          type: markdown
+          content: >
+            ## ⚠️ ALARM — NTC1-RIMS LOW
+            Temperature below low alarm threshold!
+          card_mod:
+            style: |
+              ha-card { background: var(--warning-color); color: white; }
+
+      - type: conditional
+        conditions:
+          - condition: numeric_state
+            entity: sensor.ntc2_mash
+            below: input_number.singularity_temp_alarm_low
+        card:
+          type: markdown
+          content: >
+            ## ⚠️ ALARM — NTC2-MASH LOW
+            Temperature below low alarm threshold!
+          card_mod:
+            style: |
+              ha-card { background: var(--warning-color); color: white; }
+
+  # ── Tab 2: Brew Session ──────────────────────────────────────────────────────
+  - title: Brew Session
+    path: singularity-session
+    icon: mdi:beer-outline
+    cards:
+
+      # ── 4. Target Temperature Setpoints ─────────────────────────────────────
+      - type: entities
+        title: Target Temperatures
+        show_header_toggle: false
+        entities:
+          - entity: input_number.singularity_target_rims
+            name: Target RIMS Temp
+            icon: mdi:thermometer-chevron-up
+          - entity: input_number.singularity_target_mash
+            name: Target Mash Temp
+            icon: mdi:thermometer-chevron-up
+
+      # ── Alarm Thresholds ─────────────────────────────────────────────────────
+      - type: entities
+        title: Alarm Thresholds
+        show_header_toggle: false
+        entities:
+          - entity: input_number.singularity_temp_alarm_high
+            name: High Temp Alarm
+            icon: mdi:thermometer-alert
+          - entity: input_number.singularity_temp_alarm_low
+            name: Low Temp Alarm
+            icon: mdi:thermometer-alert
+
+      # ── 5. Brew Session Notes ────────────────────────────────────────────────
+      - type: entities
+        title: Brew Session Notes
+        show_header_toggle: false
+        entities:
+          - entity: input_text.singularity_brew_notes
+            name: Notes
+            icon: mdi:notebook-edit
+
+      # ── Session Temperature Summary ──────────────────────────────────────────
+      - type: history-graph
+        title: Session Overview — Last 8h
+        hours_to_show: 8
+        refresh_interval: 60
+        entities:
+          - entity: sensor.ntc1_rims
+            name: RIMS
+          - entity: sensor.ntc2_mash
+            name: Mash
+          - entity: sensor.ds18b20_kettle
+            name: Kettle
+          - entity: input_number.singularity_target_rims
+            name: Target RIMS
+          - entity: input_number.singularity_target_mash
+            name: Target Mash
+
+  # ── Tab 3: Hardware ───────────────────────────────────────────────────────────
   - title: Hardware
     path: singularity-hardware
     icon: mdi:chip
     cards:
+
       - type: markdown
         title: ESP32-S3-DEV-KIT-NXRX — Board Overview
         content: |
@@ -75,9 +245,9 @@ views:
         content: |
           **Bus:** SDA = GPIO 21 | SCL = GPIO 47
 
-          | Address | Device | Role |
-          |---|---|---|
-          | 0x48 | ADS1115 #1 | ADC — NTC1-RIMS (A0), NTC2-MASH (A1) |
-          | 0x49 | ADS1115 #2 | ADC — Flow meters (planned) |
-          | 0x60 | MCP4728 #1 | DAC — Proportional valve + 3 spare (planned) |
-          | 0x61 | MCP4728 #2 | DAC — 4 spare outputs (planned) |
+          | Address | Device | Role | Status |
+          |---|---|---|---|
+          | 0x48 | ADS1115 #1 | NTC1-RIMS (A0), NTC2-MASH (A1) | ✅ active |
+          | 0x49 | ADS1115 #2 | Flow meters ADC_Port_4–7 | 🔲 planned |
+          | 0x60 | MCP4728 #1 | DAC — proportional valve + 3 spare | 🔲 planned |
+          | 0x61 | MCP4728 #2 | DAC — 4 spare outputs | 🔲 planned |
