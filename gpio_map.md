@@ -97,6 +97,8 @@ Used by: DS18B20 digital temperature sensor(s)
 | Date       | Author | Change |
 |------------|--------|--------|
 | 2026-08-25 | singularity init | Initial GPIO map created; I2C and 1-Wire buses assigned |
+| 2026-08-25 | singularity | Secrets reference section added; all keys documented |
+| 2026-08-25 | singularity | Verified: all secrets aligned to `singularity_` prefix convention |
 
 ---
 
