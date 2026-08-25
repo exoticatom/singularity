@@ -47,7 +47,7 @@ wifi:
   password: !secret singularity_wifi_password
   ap:
     ssid: "singularity-fallback"
-    password: !secret ap_password
+    password: !secret singularity_ap_password
 
 captive_portal:
 
