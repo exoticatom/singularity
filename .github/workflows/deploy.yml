@@ -7,15 +7,15 @@
 #          branch.
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
-#   HA_HOST        — IP address or hostname of the Raspberry Pi HA instance
-#                    e.g. 192.168.1.100 or homeassistant.local
-#   HA_PORT        — SSH port (default: 22)
-#   HA_USER        — SSH username (e.g. pi or root)
-#   HA_SSH_KEY     — Private SSH key (PEM format, no passphrase)
-#                    The matching public key must be in ~/.ssh/authorized_keys
+#   HA_HOST        — 192.168.168.3  (static LAN IP of the Raspberry Pi)
+#                    homeassistant.local is avoided in CI — mDNS is unreliable
+#                    in GitHub-hosted runners.
+#   HA_PORT        — 22  (standard SSH port)
+#   HA_USER        — root
+#   HA_SSH_KEY     — RSA private key for root@homeassistant.local
+#                    The matching public key must be in /root/.ssh/authorized_keys
 #                    on the Raspberry Pi.
-#   HA_CONFIG_PATH — Absolute path to the ESPHome config directory on the Pi
-#                    e.g. /usr/share/hassio/homeassistant/esphome
+#   HA_CONFIG_PATH — /config/esphome
 #
 # What this workflow does:
 #   1. Checks out the repository.
@@ -49,10 +49,11 @@ jobs:
         run: sudo apt-get install -y rsync
 
       # ── 3. Write SSH private key ──────────────────────────────────────────
+      # printf ensures a trailing newline — SSH rejects keys without one.
       - name: Configure SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.HA_SSH_KEY }}" > ~/.ssh/id_rsa
+          printf '%s\n' "${{ secrets.HA_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p "${{ secrets.HA_PORT }}" "${{ secrets.HA_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
