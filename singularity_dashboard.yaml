@@ -17,7 +17,7 @@ views:
     icon: mdi:thermometer
     cards:
       - type: entities
-        title: singularity — Temperature Sensors
+        title: Temperature Sensors
         show_header_toggle: false
         entities:
           - entity: sensor.ntc1_rims
