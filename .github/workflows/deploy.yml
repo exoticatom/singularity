@@ -7,17 +7,22 @@
 #          branch.
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
-#   HA_SSH_KEY — RSA private key for root@192.168.168.3
-#                Only this value is secret. All other connection parameters
-#                are hardcoded below (LAN-only, not sensitive):
-#                  host: 192.168.168.3  |  port: 22
-#                  user: root           |  path: /config/esphome
+#   HA_SSH_KEY  — RSA private key for root@homeassistant (via Tailscale)
+#   TS_AUTHKEY  — Tailscale ephemeral auth key (reusable, ephemeral)
+#                 Allows the GitHub runner to join the tailnet temporarily
+#                 and reach the Pi at its Tailscale IP: 100.66.190.74
+#
+# Hardcoded connection parameters (not sensitive):
+#   Tailscale IP : 100.66.190.74
+#   SSH port     : 22
+#   SSH user     : root
+#   Config path  : /config/esphome
 #
 # What this workflow does:
 #   1. Checks out the repository.
-#   2. Uses rsync over SSH to copy all *.yaml files (excluding secrets.yaml)
-#      to the ESPHome config directory on the Raspberry Pi.
-#   3. Logs a deployment summary.
+#   2. Connects the GitHub runner to the Tailscale tailnet.
+#   3. Writes the SSH key and syncs YAML files via rsync over Tailscale.
+#   4. Logs a deployment summary.
 
 name: singularity — deploy to Home Assistant
 
@@ -32,7 +37,7 @@ on:
 
 jobs:
   deploy:
-    name: Sync configs to Home Assistant (Raspberry Pi)
+    name: Sync configs to Home Assistant (Raspberry Pi via Tailscale)
     runs-on: ubuntu-latest
 
     steps:
@@ -40,23 +45,30 @@ jobs:
       - name: Checkout singularity repository
         uses: actions/checkout@v4
 
-      # ── 2. Install rsync ──────────────────────────────────────────────────
+      # ── 2. Connect to Tailscale ───────────────────────────────────────────
+      # Joins the GitHub runner to the tailnet as an ephemeral device.
+      # The runner is automatically removed from the tailnet after the job.
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TS_AUTHKEY }}
+          args: --accept-routes
+
+      # ── 3. Install rsync ──────────────────────────────────────────────────
       - name: Install rsync
         run: sudo apt-get install -y rsync
 
-      # ── 3. Write SSH private key ──────────────────────────────────────────
+      # ── 4. Write SSH private key ──────────────────────────────────────────
       # printf ensures a trailing newline — SSH rejects keys without one.
       - name: Configure SSH key
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.HA_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # ssh-keyscan skipped — Pi is on a private LAN unreachable from
-          # GitHub runners. StrictHostKeyChecking=no on the rsync step handles this.
 
-      # ── 4. Sync YAML files to Home Assistant ──────────────────────────────
-      # Excludes secrets.yaml — that file must be managed manually on the Pi
-      # and must never be committed to the repository.
+      # ── 5. Sync YAML files to Home Assistant ──────────────────────────────
+      # Connects over Tailscale IP 100.66.190.74.
+      # Excludes secrets.yaml — managed manually on the Pi, never committed.
       - name: Rsync configs to HA ESPHome directory
         run: |
           rsync -avz --delete \
@@ -65,11 +77,11 @@ jobs:
             --exclude=".github/" \
             -e "ssh -p 22 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
             ./ \
-            root@192.168.168.3:/config/esphome/
+            root@100.66.190.74:/config/esphome/
 
-      # ── 5. Summary ────────────────────────────────────────────────────────
+      # ── 6. Summary ────────────────────────────────────────────────────────
       - name: Deployment summary
         run: |
-          echo "✅ singularity configs synced to 192.168.168.3:/config/esphome"
+          echo "✅ singularity configs synced to 100.66.190.74:/config/esphome"
           echo "   Triggered by: ${{ github.actor }} on branch ${{ github.ref_name }}"
           echo "   Commit: ${{ github.sha }}"
