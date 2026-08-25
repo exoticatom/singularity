@@ -142,7 +142,124 @@ singularity_ota_password: "qqweaasdyyxc1123"
 
 ---
 
-## Hardware Reference — ESP32-S3-DEV-KIT-NXRX
+## Schematics
+
+### General Rule — ADC Input Filtering
+
+Every ADS1115 analog input (A0–A3 on both chips) has a **100 nF ceramic capacitor**
+connected between the input pin and GND. This filters high-frequency interference
+from switching power supplies, pump motors, relays, and RF noise — all common in a
+brewing environment. The capacitor is placed as close to the ADS1115 pin as possible.
+
+```
+ADS1115 Ax ──┬──► signal source
+             │
+           100nF
+             │
+            GND
+```
+
+This applies to all 8 ADC ports (ADC_Port_0 through ADC_Port_7).
+
+---
+
+### NTC Thermistor Circuit (per channel)
+
+Used for: NTC1-RIMS (ADC_Port_0), NTC2-MASH (ADC_Port_1)
+
+**Principle:** Voltage divider between a fixed 10 kΩ resistor and the NTC thermistor.
+The junction voltage changes with temperature and is read by the ADS1115.
+
+```
+3.3V
+ │
+ R_fixed (10kΩ, 1%)
+ │
+ ├──────────────────── ADS1115 input (A0 or A1)
+ │                           │
+ │                         100nF  ← HF filter cap
+ │                           │
+ NTC (10kΩ @ 25°C, B=3950)  GND
+ │
+GND
+```
+
+**Both NTC channels on ADS1115 #1:**
+
+```
+          3.3V
+           │
+     ┌─────┴─────┐
+     │           │
+   R1(10kΩ)   R2(10kΩ)
+     │           │
+     ├─C1(100nF)─┤─C2(100nF)─GND
+     │           │
+  ADS1115 A0  ADS1115 A1
+     │           │
+   NTC1        NTC2
+  (RIMS)      (MASH)
+     │           │
+     └─────┬─────┘
+          GND
+```
+
+**ADS1115 #1 connections:**
+
+```
+ADS1115 (0x48)
+ ├── VDD  → 3.3V
+ ├── GND  → GND
+ ├── SDA  → ESP32 GPIO 21
+ ├── SCL  → ESP32 GPIO 47
+ ├── ADDR → GND  (I2C address 0x48)
+ ├── A0   → NTC1-RIMS junction  (+ 100nF to GND)
+ ├── A1   → NTC2-MASH junction  (+ 100nF to GND)
+ ├── A2   → spare               (+ 100nF to GND)
+ └── A3   → spare               (+ 100nF to GND)
+```
+
+**Component list:**
+
+| Component | Value | Notes |
+|---|---|---|
+| R_fixed (R1, R2) | 10 kΩ 1% | Between 3.3V and NTC junction |
+| NTC (T1, T2) | 10 kΩ @ 25°C, B=3950 | Between junction and GND |
+| C_filter (C1, C2) | 100 nF ceramic | Between junction and GND — HF filter |
+
+**Key rules:**
+- 3.3V reference only — never 5V on ADS1115 inputs
+- All grounds tied together (ESP32, ADS1115, PSU)
+- Use twisted pair cable for sensor runs longer than 30 cm
+- Measure R_fixed with a multimeter and update the ESPHome lambda if it deviates from 10 kΩ
+
+---
+
+### DS18B20 1-Wire Circuit
+
+Used for: DS18B20-Kettle (GPIO 48)
+
+```
+3.3V
+ │
+ R_pullup (4.7 kΩ)
+ │
+ ├──────────────────── ESP32 GPIO 48 (1-Wire DQ)
+ │
+ DS18B20 DQ pin
+
+DS18B20:
+ ├── VDD → 3.3V   (or leave floating for parasitic power mode)
+ ├── GND → GND
+ └── DQ  → GPIO 48 junction
+```
+
+**Key rules:**
+- 4.7 kΩ pull-up resistor between GPIO 48 and 3.3V is mandatory
+- For cable runs over 1 m, reduce pull-up to 2.2 kΩ
+- In parasitic power mode (VDD floating) limit cable length to 30 cm
+
+---
 
 ### Board Overview
 
