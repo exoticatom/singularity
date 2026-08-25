@@ -51,7 +51,8 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "${{ secrets.HA_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p 22 192.168.168.3 >> ~/.ssh/known_hosts 2>/dev/null
+          # ssh-keyscan skipped — Pi is on a private LAN unreachable from
+          # GitHub runners. StrictHostKeyChecking=no on the rsync step handles this.
 
       # ── 4. Sync YAML files to Home Assistant ──────────────────────────────
       # Excludes secrets.yaml — that file must be managed manually on the Pi
