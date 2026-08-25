@@ -93,7 +93,7 @@ jobs:
 
       # ── 7. Deploy dashboard to /config/ ───────────────────────────────────
       # singularity_dashboard.yaml is referenced by configuration.yaml via
-      # lovelace.dashboards.singularity — HA loads it automatically.
+      # lovelace.dashboards.singularity-brewing — HA loads it automatically.
       # Deployed to /config/ (not /config/esphome/) so HA can find it.
       - name: Deploy dashboard to /config/
         run: |
