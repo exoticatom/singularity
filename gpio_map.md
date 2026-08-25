@@ -97,3 +97,43 @@ Used by: DS18B20 digital temperature sensor(s)
 | Date       | Author | Change |
 |------------|--------|--------|
 | 2026-08-25 | singularity init | Initial GPIO map created; I2C and 1-Wire buses assigned |
+
+---
+
+## Secrets Configuration (Manual — Do Not Commit)
+
+The following keys must be present in the **global `secrets.yaml`** on the
+Home Assistant instance (Raspberry Pi). This file is managed manually on the
+device and is **never committed to the repository**.
+
+```yaml
+# ── Wi-Fi — dirac_iot network (existing devices) ──────────────────────────────
+wifi_ssid: "dirac_iot"
+wifi_password: "Quantum@1922"
+
+# ── singularity — ESP32-S3 brewing controller ─────────────────────────────────
+singularity_wifi_ssid: "tesla2"
+singularity_wifi_password: "qqweaasdyyxc1123"
+singularity_ap_password: "qqweaasdyyxc1123"
+singularity_api_encryption_key: "ZEkxifNQY8YAsUklEoVEREuHUIhxiFKW21GP0va8dd4="
+singularity_ota_password: "qqweaasdyyxc1123"
+```
+
+### Key Reference
+
+| Secret Key | Used In | Purpose |
+|---|---|---|
+| `wifi_ssid` | other ESP devices | SSID for the `dirac_iot` network |
+| `wifi_password` | other ESP devices | Password for the `dirac_iot` network |
+| `singularity_wifi_ssid` | `esp32_singularity.yaml` | SSID for the `tesla2` network |
+| `singularity_wifi_password` | `esp32_singularity.yaml` | Password for the `tesla2` network |
+| `singularity_ap_password` | `esp32_singularity.yaml` | Fallback AP hotspot password |
+| `singularity_api_encryption_key` | `esp32_singularity.yaml` | Native API encryption (HA ↔ ESP32) |
+| `singularity_ota_password` | `esp32_singularity.yaml` | OTA firmware update password |
+
+### Rules
+
+- All singularity secrets use the `singularity_` prefix to avoid collision with other devices.
+- `wifi_ssid` / `wifi_password` belong to `dirac_iot` — never reference them in singularity configs.
+- The `secrets.yaml` file must **never** be committed to Git. Add it to `.gitignore` if not already present.
+- The `singularity_api_encryption_key` was generated on 2026-08-25. If regenerated, reflash the device — the key is baked into the firmware.
