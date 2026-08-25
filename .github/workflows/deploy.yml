@@ -87,6 +87,9 @@ jobs:
             --exclude="singularity_dashboard.yaml" \
             --exclude="README.md" \
             --exclude="gpio_map.md" \
+            --exclude="esphome-web-9de630.yaml" \
+            --exclude="esphome-web-833c20.yaml" \
+            --exclude="archive/" \
             -e "ssh -p 22 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
             ./ \
             root@100.66.190.74:/config/esphome/
