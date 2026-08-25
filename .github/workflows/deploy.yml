@@ -1,0 +1,77 @@
+# .github/workflows/deploy.yml
+#
+# Project: singularity
+# Purpose: GitHub Actions CI/CD workflow that automatically syncs the ESPHome
+#          YAML configuration files to the Home Assistant Supervisor instance
+#          running on a Raspberry Pi whenever changes are pushed to the main
+#          branch.
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   HA_HOST        — IP address or hostname of the Raspberry Pi HA instance
+#                    e.g. 192.168.1.100 or homeassistant.local
+#   HA_PORT        — SSH port (default: 22)
+#   HA_USER        — SSH username (e.g. pi or root)
+#   HA_SSH_KEY     — Private SSH key (PEM format, no passphrase)
+#                    The matching public key must be in ~/.ssh/authorized_keys
+#                    on the Raspberry Pi.
+#   HA_CONFIG_PATH — Absolute path to the ESPHome config directory on the Pi
+#                    e.g. /usr/share/hassio/homeassistant/esphome
+#
+# What this workflow does:
+#   1. Checks out the repository.
+#   2. Uses rsync over SSH to copy all *.yaml files (excluding secrets.yaml)
+#      to the ESPHome config directory on the Raspberry Pi.
+#   3. Logs a deployment summary.
+
+name: singularity — deploy to Home Assistant
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "*.yaml"
+      - "gpio_map.md"
+      - ".github/workflows/deploy.yml"
+
+jobs:
+  deploy:
+    name: Sync configs to Home Assistant (Raspberry Pi)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ───────────────────────────────────────────────────────
+      - name: Checkout singularity repository
+        uses: actions/checkout@v4
+
+      # ── 2. Install rsync ──────────────────────────────────────────────────
+      - name: Install rsync
+        run: sudo apt-get install -y rsync
+
+      # ── 3. Write SSH private key ──────────────────────────────────────────
+      - name: Configure SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HA_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p "${{ secrets.HA_PORT }}" "${{ secrets.HA_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # ── 4. Sync YAML files to Home Assistant ──────────────────────────────
+      # Excludes secrets.yaml — that file must be managed manually on the Pi
+      # and must never be committed to the repository.
+      - name: Rsync configs to HA ESPHome directory
+        run: |
+          rsync -avz --delete \
+            --exclude="secrets.yaml" \
+            --exclude=".git/" \
+            --exclude=".github/" \
+            -e "ssh -p ${{ secrets.HA_PORT }} -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            ./ \
+            "${{ secrets.HA_USER }}@${{ secrets.HA_HOST }}:${{ secrets.HA_CONFIG_PATH }}/"
+
+      # ── 5. Summary ────────────────────────────────────────────────────────
+      - name: Deployment summary
+        run: |
+          echo "✅ singularity configs synced to ${{ secrets.HA_HOST }}:${{ secrets.HA_CONFIG_PATH }}"
+          echo "   Triggered by: ${{ github.actor }} on branch ${{ github.ref_name }}"
+          echo "   Commit: ${{ github.sha }}"

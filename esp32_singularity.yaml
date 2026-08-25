@@ -1,0 +1,141 @@
+# esp32_singularity.yaml
+#
+# Project: singularity
+# Purpose: ESPHome base node configuration for the ESP32-S3-DevKitC-1 brewing
+#          controller.  Defines the I2C bus, ADS1115 ADC, two NTC thermistors
+#          (NTC1-RIMS and NTC2-MASH) read from the ADS1115, and a Dallas
+#          1-Wire bus with one DS18B20 digital temperature sensor.
+#
+# GPIO assignments (see gpio_map.md for full reference):
+#   I2C  SDA → GPIO 21 | SCL → GPIO 47
+#   1-Wire Data (DQ) → GPIO 48  (4.7 kΩ pull-up to 3.3 V required)
+#
+# Target board: ESP32-S3-DevKitC-1
+# ESPHome version: 2024.x+
+
+---
+
+esphome:
+  name: singularity
+  friendly_name: singularity
+  comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+logger:
+  level: INFO
+
+# ── API & OTA ──────────────────────────────────────────────────────────────────
+api:
+  encryption:
+    key: !secret api_encryption_key   # define in secrets.yaml
+
+ota:
+  - platform: esphome
+    password: !secret ota_password    # define in secrets.yaml
+
+# ── Wi-Fi ──────────────────────────────────────────────────────────────────────
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "singularity-fallback"
+    password: !secret ap_password
+
+captive_portal:
+
+# ── I2C Bus ────────────────────────────────────────────────────────────────────
+# SDA = GPIO 21  |  SCL = GPIO 47
+# Both are in the ALLOWED / SAFE range (see gpio_map.md)
+i2c:
+  sda: GPIO21
+  scl: GPIO47
+  scan: true
+  id: bus_a
+
+# ── ADS1115 — 16-bit ADC (I2C address 0x48) ───────────────────────────────────
+# ADDR pin → GND → address 0x48
+# Provides four single-ended channels; we use A0 (NTC1-RIMS) and A1 (NTC2-MASH)
+ads1115:
+  - address: 0x48
+    i2c_id: bus_a
+    id: ads1115_0x48
+    continuous_mode: true
+
+# ── NTC Thermistors (via ADS1115) ─────────────────────────────────────────────
+# Steinhart-Hart / Beta-equation calibration constants below are typical for a
+# 10 kΩ NTC (B = 3950).  Adjust per your actual sensor datasheet.
+sensor:
+  # --- NTC1-RIMS (Recirculating Infusion Mash System outlet temp) ---
+  - platform: ads1115
+    ads1115_id: ads1115_0x48
+    multiplexer: 'A0_GND'
+    gain: 6.144
+    name: "NTC1-RIMS"
+    id: ntc1_rims
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    update_interval: 10s
+    filters:
+      # Convert raw voltage to temperature using a voltage divider + NTC model.
+      # V_ref = 3.3 V, R_fixed = 10 kΩ, B = 3950, R0 = 10 kΩ at T0 = 25 °C
+      - lambda: |-
+          float v_ref = 3.3f;
+          float r_fixed = 10000.0f;
+          float r_ntc = r_fixed * x / (v_ref - x);
+          float beta = 3950.0f;
+          float t0 = 298.15f;   // 25 °C in Kelvin
+          float r0 = 10000.0f;
+          float temp_k = 1.0f / (1.0f/t0 + (1.0f/beta) * log(r_ntc / r0));
+          return temp_k - 273.15f;
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+
+  # --- NTC2-MASH (Mash tun temperature) ---
+  - platform: ads1115
+    ads1115_id: ads1115_0x48
+    multiplexer: 'A1_GND'
+    gain: 6.144
+    name: "NTC2-MASH"
+    id: ntc2_mash
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    update_interval: 10s
+    filters:
+      - lambda: |-
+          float v_ref = 3.3f;
+          float r_fixed = 10000.0f;
+          float r_ntc = r_fixed * x / (v_ref - x);
+          float beta = 3950.0f;
+          float t0 = 298.15f;
+          float r0 = 10000.0f;
+          float temp_k = 1.0f / (1.0f/t0 + (1.0f/beta) * log(r_ntc / r0));
+          return temp_k - 273.15f;
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+
+  # --- DS18B20 — 1-Wire digital temperature sensor ---
+  # Pin GPIO 48 (ALLOWED / SAFE — see gpio_map.md)
+  # Requires a 4.7 kΩ pull-up resistor between GPIO 48 and 3.3 V
+  - platform: dallas_temp
+    address: 0x0000000000000000   # Replace with actual 64-bit ROM address
+    name: "DS18B20-Kettle"        # Rename to reflect physical location
+    id: ds18b20_kettle
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    update_interval: 10s
+
+# ── Dallas (1-Wire) Bus ────────────────────────────────────────────────────────
+# Data line on GPIO 48 — 4.7 kΩ pull-up to 3.3 V required on PCB/breadboard
+one_wire:
+  - platform: gpio
+    pin: GPIO48
