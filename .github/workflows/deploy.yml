@@ -34,6 +34,7 @@ on:
       - "*.yaml"
       - "gpio_map.md"
       - ".github/workflows/deploy.yml"
+  workflow_dispatch:   # allows manual trigger from GitHub Actions UI
 
 jobs:
   deploy:
@@ -74,22 +75,36 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@100.66.190.74 \
             "which rsync || apk add --no-cache rsync"
 
-      # ── 6. Sync YAML files to Home Assistant ──────────────────────────────
-      # Connects over Tailscale IP 100.66.190.74.
+      # ── 6. Sync ESPHome YAML files to /config/esphome/ ───────────────────
       # Excludes secrets.yaml — managed manually on the Pi, never committed.
-      - name: Rsync configs to HA ESPHome directory
+      # Also excludes singularity_dashboard.yaml — deployed separately below.
+      - name: Rsync ESPHome configs to Pi
         run: |
           rsync -avz --delete \
             --exclude="secrets.yaml" \
             --exclude=".git/" \
             --exclude=".github/" \
+            --exclude="singularity_dashboard.yaml" \
+            --exclude="README.md" \
+            --exclude="gpio_map.md" \
             -e "ssh -p 22 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
             ./ \
             root@100.66.190.74:/config/esphome/
 
-      # ── 7. Summary ────────────────────────────────────────────────────────
+      # ── 7. Deploy dashboard to /config/ ───────────────────────────────────
+      # singularity_dashboard.yaml is referenced by configuration.yaml via
+      # lovelace.dashboards.singularity — HA loads it automatically.
+      # Deployed to /config/ (not /config/esphome/) so HA can find it.
+      - name: Deploy dashboard to /config/
+        run: |
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            singularity_dashboard.yaml \
+            root@100.66.190.74:/config/singularity_dashboard.yaml
+
+      # ── 8. Summary ────────────────────────────────────────────────────────
       - name: Deployment summary
         run: |
-          echo "✅ singularity configs synced to 100.66.190.74:/config/esphome"
+          echo "✅ ESPHome configs synced to 100.66.190.74:/config/esphome/"
+          echo "✅ Dashboard deployed to 100.66.190.74:/config/singularity_dashboard.yaml"
           echo "   Triggered by: ${{ github.actor }} on branch ${{ github.ref_name }}"
           echo "   Commit: ${{ github.sha }}"

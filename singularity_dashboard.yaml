@@ -1,16 +1,14 @@
-# dashboard.yaml
+# singularity_dashboard.yaml
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard configuration for the singularity
-#          brewing controller.  Displays the three temperature sensors defined
-#          in esp32_singularity.yaml:
-#            • NTC1-RIMS  — RIMS outlet temperature (via ADS1115 A0)
-#            • NTC2-MASH  — Mash tun temperature    (via ADS1115 A1)
-#            • DS18B20-Kettle — Kettle temperature   (via 1-Wire GPIO 48)
-#
-# To use: copy this file content into a new dashboard via
-#   Home Assistant → Settings → Dashboards → Add Dashboard → (raw YAML editor)
-# or store it in your HA config and reference it from configuration.yaml.
+#          brewing controller. Automatically loaded by HA via the lovelace:
+#          dashboards entry in configuration.yaml (key: singularity).
+#          Deployed to /config/singularity_dashboard.yaml by the CI/CD workflow.
+#          Displays the three temperature sensors defined in esp32_singularity.yaml:
+#            • NTC1-RIMS      — RIMS outlet temperature (via ADS1115 A0)
+#            • NTC2-MASH      — Mash tun temperature    (via ADS1115 A1)
+#            • DS18B20-Kettle — Kettle temperature       (via 1-Wire GPIO 48)
 
 title: singularity
 views:
