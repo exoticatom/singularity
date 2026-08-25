@@ -35,7 +35,7 @@ views:
       - type: custom:mini-graph-card
         name: RIMS & Mash Temperatures
         hours_to_show: 2
-        group_by: hour
+        points_per_hour: 6
         entities:
           - entity: sensor.ntc1_rims
             name: NTC1-RIMS
