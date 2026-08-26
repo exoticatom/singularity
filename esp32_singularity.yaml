@@ -210,7 +210,7 @@ switch:
   - platform: gpio
     pin: GPIO41
     name: "SSR1"
-    id: ssr1_spare
+    id: ssr1
     icon: "mdi:electric-switch"
     restore_mode: ALWAYS_OFF
 

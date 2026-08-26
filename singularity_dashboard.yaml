@@ -72,7 +72,7 @@ views:
         title: Controls
         show_header_toggle: false
         entities:
-          - entity: switch.singularity_ssr1_spare
+          - entity: switch.singularity_ssr1
             name: SSR1
             icon: mdi:electric-switch
           - entity: switch.singularity_ssr2_rims_heater
@@ -111,7 +111,7 @@ views:
         title: SSR Activity
         hours_to_show: 24
         entities:
-          - entity: switch.singularity_ssr1_spare
+          - entity: switch.singularity_ssr1
             name: SSR1
           - entity: switch.singularity_ssr2_rims_heater
             name: SSR2 RIMS Heater
