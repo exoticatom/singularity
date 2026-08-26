@@ -1,5 +1,9 @@
 # singularity
 
+[![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](gpio_map.md)
+[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.9.1-green)](esp32_singularity.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.5.2-orange)](singularity_dashboard.yaml)
+
 > **Disclaimer:** I am not a professional developer, nor am I claiming to be.
 > I have a good amount of hands-on coding experience with microcontrollers,
 > Home Assistant, and automation systems. This project reflects that background —
