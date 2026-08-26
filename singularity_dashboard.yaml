@@ -40,8 +40,11 @@ views:
         title: Controls
         show_header_toggle: false
         entities:
-          - entity: switch.singularity_rims_heater
-            name: RIMS Heater
+          - entity: switch.singularity_ssr1_spare
+            name: SSR1 Spare
+            icon: mdi:electric-switch
+          - entity: switch.singularity_ssr2_rims_heater
+            name: SSR2 RIMS Heater
             icon: mdi:fire
 
       # ── RIMS & Mash temperature graph (mini-graph-card) ───────────────────

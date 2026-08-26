@@ -78,7 +78,8 @@ Used by: DS18B20 digital temperature sensor(s)
 | NTC2-MASH | Analog | ADS1115 A1 | — | Via ADS1115 channel 1 |
 | DS18B20-Boil | 1-Wire | GPIO 48 | `0x750000105cbe3528` | Boil kettle — this installation |
 | DS18B20-HLT | 1-Wire | GPIO 48 | `0x3100000c31dd5a28` | Hot Liquor Tank — this installation |
-| RIMS Heater | GPIO out | GPIO 42 | — | SSR relay — HIGH=on, ALWAYS_OFF on boot |
+| SSR1 Spare | GPIO out | GPIO 41 | — | Spare SSR relay — ALWAYS_OFF on boot |
+| SSR2 RIMS Heater | GPIO out | GPIO 42 | — | RIMS heating element — ALWAYS_OFF on boot |
 
 > **Note:** DS18B20 ROM addresses are unique per physical sensor. The addresses
 > above are specific to this hardware installation. If a sensor is replaced,
