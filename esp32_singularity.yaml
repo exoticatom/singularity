@@ -8,10 +8,12 @@
 #          and an SSR relay output for the RIMS heater.
 #
 # Sensors:
-#   NTC1-RIMS       — ADS1115 A0 — RIMS outlet temperature
-#   NTC2-MASH       — ADS1115 A1 — Mash tun temperature
-#   DS18B20-Boil    — 1-Wire GPIO 48 — Boil kettle (ROM: 0x750000105cbe3528)
-#   DS18B20-HLT     — 1-Wire GPIO 48 — Hot Liquor Tank  (ROM: 0x3100000c31dd5a28)
+#   NTC1-RIMS-RAW   — ADS1115 A0 — RIMS outlet temperature (raw)
+#   NTC2-MASH-RAW   — ADS1115 A1 — Mash tun temperature (raw)
+#   DS18B20-Boil-RAW — 1-Wire GPIO 48 — Boil kettle (ROM: 0x750000105cbe3528)
+#   DS18B20-HLT-RAW  — 1-Wire GPIO 48 — Hot Liquor Tank (ROM: 0x3100000c31dd5a28)
+#
+# Corrected sensors (with offset applied) are defined in singularity_templates.yaml on the Pi.
 #
 # Outputs:
 #   SSR1 Spare          — GPIO 41 — spare SSR relay output
@@ -41,7 +43,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.6.1"
+    version: "1.7.0"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -103,7 +105,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A0_GND'
     gain: 6.144
-    name: "NTC1-RIMS"
+    name: "NTC1-RIMS-RAW"
     id: ntc1_rims
     unit_of_measurement: "°C"
     device_class: temperature
@@ -133,7 +135,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A1_GND'
     gain: 6.144
-    name: "NTC2-MASH"
+    name: "NTC2-MASH-RAW"
     id: ntc2_mash
     unit_of_measurement: "°C"
     device_class: temperature
@@ -161,7 +163,7 @@ sensor:
   # Requires a 4.7 kΩ pull-up resistor between GPIO 48 and 3.3 V
   - platform: dallas_temp
     address: 0x750000105cbe3528
-    name: "DS18B20-Boil"
+    name: "DS18B20-Boil-RAW"
     id: ds18b20_kettle
     unit_of_measurement: "°C"
     device_class: temperature
@@ -175,7 +177,7 @@ sensor:
   # --- DS18B20 — 1-Wire digital temperature sensor (HLT) ---
   - platform: dallas_temp
     address: 0x3100000c31dd5a28
-    name: "DS18B20-HLT"
+    name: "DS18B20-HLT-RAW"
     id: ds18b20_hlt
     unit_of_measurement: "°C"
     device_class: temperature
@@ -220,5 +222,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.6.1"};
+      return {"v1.7.0"};
     update_interval: 60s
