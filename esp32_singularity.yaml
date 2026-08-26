@@ -47,7 +47,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.7.0"
+    version: "1.7.1"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -192,6 +192,14 @@ sensor:
           alpha: 0.25
           send_every: 1
 
+# ── Connectivity Status ───────────────────────────────────────────────────────
+# Reports ESP32 API connection state to HA independently of any sensor.
+# binary_sensor.singularity_esp32_status: on = connected, off = offline
+binary_sensor:
+  - platform: status
+    name: "ESP32 Status"
+    id: esp32_status
+
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
 # SSR1 Spare    — GPIO 41 — spare relay output
 # SSR2 RIMS Heater — GPIO 42 — controls RIMS heating element
@@ -226,5 +234,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.7.0"};
+      return {"v1.7.1"};
     update_interval: 60s

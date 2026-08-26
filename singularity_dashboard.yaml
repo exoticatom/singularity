@@ -28,7 +28,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_running
+            entity: binary_sensor.singularity_esp32_status
             state: "on"
         card:
           type: markdown
@@ -41,7 +41,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_running
+            entity: binary_sensor.singularity_esp32_status
             state: "off"
         card:
           type: markdown
