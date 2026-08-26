@@ -30,11 +30,8 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: switch.singularity_ssr1_spare
-            state_not: unavailable
-          - condition: state
-            entity: switch.singularity_ssr1_spare
-            state_not: unknown
+            entity: binary_sensor.singularity_esp32_status
+            state: "on"
         card:
           type: markdown
           content: |
@@ -44,14 +41,9 @@ views:
 
       - type: conditional
         conditions:
-          - condition: or
-            conditions:
-              - condition: state
-                entity: switch.singularity_ssr1_spare
-                state: unavailable
-              - condition: state
-                entity: switch.singularity_ssr1_spare
-                state: unknown
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
         card:
           type: markdown
           content: |
