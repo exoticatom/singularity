@@ -27,7 +27,7 @@ Tailscale VPN tunnel.
 | NTC Thermistor × 2 | RIMS outlet temp (A0), Mash tun temp (A1) |
 | DS18B20-Boil | 1-Wire — Boil kettle (ROM: `0x750000105cbe3528`) |
 | DS18B20-HLT | 1-Wire — Hot Liquor Tank (ROM: `0x3100000c31dd5a28`) |
-| SSR Relay × 2 | SSR1 Spare (GPIO 41), SSR2 RIMS Heater (GPIO 42) — ALWAYS_OFF on boot |
+| SSR Relay × 2 | SSR1 (GPIO 41), SSR2 RIMS Heater (GPIO 42) — ALWAYS_OFF on boot |
 | Raspberry Pi | Runs Home Assistant OS (HAOS) |
 
 > DS18B20 ROM addresses are unique to this hardware installation.

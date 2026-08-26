@@ -73,7 +73,7 @@ views:
         show_header_toggle: false
         entities:
           - entity: switch.singularity_ssr1_spare
-            name: SSR1 Spare
+            name: SSR1
             icon: mdi:electric-switch
           - entity: switch.singularity_ssr2_rims_heater
             name: SSR2 RIMS Heater
@@ -112,7 +112,7 @@ views:
         hours_to_show: 24
         entities:
           - entity: switch.singularity_ssr1_spare
-            name: SSR1 Spare
+            name: SSR1
           - entity: switch.singularity_ssr2_rims_heater
             name: SSR2 RIMS Heater
 
@@ -227,7 +227,7 @@ views:
           | NTC2-MASH-RAW | ADS1115 A1 | — |
           | DS18B20-Boil-RAW | 1-Wire GPIO 48 | `0x750000105cbe3528` |
           | DS18B20-HLT-RAW | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
-          | SSR1 Spare | GPIO 41 | ALWAYS_OFF on boot |
+          | SSR1 | GPIO 41 | ALWAYS_OFF on boot |
           | SSR2 RIMS Heater | GPIO 42 | ALWAYS_OFF on boot |
 
   # ── Tab 5: Hardware ──────────────────────────────────────────────────────────
@@ -263,7 +263,7 @@ views:
           | GPIO 21 | SDA | I2C data — ADS1115 | ✅ in use |
           | GPIO 47 | SCL | I2C clock — ADS1115 | ✅ in use |
           | GPIO 48 | 1-Wire DQ | DS18B20 sensors | ✅ in use |
-          | GPIO 41 | SSR1 Spare | Relay output | ✅ in use |
+          | GPIO 41 | SSR1 | Relay output | ✅ in use |
           | GPIO 42 | SSR2 RIMS Heater | Relay output | ✅ in use |
           | GPIO 43 | U0TXD | UART0 TX — reserved | ❌ reserved |
           | GPIO 44 | U0RXD | UART0 RX — reserved | ❌ reserved |
