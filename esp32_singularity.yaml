@@ -21,7 +21,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.4.2"
+    version: "1.4.3"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -88,7 +88,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 10s
+    update_interval: 1s
     filters:
       # Convert raw voltage to temperature using a voltage divider + NTC model.
       # V_ref = 3.3 V, R_fixed = 10 kΩ, B = 3950, R0 = 10 kΩ at T0 = 25 °C
@@ -115,7 +115,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 10s
+    update_interval: 1s
     filters:
       - lambda: |-
           float v_ref = 3.3f;
@@ -167,5 +167,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.4.2"};
+      return {"v1.4.3"};
     update_interval: 60s
