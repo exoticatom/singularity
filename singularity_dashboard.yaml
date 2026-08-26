@@ -36,9 +36,11 @@ views:
       # ── RIMS & Mash temperature graph (mini-graph-card) ───────────────────
       # Requires: HACS → mini-graph-card by kalkih
       - type: custom:mini-graph-card
-        name: RIMS & Mash Temperatures
-        hours_to_show: 2
+        name: Brewing Graphs
+        hours_to_show: 1
         points_per_hour: 6
+        aggregate_func: max
+        group_by: false
         entities:
           - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
