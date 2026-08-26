@@ -28,10 +28,10 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: sensor.singularity_build
+            entity: sensor.singularity_uptime
             state_not: unavailable
           - condition: state
-            entity: sensor.singularity_build
+            entity: sensor.singularity_uptime
             state_not: unknown
         card:
           type: markdown
@@ -45,10 +45,10 @@ views:
           - condition: or
             conditions:
               - condition: state
-                entity: sensor.singularity_build
+                entity: sensor.singularity_uptime
                 state: unavailable
               - condition: state
-                entity: sensor.singularity_build
+                entity: sensor.singularity_uptime
                 state: unknown
         card:
           type: markdown

@@ -47,7 +47,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.7.4"
+    version: "1.8.0"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -227,7 +227,13 @@ one_wire:
   - platform: gpio
     pin: GPIO48
 
-# ── Build Version Text Sensor ──────────────────────────────────────────────────
+# ── Heartbeat sensor — used for online/offline detection ──────────────────────
+# Increments every 5s. HA marks it unavailable ~15-30s after ESP32 disconnects.
+# Pure software — no hardware dependency.
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 5s
 # Shows project build version (e.g. 1.3.0) as a HA entity.
 # Update version string here AND in esphome.project.version when bumping.
 text_sensor:
@@ -236,5 +242,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.7.4"};
+      return {"v1.8.0"};
     update_interval: 10s
