@@ -20,8 +20,8 @@ views:
         title: Temperature Sensors
         show_header_toggle: false
         entities:
-          - entity: sensor.singularity_firmware_version
-            name: Firmware Version
+          - entity: sensor.singularity_build
+            name: "Build"
             icon: mdi:tag-outline
           - entity: sensor.singularity_ds18b20_kettle
             name: DS18B20-Kettle
