@@ -255,10 +255,6 @@ views:
         content: |
           **singularity** is an ESP32-S3 based brewing controller integrated with Home Assistant.
 
-          > I am not a professional developer, nor am I claiming to be.
-          > I have a good amount of hands-on coding experience with microcontrollers,
-          > Home Assistant, and automation systems.
-
           **Repository:** [github.com/exoticatom/singularity](https://github.com/exoticatom/singularity)
 
           **Design rule:** ESP32 publishes raw sensor values only.
