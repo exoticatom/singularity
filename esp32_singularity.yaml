@@ -26,8 +26,10 @@ esp32:
     type: arduino
 
 # ── Logging ────────────────────────────────────────────────────────────────────
+# DEBUG level kept intentionally during hardware bring-up phase.
+# Switch to INFO once all sensors are verified and stable.
 logger:
-  level: INFO
+  level: DEBUG
 
 # ── API & OTA ──────────────────────────────────────────────────────────────────
 # Keys are resolved from the global secrets.yaml on the HA instance.
