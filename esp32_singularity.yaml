@@ -194,6 +194,13 @@ sensor:
           alpha: 0.25
           send_every: 1
 
+  # --- Uptime — used for online/offline detection in dashboard ----------------
+  # Numeric sensor updating every 5s. HA marks unavailable ~15-30s after disconnect.
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 5s
+
 # ── Connectivity Status ───────────────────────────────────────────────────────
 # Reports ESP32 API connection state to HA independently of any sensor.
 # binary_sensor.singularity_esp32_status: on = connected, off = offline
@@ -227,15 +234,7 @@ one_wire:
   - platform: gpio
     pin: GPIO48
 
-# ── Heartbeat sensor — used for online/offline detection ──────────────────────
-# Increments every 5s. HA marks it unavailable ~15-30s after ESP32 disconnects.
-# Pure software — no hardware dependency.
-  - platform: uptime
-    name: "Uptime"
-    id: uptime_sensor
-    update_interval: 5s
-# Shows project build version (e.g. 1.3.0) as a HA entity.
-# Update version string here AND in esphome.project.version when bumping.
+# ── Build Version Text Sensor ─────────────────────────────────────────────────
 text_sensor:
   - platform: template
     name: "Build"
