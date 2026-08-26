@@ -30,10 +30,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "*.yaml"
-      - "gpio_map.md"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:   # allows manual trigger from GitHub Actions UI
 
 jobs:
