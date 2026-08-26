@@ -20,13 +20,13 @@ views:
         title: Temperature Sensors
         show_header_toggle: false
         entities:
-          - entity: sensor.ntc1_rims
+          - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
             icon: mdi:thermometer-water
-          - entity: sensor.ntc2_mash
+          - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
             icon: mdi:thermometer
-          - entity: sensor.ds18b20_kettle
+          - entity: sensor.singularity_ds18b20_kettle
             name: DS18B20-Kettle
             icon: mdi:thermometer-lines
 
@@ -37,10 +37,10 @@ views:
         hours_to_show: 2
         points_per_hour: 6
         entities:
-          - entity: sensor.ntc1_rims
+          - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
             color: "#e74c3c"
-          - entity: sensor.ntc2_mash
+          - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
             color: "#3498db"
 
