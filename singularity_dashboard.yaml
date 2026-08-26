@@ -36,6 +36,14 @@ views:
             name: NTC2-MASH
             icon: mdi:thermometer
 
+      - type: entities
+        title: Controls
+        show_header_toggle: false
+        entities:
+          - entity: switch.singularity_rims_heater
+            name: RIMS Heater
+            icon: mdi:fire
+
       # ── RIMS & Mash temperature graph (mini-graph-card) ───────────────────
       # Requires: HACS → mini-graph-card by kalkih
       # ── Brewing Graphs ────────────────────────────────────────────────────
