@@ -46,6 +46,9 @@ views:
           - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
             color: "#3498db"
+          - entity: sensor.singularity_ds18b20_kettle
+            name: Boiling Temp
+            color: "#f39c12"
 
   - title: Hardware
     path: singularity-hardware
