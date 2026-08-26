@@ -35,37 +35,21 @@ views:
 
       # ── RIMS & Mash temperature graph (mini-graph-card) ───────────────────
       # Requires: HACS → mini-graph-card by kalkih
-      # ── Boiling Temp graph — always visible ───────────────────────────────
-      - type: custom:mini-graph-card
-        name: Boiling Temp
+      # ── Brewing Graphs ────────────────────────────────────────────────────
+      # Uses native history-graph — handles unavailable sensors gracefully.
+      # NTC sensors show as flat/missing when ADS1115 not connected.
+      # DS18B20 always shows when connected.
+      - type: history-graph
+        title: Brewing Graphs
         hours_to_show: 1
-        points_per_hour: 60
+        refresh_interval: 10
         entities:
           - entity: sensor.singularity_ds18b20_kettle
             name: Boiling Temp
-            color: "#f39c12"
-
-      # ── RIMS & Mash graph — only shows when ADS1115 is connected ──────────
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: sensor.singularity_ntc1_rims
-            state_not: unknown
-          - condition: state
-            entity: sensor.singularity_ntc1_rims
-            state_not: unavailable
-        card:
-          type: custom:mini-graph-card
-          name: RIMS & Mash Temperatures
-          hours_to_show: 1
-          points_per_hour: 60
-          entities:
-            - entity: sensor.singularity_ntc1_rims
-              name: NTC1-RIMS
-              color: "#e74c3c"
-            - entity: sensor.singularity_ntc2_mash
-              name: NTC2-MASH
-              color: "#3498db"
+          - entity: sensor.singularity_ntc1_rims
+            name: NTC1-RIMS
+          - entity: sensor.singularity_ntc2_mash
+            name: NTC2-MASH
 
   - title: Hardware
     path: singularity-hardware
