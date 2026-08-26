@@ -38,7 +38,7 @@ views:
       - type: custom:mini-graph-card
         name: Brewing Graphs
         hours_to_show: 1
-        points_per_hour: 6
+        points_per_hour: 60
         aggregate_func: max
         group_by: false
         entities:
