@@ -24,6 +24,33 @@ views:
     icon: mdi:thermometer
     cards:
 
+      # ── ESP32 Status Banner ──────────────────────────────────────────────────
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.singularity_running
+            state: "on"
+        card:
+          type: markdown
+          content: |
+            <div style="background:#1b5e20; border-radius:8px; padding:10px 16px; display:flex; align-items:center; gap:10px;">
+              <span style="font-size:20px;">🟢</span>
+              <span style="color:#a5d6a7; font-weight:bold; font-size:15px;">singularity.local — Online</span>
+            </div>
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.singularity_running
+            state: "off"
+        card:
+          type: markdown
+          content: |
+            <div style="background:#b71c1c; border-radius:8px; padding:10px 16px; display:flex; align-items:center; gap:10px;">
+              <span style="font-size:20px;">🔴</span>
+              <span style="color:#ef9a9a; font-weight:bold; font-size:15px;">singularity.local — Offline</span>
+            </div>
+
       - type: entities
         title: Temperature Sensors
         show_header_toggle: false
