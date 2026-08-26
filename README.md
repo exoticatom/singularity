@@ -138,7 +138,7 @@ GitHub Runner (ubuntu-latest)
      │  joins tailnet using TS_AUTHKEY (ephemeral)
      │
      ▼
-Tailscale tunnel to Pi (100.66.190.74)
+Tailscale tunnel to Pi (your-tailscale-ip)
      │
      │  rsync over SSH (HA_SSH_KEY)
      │  installs rsync on Pi first (HAOS Alpine doesn't persist packages)
@@ -184,7 +184,7 @@ with other ESPHome devices on your main network.
 | `TS_AUTHKEY` | Tailscale ephemeral auth key — lets GitHub runner join tailnet |
 
 Non-sensitive connection parameters are hardcoded in `deploy.yml`:
-- Tailscale IP: `100.66.190.74` — SSH port: `22` — user: `root`
+- Tailscale IP: `<your-tailscale-ip>` — SSH port: `22` — user: `root`
 - ESPHome config path: `/config/esphome` — dashboard path: `/config/`
 
 ---
@@ -195,7 +195,7 @@ Non-sensitive connection parameters are hardcoded in `deploy.yml`:
 
 - Home Assistant OS running on a Raspberry Pi
 - ESPHome add-on installed in HA
-- Tailscale add-on installed and connected in HA (`100.66.190.74`)
+- Tailscale add-on installed and connected in HA
 - GitHub repository at `https://github.com/exoticatom/singularity`
 - HACS installed in HA — [installation guide](https://hacs.xyz/docs/use/)
 - HACS custom card: **mini-graph-card** by kalkih
