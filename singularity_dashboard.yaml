@@ -104,18 +104,14 @@ views:
     icon: mdi:tune
     cards:
 
-      - type: markdown
-        content: >
-          ## Temperature Calibration Offsets
-
-          Adjust the offset for each sensor to correct for hardware variance.
-          The corrected value shown on the dashboard = RAW + offset.
-          Use **+** to increase, **−** to decrease. Range: −10 to +10 °C.
-
       - type: entities
         title: Sensor Offsets
         show_header_toggle: false
+        header:
+          type: graph
         entities:
+          - type: section
+            label: "Corrected = RAW + offset. Range: −10 to +10 °C"
           - entity: input_number.singularity_offset_ds18b20_boil
             name: DS18B20-Boil Offset
             icon: mdi:thermometer-plus
