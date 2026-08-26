@@ -158,4 +158,4 @@ text_sensor:
     icon: "mdi:tag-outline"
     lambda: |-
       return {"v1.3.0"};
-    update_interval: never
+    update_interval: 60s
