@@ -128,9 +128,9 @@ sensor:
   # --- DS18B20 — 1-Wire digital temperature sensor ---
   # Pin GPIO 48 (ALLOWED / SAFE — see gpio_map.md)
   # Requires a 4.7 kΩ pull-up resistor between GPIO 48 and 3.3 V
+  # Address removed temporarily to force ROM discovery in logs
   - platform: dallas_temp
-    address: 0x0000000000000000   # Replace with actual 64-bit ROM address
-    name: "DS18B20-Kettle"        # Rename to reflect physical location
+    name: "DS18B20-Kettle"
     id: ds18b20_kettle
     unit_of_measurement: "°C"
     device_class: temperature
