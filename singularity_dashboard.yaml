@@ -1,21 +1,24 @@
 # singularity_dashboard.yaml
 #
 # Project: singularity
-# Purpose: Home Assistant Lovelace dashboard configuration for the singularity
-#          brewing controller. Automatically loaded by HA via the lovelace:
-#          dashboards entry in configuration.yaml (key: singularity).
-#          Deployed to /config/singularity_dashboard.yaml by the CI/CD workflow.
-#          Displays the three temperature sensors defined in esp32_singularity.yaml:
-#            • NTC1-RIMS      — RIMS outlet temperature (via ADS1115 A0)
-#            • NTC2-MASH      — Mash tun temperature    (via ADS1115 A1)
-#            • DS18B20-Kettle — Kettle temperature       (via 1-Wire GPIO 48)
+# Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
+#          Auto-deployed to /config/ via CI/CD on every push to main.
+#
+# Sensor naming convention:
+#   sensor.singularity_*_raw   — raw ESPHome readings (uncorrected)
+#   sensor.*                   — corrected values (raw + offset from Settings tab)
+#
+# Tabs: Brewing Temperatures | Log | Settings | Hardware
 
 title: singularity
 views:
+
+  # ── Tab 1: Brewing Temperatures ─────────────────────────────────────────────
   - title: Brewing Temperatures
     path: singularity-temps
     icon: mdi:thermometer
     cards:
+
       - type: entities
         title: Temperature Sensors
         show_header_toggle: false
@@ -23,16 +26,16 @@ views:
           - entity: sensor.singularity_build
             name: "Build"
             icon: mdi:tag-outline
-          - entity: sensor.singularity_ds18b20_boil
+          - entity: sensor.ds18b20_boil
             name: DS18B20-Boil
             icon: mdi:thermometer-lines
-          - entity: sensor.singularity_ds18b20_hlt
+          - entity: sensor.ds18b20_hlt
             name: DS18B20-HLT
             icon: mdi:thermometer-lines
-          - entity: sensor.singularity_ntc1_rims
+          - entity: sensor.ntc1_rims
             name: NTC1-RIMS
             icon: mdi:thermometer-water
-          - entity: sensor.singularity_ntc2_mash
+          - entity: sensor.ntc2_mash
             name: NTC2-MASH
             icon: mdi:thermometer
 
@@ -47,25 +50,23 @@ views:
             name: SSR2 RIMS Heater
             icon: mdi:fire
 
-      # ── Brewing Graphs ────────────────────────────────────────────────────
-      # Uses native history-graph — handles unavailable sensors gracefully.
-      # NTC sensors show as flat/missing when ADS1115 not connected.
-      # DS18B20 always shows when connected.
+      # ── Brewing Graphs ──────────────────────────────────────────────────────
+      # Shows corrected sensor values. Handles unavailable sensors gracefully.
       - type: history-graph
         title: Brewing Graphs
         hours_to_show: 1
         refresh_interval: 10
         entities:
-          - entity: sensor.singularity_ds18b20_boil
+          - entity: sensor.ds18b20_boil
             name: Boil
-          - entity: sensor.singularity_ds18b20_hlt
+          - entity: sensor.ds18b20_hlt
             name: HLT
-          - entity: sensor.singularity_ntc1_rims
+          - entity: sensor.ntc1_rims
             name: NTC1-RIMS
-          - entity: sensor.singularity_ntc2_mash
+          - entity: sensor.ntc2_mash
             name: NTC2-MASH
 
-  # ── Tab: Log ──────────────────────────────────────────────────────────────
+  # ── Tab 2: Log ───────────────────────────────────────────────────────────────
   - title: Log
     path: singularity-log
     icon: mdi:clipboard-text-clock
@@ -95,10 +96,72 @@ views:
           - switch.singularity_ssr1_spare
           - switch.singularity_ssr2_rims_heater
 
+  # ── Tab 3: Settings ──────────────────────────────────────────────────────────
+  - title: Settings
+    path: singularity-settings
+    icon: mdi:tune
+    cards:
+
+      - type: markdown
+        content: >
+          ## Temperature Calibration Offsets
+
+          Adjust the offset for each sensor to correct for hardware variance.
+          The corrected value shown on the dashboard = RAW + offset.
+          Use **+** to increase, **−** to decrease. Range: −10 to +10 °C.
+
+      - type: entities
+        title: Sensor Offsets
+        show_header_toggle: false
+        entities:
+          - entity: input_number.singularity_offset_ds18b20_boil
+            name: DS18B20-Boil Offset
+            icon: mdi:thermometer-plus
+          - entity: input_number.singularity_offset_ds18b20_hlt
+            name: DS18B20-HLT Offset
+            icon: mdi:thermometer-plus
+          - entity: input_number.singularity_offset_ntc1_rims
+            name: NTC1-RIMS Offset
+            icon: mdi:thermometer-plus
+          - entity: input_number.singularity_offset_ntc2_mash
+            name: NTC2-MASH Offset
+            icon: mdi:thermometer-plus
+
+      - type: entities
+        title: RAW vs Corrected
+        show_header_toggle: false
+        entities:
+          - entity: sensor.singularity_ds18b20_boil_raw
+            name: DS18B20-Boil RAW
+            icon: mdi:thermometer-alert
+          - entity: sensor.ds18b20_boil
+            name: DS18B20-Boil Corrected
+            icon: mdi:thermometer-check
+          - entity: sensor.singularity_ds18b20_hlt_raw
+            name: DS18B20-HLT RAW
+            icon: mdi:thermometer-alert
+          - entity: sensor.ds18b20_hlt
+            name: DS18B20-HLT Corrected
+            icon: mdi:thermometer-check
+          - entity: sensor.singularity_ntc1_rims_raw
+            name: NTC1-RIMS RAW
+            icon: mdi:thermometer-alert
+          - entity: sensor.ntc1_rims
+            name: NTC1-RIMS Corrected
+            icon: mdi:thermometer-check
+          - entity: sensor.singularity_ntc2_mash_raw
+            name: NTC2-MASH RAW
+            icon: mdi:thermometer-alert
+          - entity: sensor.ntc2_mash
+            name: NTC2-MASH Corrected
+            icon: mdi:thermometer-check
+
+  # ── Tab 4: Hardware ──────────────────────────────────────────────────────────
   - title: Hardware
     path: singularity-hardware
     icon: mdi:chip
     cards:
+
       - type: markdown
         title: ESP32-S3-DEV-KIT-NXRX — Board Overview
         content: |
@@ -125,11 +188,13 @@ views:
           |---|---|---|---|
           | GPIO 21 | SDA | I2C data — ADS1115 | ✅ in use |
           | GPIO 47 | SCL | I2C clock — ADS1115 | ✅ in use |
-          | GPIO 48 | 1-Wire DQ | DS18B20 temperature | ✅ in use |
-          | GPIO 43 | U0TXD | UART0 TX — serial console | ❌ reserved |
-          | GPIO 44 | U0RXD | UART0 RX — serial console | ❌ reserved |
-          | GPIO 19 | USB_D− | USB data | ❌ reserved |
-          | GPIO 20 | USB_D+ | USB data | ❌ reserved |
+          | GPIO 48 | 1-Wire DQ | DS18B20 sensors | ✅ in use |
+          | GPIO 41 | SSR1 Spare | Relay output | ✅ in use |
+          | GPIO 42 | SSR2 RIMS Heater | Relay output | ✅ in use |
+          | GPIO 43 | U0TXD | UART0 TX — reserved | ❌ reserved |
+          | GPIO 44 | U0RXD | UART0 RX — reserved | ❌ reserved |
+          | GPIO 19 | USB_D− | USB data — reserved | ❌ reserved |
+          | GPIO 20 | USB_D+ | USB data — reserved | ❌ reserved |
           | GPIO 26–32 | Flash/PSRAM | Internal — do not use | ❌ reserved |
           | GPIO 0 | BOOT | Strapping pin | ⚠️ caution |
           | GPIO 45 | VSPI | Strapping pin | ⚠️ caution |
