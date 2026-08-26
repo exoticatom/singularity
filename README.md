@@ -68,7 +68,41 @@ singularity/
 
 ---
 
-## Dashboard
+## Design Philosophy
+
+singularity follows a strict separation between firmware and configuration:
+
+**ESP32 — firmware only (reflash required for changes):**
+- Reads hardware at fixed 1s interval
+- Applies EMA filter (α=0.25) to reduce electrical noise
+- Publishes `_RAW` sensor values to HA
+- Executes output commands (SSR on/off) when instructed by HA
+- No calibration values, no thresholds, no control logic
+
+**Home Assistant — all configurable from dashboard (no reflash):**
+- Calibration offsets → `input_number` helpers in Settings tab
+- Corrected display values → template sensors (`singularity_templates/`)
+- Setpoints and thresholds → `input_number` helpers (future)
+- Control logic → automations and templates (future)
+- Logging → logbook tab
+
+**Rule:** If a value can change without touching hardware, it belongs in HA, not ESP32.
+Reflash only when hardware changes (new sensor, new GPIO, new bus).
+
+**Data flow:**
+```
+ESP32 hardware
+    │  reads every 1s, EMA filter
+    ▼
+sensor.*_raw          ← raw, uncalibrated HA entities
+    │
+    + input_number.singularity_offset_*   ← set in Settings tab
+    │
+    ▼
+sensor.*              ← corrected entities used for display and automation
+```
+
+---
 
 The singularity dashboard has two tabs:
 

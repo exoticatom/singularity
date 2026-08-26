@@ -32,6 +32,10 @@
 # Filter:  NTC → Lambda + sliding avg (5) + EMA α=0.25
 #          DS18B20 → EMA α=0.25
 #
+# Design rule: ESP32 publishes _RAW values only. All calibration offsets,
+# setpoints, thresholds and control logic are configured in HA (never here).
+# Reflash only when hardware changes.
+#
 # Target board: ESP32-S3-DevKitC-1
 # ESPHome version: 2026.8.1
 
