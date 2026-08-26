@@ -16,8 +16,8 @@
 # Corrected sensors (with offset applied) are defined in singularity_templates.yaml on the Pi.
 #
 # Outputs:
-#   SSR1                — GPIO 41 — spare SSR relay output
-#   SSR2 RIMS Heater    — GPIO 42 — SSR relay for RIMS heating element
+#   SSR1 — GPIO 41 — relay output
+#   SSR2 — GPIO 42 — relay output
 #
 # Note: DS18B20 ROM addresses above are specific to this hardware installation.
 #       If you replace a sensor, re-run ROM discovery to get the new address.
@@ -26,7 +26,7 @@
 #   I2C  SDA → GPIO 21 | SCL → GPIO 47
 #   1-Wire Data (DQ) → GPIO 48  (4.7 kΩ pull-up to 3.3 V required)
 #   SSR1 → GPIO 41
-#   SSR2 RIMS Heater → GPIO 42
+#   SSR2 → GPIO 42
 #
 # Polling: all sensors 1s | build version 10s
 # Filter:  NTC → Lambda + sliding avg (5) + EMA α=0.25
@@ -47,7 +47,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.8.4"
+    version: "1.8.5"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -216,8 +216,8 @@ switch:
 
   - platform: gpio
     pin: GPIO42
-    name: "SSR2 RIMS Heater"
-    id: ssr2_rims_heater
+    name: "SSR2"
+    id: ssr2
     icon: "mdi:fire"
     restore_mode: ALWAYS_OFF
 
@@ -234,5 +234,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.8.4"};
+      return {"v1.8.5"};
     update_interval: 10s

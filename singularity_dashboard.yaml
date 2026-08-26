@@ -76,9 +76,9 @@ views:
             name: >
               {{ states('input_text.singularity_ssr1_name') or 'SSR1' }}
             icon: mdi:electric-switch
-          - entity: switch.singularity_ssr2_rims_heater
+          - entity: switch.singularity_ssr2
             name: >
-              {{ states('input_text.singularity_ssr2_name') or 'SSR2 RIMS Heater' }}
+              {{ states('input_text.singularity_ssr2_name') or 'SSR2' }}
             icon: mdi:fire
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
@@ -115,8 +115,8 @@ views:
         entities:
           - entity: switch.singularity_ssr1
             name: SSR1
-          - entity: switch.singularity_ssr2_rims_heater
-            name: SSR2 RIMS Heater
+          - entity: switch.singularity_ssr2
+            name: SSR2
 
   # ── Tab 3: Settings ──────────────────────────────────────────────────────────
   - title: Settings
@@ -134,7 +134,7 @@ views:
             name: SSR1 (switch.singularity_ssr1)
             icon: mdi:label
           - entity: input_text.singularity_ssr2_name
-            name: SSR2 (switch.singularity_ssr2_rims_heater)
+            name: SSR2 (switch.singularity_ssr2)
             icon: mdi:label
 
       - type: entities
@@ -243,7 +243,7 @@ views:
           | DS18B20-Boil-RAW | 1-Wire GPIO 48 | `0x750000105cbe3528` |
           | DS18B20-HLT-RAW | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
           | SSR1 | GPIO 41 | ALWAYS_OFF on boot |
-          | SSR2 RIMS Heater | GPIO 42 | ALWAYS_OFF on boot |
+          | SSR2 | GPIO 42 | ALWAYS_OFF on boot |
 
   # ── Tab 5: Hardware ──────────────────────────────────────────────────────────
   - title: Hardware
@@ -279,7 +279,7 @@ views:
           | GPIO 47 | SCL | I2C clock — ADS1115 | ✅ in use |
           | GPIO 48 | 1-Wire DQ | DS18B20 sensors | ✅ in use |
           | GPIO 41 | SSR1 | Relay output | ✅ in use |
-          | GPIO 42 | SSR2 RIMS Heater | Relay output | ✅ in use |
+          | GPIO 42 | SSR2 | Relay output | ✅ in use |
           | GPIO 43 | U0TXD | UART0 TX — reserved | ❌ reserved |
           | GPIO 44 | U0RXD | UART0 RX — reserved | ❌ reserved |
           | GPIO 19 | USB_D− | USB data — reserved | ❌ reserved |
