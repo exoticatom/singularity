@@ -13,7 +13,7 @@
 #   sensor.singularity_*_raw   — raw ESPHome readings (uncorrected)
 #   sensor.*                   — corrected values (raw + offset from Settings tab)
 #
-# Tabs: Brewing Temperatures | Log | Settings | Hardware
+# Tabs: Brewing Temperatures | Log | Settings | About | Hardware
 
 title: singularity
 views:
@@ -106,24 +106,6 @@ views:
     path: singularity-log
     icon: mdi:clipboard-text-clock
     cards:
-
-      - type: entities
-        title: Clear Log
-        show_header_toggle: false
-        entities:
-          - type: button
-            name: Purge singularity log entries
-            icon: mdi:delete-sweep
-            action_name: Purge
-            tap_action:
-              action: perform-action
-              perform_action: recorder.purge_entities
-              data:
-                entity_id:
-                  - switch.singularity_ssr1_spare
-                  - switch.singularity_ssr2_rims_heater
-                  - sensor.singularity_uptime
-                keep_days: 0
 
       - type: logbook
         title: Activity Log
