@@ -121,6 +121,7 @@ sensor:
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
+      - delta: 0.1
 
   # --- NTC2-MASH (Mash tun temperature) ---
   # Sends raw ADC voltage. All S-H conversion done in HA template sensors.
@@ -137,6 +138,7 @@ sensor:
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
+      - delta: 0.1
 
   # --- DS18B20 — 1-Wire digital temperature sensor (Kettle) ---
   # Pin GPIO 48 (ALLOWED / SAFE — see gpio_map.md)
