@@ -28,7 +28,7 @@
 #   SSR1 Spare → GPIO 41
 #   SSR2 RIMS Heater → GPIO 42
 #
-# Polling: all sensors 1s | build version 60s
+# Polling: all sensors 1s | build version 10s
 # Filter:  NTC → Lambda + sliding avg (5) + EMA α=0.25
 #          DS18B20 → EMA α=0.25
 #
@@ -47,7 +47,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.8.1"
+    version: "1.8.2"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -194,13 +194,6 @@ sensor:
           alpha: 0.25
           send_every: 1
 
-  # --- Uptime — connectivity indicator ----------------------------------------
-  # Goes unavailable after ~2-3 min when ESP32 disconnects (HA internal timeout).
-  - platform: uptime
-    name: "Uptime"
-    id: uptime_sensor
-    update_interval: 5s
-
 # ── Connectivity Status ───────────────────────────────────────────────────────
 # Reports ESP32 API connection state to HA independently of any sensor.
 # binary_sensor.singularity_esp32_status: on = connected, off = offline
@@ -241,5 +234,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.8.1"};
+      return {"v1.8.2"};
     update_interval: 10s
