@@ -21,7 +21,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.4.0"
+    version: "1.4.1"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -145,7 +145,7 @@ sensor:
   # --- DS18B20 — 1-Wire digital temperature sensor (HLT) ---
   - platform: dallas_temp
     address: 0x3100000c31dd5a28
-    name: "HLT Temperature"
+    name: "DS18B20-HLT"
     id: ds18b20_hlt
     unit_of_measurement: "°C"
     device_class: temperature
@@ -167,5 +167,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.4.0"};
+      return {"v1.4.1"};
     update_interval: 60s
