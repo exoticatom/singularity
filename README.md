@@ -220,7 +220,10 @@ singularity_api_encryption_key: "<your-key>"
 singularity_ota_password: "<your-password>"
 ```
 
-### Step 3 — Add GitHub Secrets
+### Step 3 — Add GitHub Secrets *(developer only)*
+
+> This step is only needed to maintain the CI/CD deployment pipeline.
+> Skip if you are just running the firmware locally.
 
 Go to `https://github.com/exoticatom/singularity/settings/secrets/actions` and add:
 
