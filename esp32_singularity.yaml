@@ -47,7 +47,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.7.2"
+    version: "1.7.3"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -65,7 +65,7 @@ logger:
 api:
   encryption:
     key: !secret singularity_api_encryption_key
-  reboot_timeout: 0s   # disable auto-reboot if API disconnects
+  reboot_timeout: 3min
 
 ota:
   - platform: esphome
@@ -236,5 +236,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.7.2"};
+      return {"v1.7.3"};
     update_interval: 60s
