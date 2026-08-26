@@ -1,8 +1,12 @@
-# singularity_dashboard.yaml
+# singularity_dashboard.yaml  v1.1.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
 #          Auto-deployed to /config/ via CI/CD on every push to main.
+#
+# Version history:
+#   v1.0.0 — initial dashboard
+#   v1.1.0 — add versioning display in Settings tab, version headers
 #
 # Sensor naming convention:
 #   sensor.singularity_*_raw   — raw ESPHome readings (uncorrected)
@@ -103,12 +107,36 @@ views:
     cards:
 
       - type: markdown
+        title: System Versions
+        content: >
+          | Component | Version |
+          |---|---|
+          | ESP32 Firmware | {{ states('sensor.singularity_build') }} |
+          | Dashboard | v1.1.0 |
+          | HA Templates | v1.0.0 |
+          | HA Helpers | v1.0.0 |
+
+      - type: markdown
         content: >
           ## Temperature Calibration Offsets
 
           Adjust the offset for each sensor to correct for hardware variance.
           The corrected value shown on the dashboard = RAW + offset.
           Use **+** to increase, **−** to decrease. Range: −10 to +10 °C.
+
+      - type: entities
+        title: System Versions
+        show_header_toggle: false
+        entities:
+          - entity: sensor.singularity_build
+            name: "ESP32 Firmware"
+            icon: mdi:chip
+          - type: attribute
+            entity: sensor.singularity_build
+            attribute: friendly_name
+            name: "Dashboard"
+            icon: mdi:view-dashboard
+            suffix: "v1.1.0"
 
       - type: entities
         title: Sensor Offsets
