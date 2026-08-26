@@ -161,12 +161,12 @@ The workflow can also be triggered manually from:
 ### On the Raspberry Pi — `/config/secrets.yaml` (never committed)
 
 ```yaml
-# Wi-Fi — dirac_iot network (existing devices)
-wifi_ssid: "dirac_iot"
+# Wi-Fi — main network (existing devices)
+wifi_ssid: "<your-main-ssid>"
 wifi_password: "<your-password>"
 
 # singularity — ESP32-S3 brewing controller
-singularity_wifi_ssid: "tesla2"
+singularity_wifi_ssid: "<your-singularity-ssid>"
 singularity_wifi_password: "<your-password>"
 singularity_ap_password: "<your-password>"
 singularity_api_encryption_key: "<32-byte-base64-key>"
@@ -174,7 +174,7 @@ singularity_ota_password: "<your-password>"
 ```
 
 All singularity secrets use the `singularity_` prefix to avoid collision
-with other ESPHome devices on the `dirac_iot` network.
+with other ESPHome devices on your main network.
 
 ### On GitHub — Settings → Secrets → Actions
 
@@ -213,7 +213,7 @@ cd singularity
 Create `secrets.yaml` in the project folder (already gitignored):
 
 ```yaml
-singularity_wifi_ssid: "tesla2"
+singularity_wifi_ssid: "<your-singularity-ssid>"
 singularity_wifi_password: "<your-password>"
 singularity_ap_password: "<your-password>"
 singularity_api_encryption_key: "<your-key>"
