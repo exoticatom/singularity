@@ -8,8 +8,8 @@
 #          and an SSR relay output for the RIMS heater.
 #
 # Sensors:
-#   NTC1-RIMS-RAW   — ADS1115 A0 — RIMS outlet temperature (raw)
-#   NTC2-MASH-RAW   — ADS1115 A1 — Mash tun temperature (raw)
+#   NTC1-RIMS-RAW   — ADS1115 A0 — raw ADC voltage (V) — S-H calc in HA
+#   NTC2-MASH-RAW   — ADS1115 A1 — raw ADC voltage (V) — S-H calc in HA
 #   DS18B20-Boil-RAW — 1-Wire GPIO 48 — Boil kettle (ROM: 0x750000105cbe3528)
 #   DS18B20-HLT-RAW  — 1-Wire GPIO 48 — Hot Liquor Tank (ROM: 0x3100000c31dd5a28)
 #
@@ -47,7 +47,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.8.5"
+    version: "1.9.0"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -107,59 +107,33 @@ ads1115:
 # 10 kΩ NTC (B = 3950).  Adjust per your actual sensor datasheet.
 sensor:
   # --- NTC1-RIMS (Recirculating Infusion Mash System outlet temp) ---
+  # Sends raw ADC voltage. All S-H conversion done in HA template sensors.
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A0_GND'
     gain: 6.144
     name: "NTC1-RIMS-RAW"
     id: ntc1_rims
-    unit_of_measurement: "°C"
-    device_class: temperature
+    unit_of_measurement: "V"
     state_class: measurement
     update_interval: 1s
     filters:
-      # Convert raw voltage to temperature using a voltage divider + NTC model.
-      # V_ref = 3.3 V, R_fixed = 10 kΩ, B = 3950, R0 = 10 kΩ at T0 = 25 °C
-      - lambda: |-
-          float v_ref = 3.3f;
-          float r_fixed = 10000.0f;
-          float r_ntc = r_fixed * x / (v_ref - x);
-          float beta = 3950.0f;
-          float t0 = 298.15f;   // 25 °C in Kelvin
-          float r0 = 10000.0f;
-          float temp_k = 1.0f / (1.0f/t0 + (1.0f/beta) * log(r_ntc / r0));
-          return temp_k - 273.15f;
-      - sliding_window_moving_average:
-          window_size: 5
-          send_every: 1
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
 
   # --- NTC2-MASH (Mash tun temperature) ---
+  # Sends raw ADC voltage. All S-H conversion done in HA template sensors.
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A1_GND'
     gain: 6.144
     name: "NTC2-MASH-RAW"
     id: ntc2_mash
-    unit_of_measurement: "°C"
-    device_class: temperature
+    unit_of_measurement: "V"
     state_class: measurement
     update_interval: 1s
     filters:
-      - lambda: |-
-          float v_ref = 3.3f;
-          float r_fixed = 10000.0f;
-          float r_ntc = r_fixed * x / (v_ref - x);
-          float beta = 3950.0f;
-          float t0 = 298.15f;
-          float r0 = 10000.0f;
-          float temp_k = 1.0f / (1.0f/t0 + (1.0f/beta) * log(r_ntc / r0));
-          return temp_k - 273.15f;
-      - sliding_window_moving_average:
-          window_size: 5
-          send_every: 1
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
@@ -234,5 +208,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.8.5"};
+      return {"v1.9.0"};
     update_interval: 10s

@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.4.0
+# singularity_dashboard.yaml  v1.5.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -10,6 +10,7 @@
 #   v1.2.0 — About tab, remove Build from sensors
 #   v1.3.0 — SSR-based online/offline banner, Activity Log, Settings cleanup
 #   v1.4.0 — SSR1/SSR2 entity IDs cleaned up, Controls uses entity friendly names
+#   v1.5.0 — NTC Steinhart-Hart calibration cards in Settings tab
 #
 # Sensor naming convention:
 #   sensor.singularity_*_raw   — raw ESPHome readings (uncorrected, internal only)
@@ -140,6 +141,50 @@ views:
             icon: mdi:thermometer-plus
 
       - type: entities
+        title: NTC1-RIMS — Steinhart-Hart Calibration
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³"
+          - entity: input_number.singularity_ntc1_r_fixed
+            name: R-Fixed (Ω)
+            icon: mdi:resistor
+          - entity: input_number.singularity_ntc1_v_ref
+            name: V-Ref (V)
+            icon: mdi:sine-wave
+          - entity: input_number.singularity_ntc1_sh_a
+            name: Coefficient A
+            icon: mdi:alpha-a
+          - entity: input_number.singularity_ntc1_sh_b
+            name: Coefficient B
+            icon: mdi:alpha-b
+          - entity: input_number.singularity_ntc1_sh_c
+            name: Coefficient C
+            icon: mdi:alpha-c
+
+      - type: entities
+        title: NTC2-MASH — Steinhart-Hart Calibration
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³"
+          - entity: input_number.singularity_ntc2_r_fixed
+            name: R-Fixed (Ω)
+            icon: mdi:resistor
+          - entity: input_number.singularity_ntc2_v_ref
+            name: V-Ref (V)
+            icon: mdi:sine-wave
+          - entity: input_number.singularity_ntc2_sh_a
+            name: Coefficient A
+            icon: mdi:alpha-a
+          - entity: input_number.singularity_ntc2_sh_b
+            name: Coefficient B
+            icon: mdi:alpha-b
+          - entity: input_number.singularity_ntc2_sh_c
+            name: Coefficient C
+            icon: mdi:alpha-c
+
+      - type: entities
         title: RAW vs Corrected
         show_header_toggle: false
         entities:
@@ -190,7 +235,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.4.0</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.5.0</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">
