@@ -20,12 +20,9 @@ views:
         title: Temperature Sensors
         show_header_toggle: false
         entities:
-          - entity: binary_sensor.singularity_running
-            name: singularity
+          - entity: update.singularity_firmware
+            name: Firmware
             icon: mdi:chip
-          - entity: sensor.singularity_version
-            name: Firmware Version
-            icon: mdi:tag-outline
           - entity: sensor.singularity_ds18b20_kettle
             name: DS18B20-Kettle
             icon: mdi:thermometer-lines
