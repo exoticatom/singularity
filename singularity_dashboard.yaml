@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.1
+# singularity_dashboard.yaml  v1.5.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -12,6 +12,7 @@
 #   v1.4.0 — SSR1/SSR2 entity IDs cleaned up, Controls uses entity friendly names
 #   v1.5.0 — NTC Steinhart-Hart calibration cards in Settings tab
 #   v1.5.1 — remove disclaimer from About tab
+#   v1.5.2 — CI/CD deployment test
 #
 # Sensor naming convention:
 #   sensor.singularity_*_raw   — raw ESPHome readings (uncorrected, internal only)
@@ -236,7 +237,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.5.1</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.5.2</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">
