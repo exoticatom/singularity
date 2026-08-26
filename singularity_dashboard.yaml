@@ -23,8 +23,8 @@ views:
           - entity: sensor.singularity_build
             name: "Build"
             icon: mdi:tag-outline
-          - entity: sensor.singularity_ds18b20_kettle
-            name: DS18B20-Kettle
+          - entity: sensor.singularity_ds18b20_boil
+            name: DS18B20-Boil
             icon: mdi:thermometer-lines
           - entity: sensor.singularity_ds18b20_hlt
             name: DS18B20-HLT
@@ -47,10 +47,10 @@ views:
         hours_to_show: 1
         refresh_interval: 10
         entities:
-          - entity: sensor.singularity_ds18b20_kettle
-            name: Boiling Temp
+          - entity: sensor.singularity_ds18b20_boil
+            name: Boil
           - entity: sensor.singularity_ds18b20_hlt
-            name: DS18B20-HLT
+            name: HLT
           - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
           - entity: sensor.singularity_ntc2_mash

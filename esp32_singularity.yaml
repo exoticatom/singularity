@@ -21,7 +21,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.4.1"
+    version: "1.4.2"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -135,7 +135,7 @@ sensor:
   # Requires a 4.7 kΩ pull-up resistor between GPIO 48 and 3.3 V
   - platform: dallas_temp
     address: 0x750000105cbe3528
-    name: "DS18B20-Kettle"
+    name: "DS18B20-Boil"
     id: ds18b20_kettle
     unit_of_measurement: "°C"
     device_class: temperature
@@ -167,5 +167,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.4.1"};
+      return {"v1.4.2"};
     update_interval: 60s
