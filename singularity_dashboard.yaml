@@ -107,6 +107,13 @@ views:
     icon: mdi:clipboard-text-clock
     cards:
 
+      - type: markdown
+        content: |
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="http://singularity.local" target="_blank" style="background:#1565c0; border-radius:8px; padding:8px 16px; color:#90caf9; font-weight:bold; text-decoration:none; font-size:14px;">🌐 Open singularity Web UI</a>
+            <a href="http://singularity.local/logs" target="_blank" style="background:#1b5e20; border-radius:8px; padding:8px 16px; color:#a5d6a7; font-weight:bold; text-decoration:none; font-size:14px;">📋 Open Live Logs</a>
+          </div>
+
       - type: entities
         title: Clear Log
         show_header_toggle: false
