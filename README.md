@@ -240,7 +240,7 @@ Update `esp32_singularity.yaml` with the real address and push to `main`.
 
 | # | Item | Status |
 |---|---|---|
-| 1 | DS18B20 ROM address | Pending — hardware not yet arrived |
+| 1 | DS18B20 ROM address | ✅ Done — `0x750000105cbe3528` |
 | 2 | NTC calibration (Beta, R values) | Using 10 kΩ / B=3950 defaults — verify against datasheet |
 | 3 | Brewing - Sofware notes integration | Notes file not yet provided |
 
