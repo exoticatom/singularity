@@ -104,9 +104,13 @@ sensor.*              ← corrected entities used for display and automation
 
 ---
 
-The singularity dashboard has two tabs:
+The singularity dashboard has four tabs:
 
-**Brewing Temperatures** — live sensor readings (NTC1-RIMS, NTC2-MASH, DS18B20-Kettle)
+**Brewing Temperatures** — live corrected sensor readings, SSR controls, brewing graph
+
+**Log** — SSR on/off activity log (24h) with purge button
+
+**Settings** — per-sensor calibration offset controls, RAW vs Corrected comparison
 
 **Hardware** — ESP32-S3 pinout diagrams, pin assignment table, I2C device map
 
@@ -251,15 +255,13 @@ esphome run esp32_singularity.yaml
 
 After the first flash all subsequent updates deploy automatically via OTA on every push to `main`.
 
-### Step 6 — Get DS18B20 ROM address
+### Step 6 — DS18B20 ROM addresses (already done)
 
-After first boot open HA → ESPHome → singularity → Logs and look for:
+Both DS18B20 sensors have been identified and configured:
+- `DS18B20-Boil`: `0x750000105cbe3528`
+- `DS18B20-HLT`: `0x3100000c31dd5a28`
 
-```
-Found 1-Wire device: 0x28FF123456789ABC
-```
-
-Update `esp32_singularity.yaml` with the real address and push to `main`.
+If you add a new DS18B20, enable DEBUG logging, reboot the ESP32, and look for `Found 1-Wire device:` in the logs.
 
 ---
 
@@ -278,9 +280,10 @@ Update `esp32_singularity.yaml` with the real address and push to `main`.
 
 | # | Item | Status |
 |---|---|---|
-| 1 | DS18B20 ROM address | ✅ Done — `0x750000105cbe3528` |
-| 2 | NTC calibration (Beta, R values) | Using 10 kΩ / B=3950 defaults — verify against datasheet |
-| 3 | Brewing - Sofware notes integration | Notes file not yet provided |
+| 1 | DS18B20 ROM addresses | ✅ Boil: `0x750000105cbe3528`, HLT: `0x3100000c31dd5a28` |
+| 2 | NTC calibration (Beta, R values) | Using 10 kΩ / B=3950 defaults — verify with reference thermometer |
+| 3 | ADS1115 #2 + flow meters | Pending hardware |
+| 4 | SSR automation logic (RIMS PID) | Pending — manual control for now |
 
 ---
 
