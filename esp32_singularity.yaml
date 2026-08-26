@@ -47,7 +47,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.8.0"
+    version: "1.8.1"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -194,8 +194,8 @@ sensor:
           alpha: 0.25
           send_every: 1
 
-  # --- Uptime — used for online/offline detection in dashboard ----------------
-  # Numeric sensor updating every 5s. HA marks unavailable ~15-30s after disconnect.
+  # --- Uptime — connectivity indicator ----------------------------------------
+  # Goes unavailable after ~2-3 min when ESP32 disconnects (HA internal timeout).
   - platform: uptime
     name: "Uptime"
     id: uptime_sensor
@@ -241,5 +241,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.8.0"};
+      return {"v1.8.1"};
     update_interval: 10s
