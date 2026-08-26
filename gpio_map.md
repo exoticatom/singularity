@@ -315,3 +315,99 @@ DS18B20:
 | GPIO 0 | BOOT | CAUTION — strapping | ⚠️ |
 | GPIO 45 | VSPI | CAUTION — strapping | ⚠️ |
 | GPIO 38 | RGB LED | On-board RGB LED | ℹ️ avoid if not using LED |
+
+---
+
+## Planned Expansions
+
+### ADS1115 #2 — Flow Meters (SM6004)
+
+| Item | Detail |
+|---|---|
+| I2C address | `0x49` (ADDR → VCC) |
+| Channels | ADC_Port_4 (A0) — FLOW1, ADC_Port_5 (A1) — FLOW2 |
+| Input signal | 4-20mA via 0-3.3V converter module |
+| Filter | 100nF ceramic cap on each input to GND |
+
+---
+
+### MCP4728 DAC — Analog Outputs
+
+| Item | Detail |
+|---|---|
+| MCP4728 #1 | `0x60` (default) — DAC_Port_0 proportional valve, D1-D3 spare |
+| MCP4728 #2 | `0x61` (reprogrammed via Arduino IDE) — DAC_Port_4–7 spare |
+| Output signal | 0-3.3V → external V-to-I module for 4-20mA valve control |
+
+---
+
+### YF-S200 Hall Effect Flow Sensor
+
+The YF-S200 is a pulse-output flow sensor (Hall effect), not analog 4-20mA.
+It does **not** connect to the ADS1115 — it connects directly to an ESP32 GPIO pin.
+
+**Power supply:** 5V (required — sensor does not work reliably at 3.3V)
+
+**Signal output:** open collector pulse, ~450 pulses per litre
+
+**⚠️ Signal level problem:** sensor is powered at 5V but ESP32-S3 GPIO is 3.3V max.
+The signal line must be stepped down before connecting to the GPIO.
+
+#### Option A — Voltage Divider (for reference)
+
+Use two resistors to divide the 5V signal to 3.3V:
+
+```
+YF-S200 signal out
+        │
+      10kΩ (R_top)
+        │
+        ├──────────────► ESP32 GPIO (3.3V safe)
+        │
+      20kΩ (R_bottom)
+        │
+       GND
+```
+
+Voltage at GPIO = 5V × 20kΩ / (10kΩ + 20kΩ) = 3.33V ✅
+
+| Component | Value | Notes |
+|---|---|---|
+| R_top | 10 kΩ | Between YF-S200 signal and GPIO junction |
+| R_bottom | 20 kΩ | Between GPIO junction and GND |
+
+#### Option B — Internal Pull-up (recommended)
+
+Since the YF-S200 output is open collector it only pulls the line LOW and
+never drives it HIGH to 5V. With the ESP32 internal pull-up enabled the line
+sits at 3.3V and pulses to GND — no external resistors needed on signal line.
+
+```
+5V ──── YF-S200 VCC
+GND ─── YF-S200 GND
+        YF-S200 signal ──── ESP32 GPIO
+                            (internal pull-up enabled in ESPHome)
+```
+
+#### Decision
+
+Use **Option B** (internal pull-up) for short cable runs — simpler, no extra
+components. Switch to Option A (voltage divider) if signal integrity issues
+occur with cables longer than ~1 m.
+
+#### ESPHome config (when implemented)
+
+```yaml
+sensor:
+  - platform: pulse_counter
+    pin:
+      number: GPIOX        # assign a safe GPIO from gpio_map.md ALLOWED list
+      mode:
+        input: true
+        pullup: true        # internal 3.3V pull-up
+    name: "YF-S200 Flow"
+    unit_of_measurement: "L/min"
+    update_interval: 10s
+    filters:
+      - multiply: 0.00221  # 450 pulses/L → L/min at 10s update interval
+```
