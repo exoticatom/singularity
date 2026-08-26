@@ -20,15 +20,21 @@ views:
         title: Temperature Sensors
         show_header_toggle: false
         entities:
+          - entity: binary_sensor.singularity_running
+            name: singularity
+            icon: mdi:chip
+          - entity: sensor.singularity_version
+            name: Firmware Version
+            icon: mdi:tag-outline
+          - entity: sensor.singularity_ds18b20_kettle
+            name: DS18B20-Kettle
+            icon: mdi:thermometer-lines
           - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
             icon: mdi:thermometer-water
           - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
             icon: mdi:thermometer
-          - entity: sensor.singularity_ds18b20_kettle
-            name: DS18B20-Kettle
-            icon: mdi:thermometer-lines
 
       # ── RIMS & Mash temperature graph (mini-graph-card) ───────────────────
       # Requires: HACS → mini-graph-card by kalkih
