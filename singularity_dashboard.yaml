@@ -42,15 +42,15 @@ views:
         aggregate_func: max
         group_by: false
         entities:
+          - entity: sensor.singularity_ds18b20_kettle
+            name: Boiling Temp
+            color: "#f39c12"
           - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
             color: "#e74c3c"
           - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
             color: "#3498db"
-          - entity: sensor.singularity_ds18b20_kettle
-            name: Boiling Temp
-            color: "#f39c12"
 
   - title: Hardware
     path: singularity-hardware
