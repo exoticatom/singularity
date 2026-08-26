@@ -130,11 +130,6 @@ sensor:
           window_size: 5
           send_every: 1
 
-  # --- Firmware version text sensor ---
-  - platform: version
-    name: "Firmware Version"
-    id: firmware_version
-
   # --- DS18B20 — 1-Wire digital temperature sensor ---
   # Pin GPIO 48 (ALLOWED / SAFE — see gpio_map.md)
   # Requires a 4.7 kΩ pull-up resistor between GPIO 48 and 3.3 V
@@ -152,3 +147,10 @@ sensor:
 one_wire:
   - platform: gpio
     pin: GPIO48
+
+# ── Firmware Version Text Sensor ──────────────────────────────────────────────
+# Exposes ESPHome version string as a HA entity: sensor.singularity_firmware_version
+text_sensor:
+  - platform: version
+    name: "Firmware Version"
+    id: firmware_version
