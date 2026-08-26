@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.0
+# singularity_dashboard.yaml  v1.2.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -7,6 +7,7 @@
 # Version history:
 #   v1.0.0 — initial dashboard
 #   v1.1.0 — add versioning display in Settings tab, version headers
+#   v1.2.0 — add About tab with versions and project info, remove Build from sensors
 #
 # Sensor naming convention:
 #   sensor.singularity_*_raw   — raw ESPHome readings (uncorrected)
@@ -27,9 +28,6 @@ views:
         title: Temperature Sensors
         show_header_toggle: false
         entities:
-          - entity: sensor.singularity_build
-            name: "Build"
-            icon: mdi:tag-outline
           - entity: sensor.ds18b20_boil
             name: DS18B20-Boil
             icon: mdi:thermometer-lines
@@ -107,16 +105,6 @@ views:
     cards:
 
       - type: markdown
-        title: System Versions
-        content: >
-          | Component | Version |
-          |---|---|
-          | ESP32 Firmware | {{ states('sensor.singularity_build') }} |
-          | Dashboard | v1.1.0 |
-          | HA Templates | v1.0.0 |
-          | HA Helpers | v1.0.0 |
-
-      - type: markdown
         content: >
           ## Temperature Calibration Offsets
 
@@ -184,7 +172,46 @@ views:
             name: NTC2-MASH Corrected
             icon: mdi:thermometer-check
 
-  # ── Tab 4: Hardware ──────────────────────────────────────────────────────────
+  # ── Tab 4: About ────────────────────────────────────────────────────────────
+  - title: About
+    path: singularity-about
+    icon: mdi:information-outline
+    cards:
+
+      - type: markdown
+        title: singularity — System Versions
+        content: >
+          | Component | Version |
+          |---|---|
+          | ESP32 Firmware | {{ states('sensor.singularity_build') }} |
+          | Dashboard | v1.2.0 |
+          | HA Templates | v1.0.0 |
+          | HA Helpers | v1.0.0 |
+
+      - type: markdown
+        title: singularity — About
+        content: |
+          **singularity** is an ESP32-S3 based brewing controller integrated with Home Assistant.
+
+          > I am not a professional developer, nor am I claiming to be.
+          > I have a good amount of hands-on coding experience with microcontrollers,
+          > Home Assistant, and automation systems.
+
+          **Repository:** [github.com/exoticatom/singularity](https://github.com/exoticatom/singularity)
+
+          **Design rule:** ESP32 publishes raw sensor values only.
+          All calibration, logic and display are configured in HA — no reflash needed.
+
+          | Sensor | GPIO / Bus | ROM / Address |
+          |---|---|---|
+          | NTC1-RIMS-RAW | ADS1115 A0 | — |
+          | NTC2-MASH-RAW | ADS1115 A1 | — |
+          | DS18B20-Boil-RAW | 1-Wire GPIO 48 | `0x750000105cbe3528` |
+          | DS18B20-HLT-RAW | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
+          | SSR1 Spare | GPIO 41 | ALWAYS_OFF on boot |
+          | SSR2 RIMS Heater | GPIO 42 | ALWAYS_OFF on boot |
+
+  # ── Tab 5: Hardware ──────────────────────────────────────────────────────────
   - title: Hardware
     path: singularity-hardware
     icon: mdi:chip
