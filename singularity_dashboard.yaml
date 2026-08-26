@@ -180,13 +180,34 @@ views:
 
       - type: markdown
         title: singularity — System Versions
-        content: >
-          | Component | Version |
-          |---|---|
-          | ESP32 Firmware | {{ states('sensor.singularity_build') }} |
-          | Dashboard | v1.2.0 |
-          | HA Templates | v1.0.0 |
-          | HA Helpers | v1.0.0 |
+        content: |
+          <table style="width:100%; border-collapse:collapse;">
+            <tr style="background:#1a1a2e;">
+              <th style="padding:8px; text-align:left; color:#4fc3f7;">Component</th>
+              <th style="padding:8px; text-align:left; color:#4fc3f7;">Version</th>
+              <th style="padding:8px; text-align:left; color:#4fc3f7;">Status</th>
+            </tr>
+            <tr style="background:#16213e;">
+              <td style="padding:8px; color:#e0e0e0;">🔧 ESP32 Firmware</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_build') }}</td>
+              <td style="padding:8px; color:#81c784;">● Live</td>
+            </tr>
+            <tr style="background:#1a1a2e;">
+              <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.2.0</td>
+              <td style="padding:8px; color:#81c784;">● Deployed</td>
+            </tr>
+            <tr style="background:#16213e;">
+              <td style="padding:8px; color:#e0e0e0;">🔄 HA Templates</td>
+              <td style="padding:8px; color:#ffb74d; font-weight:bold;">v1.0.0</td>
+              <td style="padding:8px; color:#ffb74d;">● On Pi</td>
+            </tr>
+            <tr style="background:#1a1a2e;">
+              <td style="padding:8px; color:#e0e0e0;">🎛️ HA Helpers</td>
+              <td style="padding:8px; color:#ffb74d; font-weight:bold;">v1.0.0</td>
+              <td style="padding:8px; color:#ffb74d;">● On Pi</td>
+            </tr>
+          </table>
 
       - type: markdown
         title: singularity — About
