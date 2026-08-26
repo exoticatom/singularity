@@ -73,10 +73,12 @@ views:
         show_header_toggle: false
         entities:
           - entity: switch.singularity_ssr1
-            name: SSR1
+            name: >
+              {{ states('input_text.singularity_ssr1_name') or 'SSR1' }}
             icon: mdi:electric-switch
           - entity: switch.singularity_ssr2_rims_heater
-            name: SSR2 RIMS Heater
+            name: >
+              {{ states('input_text.singularity_ssr2_name') or 'SSR2 RIMS Heater' }}
             icon: mdi:fire
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
@@ -121,6 +123,19 @@ views:
     path: singularity-settings
     icon: mdi:tune
     cards:
+
+      - type: entities
+        title: SSR Names
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "Set a friendly name for each SSR output"
+          - entity: input_text.singularity_ssr1_name
+            name: SSR1 (switch.singularity_ssr1)
+            icon: mdi:label
+          - entity: input_text.singularity_ssr2_name
+            name: SSR2 (switch.singularity_ssr2_rims_heater)
+            icon: mdi:label
 
       - type: entities
         title: Sensor Offsets
