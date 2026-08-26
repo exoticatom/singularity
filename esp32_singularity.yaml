@@ -21,7 +21,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.0"
+    version: "1.1.0"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -149,8 +149,10 @@ one_wire:
     pin: GPIO48
 
 # ── Firmware Version Text Sensor ──────────────────────────────────────────────
-# Exposes ESPHome version string as a HA entity: sensor.singularity_firmware_version
+# Exposes project build version as a HA entity: sensor.singularity_firmware_version
+# Update this string manually to match esphome.project.version above.
 text_sensor:
   - platform: version
     name: "Firmware Version"
     id: firmware_version
+    hide_timestamp: true
