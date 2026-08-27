@@ -11,7 +11,7 @@
 
 ## About the Author
 
-**Mihajlo** — A/V enthusiast, vintage electronics restorer, FPGA tinkerer, home automation obsessive, mountain biker, and brewer. Several Swiss competition wins, mostly for Belgian styles. Brewing since 2012 (started way too late).
+A/V enthusiast, vintage electronics restorer, FPGA tinkerer, home automation obsessive, mountain biker, and brewer. Several Swiss competition wins, mostly for Belgian styles. Brewing since 2012 (started way too late).
 
 Restores Amigas and ZX Spectrums. Automates everything. Brews the rest.
 
