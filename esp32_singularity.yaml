@@ -17,14 +17,12 @@
 #   SSR1 — GPIO 41 — relay output (RESTORE_DEFAULT_OFF)
 #   SSR2 — GPIO 42 — RIMS heater, driven exclusively by rims_heater_pwm (slow_pwm 2s)
 #
-# RIMS Heater Control — dual-mode on GPIO 42:
-#   DIRECT mode  — fixed duty cycle (dc_duty_cycle) written directly to slow_pwm
-#   PID mode     — incremental PID using ntc1_rims as feedback, output capped at
-#                  pid_duty_cycle max. Integral resets to 0 on mode switch.
-#   Auto-switch  — while in DIRECT, if ntc1_rims >= (pid_setpoint - pid_switch_threshold)
-#                  the mode switches to PID automatically and logs the event.
-#   Mode select  — rims_mode select entity (OFF / DIRECT / PID), persisted to flash.
-#   Control loop — interval every 2s (matches slow_pwm period).
+# RIMS Heater Control — single-mode PID on GPIO 42:
+#   PID mode  — incremental PID using ntc1_rims as feedback, output capped at
+#               pid_duty_cycle. High Kp (5-10) with Ki=0/Kd=0 gives full-power
+#               heat-up behaviour; output reduces automatically near setpoint.
+#   OFF       — output forced to 0%, heater disabled.
+#   Mode select persisted to flash — restores on reboot.
 #
 # Design principle: After any restart (planned or mid-brew) the ESP32 restores
 #   all calibration parameters and SSR states from flash and continues operating
@@ -73,7 +71,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.3"
+    version: "1.0.4"
   on_boot:
     priority: -100
     then:
@@ -92,10 +90,8 @@ esphome:
           ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f  MaxDuty=%.0f%%",
             id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
             id(pid_kd).state, id(pid_duty_cycle).state);
-          ESP_LOGI("singularity", "RIMS: Mode=%s  DirectDuty=%.0f%%  SwitchThreshold=%.1f°C",
-            std::string(id(rims_mode).current_option()).c_str(),
-            id(dc_duty_cycle).state,
-            id(pid_switch_threshold).state);
+          ESP_LOGI("singularity", "RIMS: Mode=%s",
+            std::string(id(rims_mode).current_option()).c_str());
           ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "=============================================");
 
@@ -365,7 +361,9 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — DS18B20-HLT Offset: %.1f degC", x);
 
   # ── PID Control Parameters ────────────────────────────────────────────────
-  # RIMS heater dual-mode control: DIRECT (fixed duty) or PID (closed-loop).
+  # RIMS heater PID control — single mode, always closed-loop.
+  # High Kp (e.g. 5-10) with Ki=0/Kd=0 gives full-power heat-up behaviour:
+  # when far below setpoint the output saturates at max_duty automatically.
   # All values persist to flash — controller resumes with last known state
   # after any reboot, even without HA available.
 
@@ -392,7 +390,7 @@ number:
     max_value: 100
     step: 0.01
     restore_value: true
-    initial_value: 2.0
+    initial_value: 5.0
     optimistic: true
     icon: "mdi:alpha-p-circle"
     on_value:
@@ -437,7 +435,7 @@ number:
     max_value: 100
     step: 1
     restore_value: true
-    initial_value: 50
+    initial_value: 100
     optimistic: true
     unit_of_measurement: "%"
     icon: "mdi:percent"
@@ -482,19 +480,18 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — RIMS Switch Threshold: %.1f degC", x);
 
 # ── RIMS Mode Select ──────────────────────────────────────────────────────────
-# Controls which logic drives rims_heater_pwm (GPIO42).
-#   OFF    — output forced to 0%, heater disabled
-#   DIRECT — fixed dc_duty_cycle written every 2s
-#   PID    — incremental PID using ntc1_rims, capped at pid_duty_cycle
+# Controls whether the PID loop is active.
+#   OFF — output forced to 0%, heater disabled
+#   PID — incremental PID using ntc1_rims as feedback, output capped at
+#         pid_duty_cycle. High Kp (e.g. 5-10) with Ki=0/Kd=0 gives full-power
+#         heat-up when far from setpoint; output reduces automatically on approach.
 # Persisted to flash — restores last active mode on reboot.
-# Auto-switch: DIRECT → PID when ntc1_rims >= setpoint − threshold (logged).
 select:
   - platform: template
     name: "RIMS Mode"
     id: rims_mode
     options:
       - "OFF"
-      - "DIRECT"
       - "PID"
     initial_option: "OFF"
     restore_value: true
@@ -503,11 +500,11 @@ select:
     on_value:
       then:
         - lambda: |-
-            // Reset PID state on every mode switch — clean handoff, no integral windup
-            id(pid_integral) = 0.0f;
+            // Reset PID state on mode change — clean start, no integral windup
+            id(pid_integral)   = 0.0f;
             id(pid_last_error) = 0.0f;
-            id(pid_last_temp) = id(ntc1_rims).state;
-            ESP_LOGI("singularity", "RIMS MODE → %s  (PID integral reset)", x.c_str());
+            id(pid_last_temp)  = id(ntc1_rims).state;
+            ESP_LOGI("singularity", "RIMS MODE → %s  (PID state reset)", x.c_str());
             if (x == "OFF") {
               id(rims_heater_pwm).set_level(0.0f);
               ESP_LOGI("singularity", "RIMS HEATER OFF");
@@ -632,16 +629,18 @@ output:
 # ── RIMS Heater Control Loop ──────────────────────────────────────────────────
 # Runs every 2s (matches slow_pwm period).
 #
-# OFF    → force output 0%, do nothing else.
-# DIRECT → write dc_duty_cycle to output.
-#           Auto-switch check: if ntc1_rims >= (setpoint − threshold),
-#           switch rims_mode to PID, reset integral, log the event.
-# PID    → incremental PID (position form, dt=2s).
-#           error     = setpoint − temp
-#           integral += error * dt  (clamped: no windup beyond max_duty range)
-#           derivative = (error − last_error) / dt
-#           output    = Kp*error + Ki*integral + Kd*derivative
-#           clamped to [0, pid_duty_cycle] and written to slow_pwm.
+# OFF — force output 0%.
+# PID — incremental PID (position form, dt=2s).
+#         error      = setpoint − ntc1_rims
+#         integral  += error * dt  (anti-windup clamp)
+#         derivative = (error − last_error) / dt
+#         output     = Kp*error + Ki*integral + Kd*derivative
+#         clamped to [0, pid_duty_cycle] → written to slow_pwm
+#
+# Tuning tip: start with Kp=5, Ki=0, Kd=0, max_duty=100%.
+# Large error → output saturates at max_duty (full-power heat-up).
+# Output reduces naturally as temp approaches setpoint.
+# Add small Ki only if you see steady-state offset at setpoint.
 interval:
   - interval: 2s
     then:
@@ -655,61 +654,39 @@ interval:
           }
 
           float temp = id(ntc1_rims).state;
-          // Safety: if sensor returns NAN, shut off heater regardless of mode
+          // Safety: sensor NAN → shut off heater
           if (std::isnan(temp)) {
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims NAN, heater OFF");
             return;
           }
 
-          if (mode == "DIRECT") {
-            // Auto-switch to PID when close enough to setpoint
-            float setpoint  = id(pid_setpoint).state;
-            float threshold = id(pid_switch_threshold).state;
-            if (temp >= (setpoint - threshold)) {
-              id(rims_mode).make_call().set_option("PID").perform();
-              ESP_LOGI("singularity", "RIMS AUTO-SWITCH DIRECT→PID  temp=%.2f°C  setpoint=%.1f°C  threshold=%.1f°C",
-                       temp, setpoint, threshold);
-              // mode switch triggers on_value which resets integral — fall through to PID this tick
-              mode = "PID";
-            } else {
-              float duty = id(dc_duty_cycle).state / 100.0f;
-              id(rims_heater_pwm).set_level(duty);
-              ESP_LOGD("singularity", "RIMS DIRECT  duty=%.0f%%  temp=%.2f°C",
-                       id(dc_duty_cycle).state, temp);
-              return;
-            }
-          }
+          // PID
+          float setpoint = id(pid_setpoint).state;
+          float kp       = id(pid_kp).state;
+          float ki       = id(pid_ki).state;
+          float kd       = id(pid_kd).state;
+          float max_duty = id(pid_duty_cycle).state / 100.0f;
 
-          if (mode == "PID") {
-            float setpoint  = id(pid_setpoint).state;
-            float kp        = id(pid_kp).state;
-            float ki        = id(pid_ki).state;
-            float kd        = id(pid_kd).state;
-            float max_duty  = id(pid_duty_cycle).state / 100.0f;
+          float error = setpoint - temp;
+          id(pid_integral) += error * dt;
 
-            float error     = setpoint - temp;
-            id(pid_integral) += error * dt;
+          // Anti-windup: clamp integral contribution within output range
+          float max_i = (ki > 0.0f) ? (max_duty / ki) : 1000.0f;
+          if (id(pid_integral) >  max_i) id(pid_integral) =  max_i;
+          if (id(pid_integral) < -max_i) id(pid_integral) = -max_i;
 
-            // Anti-windup: clamp integral so its contribution stays within output range
-            float max_i = (ki > 0.0f) ? (max_duty / ki) : 1000.0f;
-            if (id(pid_integral) >  max_i) id(pid_integral) =  max_i;
-            if (id(pid_integral) < -max_i) id(pid_integral) = -max_i;
+          float derivative   = (error - id(pid_last_error)) / dt;
+          id(pid_last_error) = error;
+          id(pid_last_temp)  = temp;
 
-            float derivative = (error - id(pid_last_error)) / dt;
-            id(pid_last_error) = error;
-            id(pid_last_temp)  = temp;
+          float output = kp * error + ki * id(pid_integral) + kd * derivative;
+          if (output < 0.0f)     output = 0.0f;
+          if (output > max_duty) output = max_duty;
 
-            float output = kp * error + ki * id(pid_integral) + kd * derivative;
-
-            // Clamp output to [0, max_duty]
-            if (output < 0.0f)      output = 0.0f;
-            if (output > max_duty)  output = max_duty;
-
-            id(rims_heater_pwm).set_level(output);
-            ESP_LOGD("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
-                     temp, error, id(pid_integral), derivative, output * 100.0f);
-          }
+          id(rims_heater_pwm).set_level(output);
+          ESP_LOGD("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
+                   temp, error, id(pid_integral), derivative, output * 100.0f);
 
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
 # RESTORE_DEFAULT_OFF: first boot = OFF, subsequent reboots = restore last state
@@ -735,5 +712,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.3"};
+      return {"v1.0.4"};
     update_interval: 10s
