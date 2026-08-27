@@ -4,7 +4,7 @@
 
 Used to convert the 4-20mA analog outputs of industrial sensors (SM6004 flow meter) to a 0-3.3V voltage signal readable by the ADS1115 ADC.
 
-![Current to Voltage Converter Module](https://ae-pic-a1.aliexpress-media.com/kf/Sf7f167391e064590ac035b9b94c81330J/Current-To-Voltage-Module-0-20mA-4-20mA-to-0-3-3V-0-5V-0-10V.jpg_960x960.jpg)
+![Current to Voltage Converter Module](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ConvertorModule.jpg)
 
 ---
 
