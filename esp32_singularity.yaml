@@ -49,7 +49,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.1"
+    version: "1.0.2"
   on_boot:
     priority: -100
     then:
@@ -132,6 +132,9 @@ number:
     optimistic: true
     unit_of_measurement: "Ω"
     icon: "mdi:resistor"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 R-Fixed: %.0f Ω", x);
 
   - platform: template
     name: "NTC1 V-Ref"
@@ -143,6 +146,9 @@ number:
     initial_value: 3.3
     optimistic: true
     unit_of_measurement: "V"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 V-Ref: %.2f V", x);
 
   - platform: template
     name: "NTC1 SH-A"
@@ -153,6 +159,9 @@ number:
     restore_value: true
     initial_value: 0.001207071588
     optimistic: true
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-A: %.9f", x);
 
   - platform: template
     name: "NTC1 SH-B"
@@ -163,6 +172,9 @@ number:
     restore_value: true
     initial_value: 0.0002183328996
     optimistic: true
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-B: %.9f", x);
 
   - platform: template
     name: "NTC1 SH-C"
@@ -173,6 +185,9 @@ number:
     restore_value: true
     initial_value: 0.0000001764463641
     optimistic: true
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-C: %.12f", x);
 
   - platform: template
     name: "NTC1 Offset"
@@ -185,6 +200,9 @@ number:
     optimistic: true
     unit_of_measurement: "°C"
     icon: "mdi:thermometer-plus"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 Offset: %.1f °C", x);
 
   # --- NTC2-MASH ---
   - platform: template
@@ -198,6 +216,9 @@ number:
     optimistic: true
     unit_of_measurement: "Ω"
     icon: "mdi:resistor"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 R-Fixed: %.0f Ω", x);
 
   - platform: template
     name: "NTC2 V-Ref"
@@ -209,6 +230,9 @@ number:
     initial_value: 3.3
     optimistic: true
     unit_of_measurement: "V"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 V-Ref: %.2f V", x);
 
   - platform: template
     name: "NTC2 SH-A"
@@ -219,6 +243,9 @@ number:
     restore_value: true
     initial_value: 0.001209771862
     optimistic: true
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-A: %.9f", x);
 
   - platform: template
     name: "NTC2 SH-B"
@@ -229,6 +256,9 @@ number:
     restore_value: true
     initial_value: 0.0002173461562
     optimistic: true
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-B: %.9f", x);
 
   - platform: template
     name: "NTC2 SH-C"
@@ -239,6 +269,9 @@ number:
     restore_value: true
     initial_value: 0.0000001848376283
     optimistic: true
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-C: %.12f", x);
 
   - platform: template
     name: "NTC2 Offset"
@@ -251,6 +284,9 @@ number:
     optimistic: true
     unit_of_measurement: "°C"
     icon: "mdi:thermometer-plus"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 Offset: %.1f °C", x);
 
   # --- DS18B20-Boil offset ---
   - platform: template
@@ -264,6 +300,9 @@ number:
     optimistic: true
     unit_of_measurement: "°C"
     icon: "mdi:thermometer-plus"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — DS18B20-Boil Offset: %.1f °C", x);
 
   # --- DS18B20-HLT offset ---
   - platform: template
@@ -277,6 +316,9 @@ number:
     optimistic: true
     unit_of_measurement: "°C"
     icon: "mdi:thermometer-plus"
+    on_value:
+      then:
+        - lambda: ESP_LOGI("singularity", "FLASH SAVED — DS18B20-HLT Offset: %.1f °C", x);
 
 # ── Sensors ───────────────────────────────────────────────────────────────────
 sensor:
@@ -414,5 +456,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.1"};
+      return {"v1.0.2"};
     update_interval: 10s
