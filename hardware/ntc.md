@@ -13,6 +13,8 @@ NTC (Negative Temperature Coefficient) thermistors measure temperature via resis
 
 ### Sensor Used in This Installation
 
+![NTC Kabelfühler Ø5mm](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/NTC_Sensor.jpg)
+
 **Kabelfühler — Durchmesser Ø5mm** — Made in Germany
 
 | Parameter | Value |
