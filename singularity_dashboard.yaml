@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.0.5
+# singularity_dashboard.yaml  v1.0.6
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -17,6 +17,7 @@
 #   v1.0.3 — PID parameters card in Settings tab, Activity Log includes firmware_version_display
 #   v1.0.4 — RIMS dual-mode control cards (mode select, direct duty, PID params, switch threshold)
 #   v1.0.5 — RIMS simplified to single PID card (removed DIRECT mode entities)
+#   v1.0.6 — RIMS mode select + setpoint added to main Brewing Temperatures tab
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -87,6 +88,17 @@ views:
             icon: mdi:electric-switch
           - entity: switch.singularity_ssr2
             icon: mdi:fire
+
+      - type: entities
+        title: RIMS Heater
+        show_header_toggle: false
+        entities:
+          - entity: select.singularity_rims_mode
+            name: Mode (OFF / PID)
+            icon: mdi:toggle-switch
+          - entity: number.singularity_pid_setpoint
+            name: Setpoint (°C)
+            icon: mdi:target
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: history-graph
@@ -265,7 +277,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.5</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.6</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">
