@@ -11,42 +11,30 @@
 
 ## What is singularity?
 
-singularity is an ESP32-S3 based brewing controller that integrates with
-Home Assistant. It monitors temperatures across the brewing process using
-NTC thermistors (via an ADS1115 ADC) and a DS18B20 digital sensor on a
-1-Wire bus. Configuration is managed as code, version-controlled in Git,
-and automatically deployed to Home Assistant via GitHub Actions over a
-Tailscale VPN tunnel.
+singularity is an ESP32-S3 based brewing controller integrated with Home Assistant. It monitors temperatures across the brewing process, controls heating elements via SSR relays, and is designed to be extended with flow meters, proportional valves and automated brewing logic via Node-RED.
+
+Configuration is managed as code, version-controlled in Git, and automatically deployed to Home Assistant via GitHub Actions over a Tailscale VPN tunnel.
 
 ---
 
 ## Hardware
 
-| Component | Role |
-|---|---|
-| ESP32-S3-DEV-KIT-NXRX | Main controller (ESP32-S3-WROOM module) |
-| ADS1115 #1 (I2C, 0x48) | 16-bit ADC — NTC thermistors |
-| NTC Thermistor × 2 | RIMS outlet temp (A0), Mash tun temp (A1) |
-| DS18B20-Boil | 1-Wire — Boil kettle (ROM: `0x750000105cbe3528`) |
-| DS18B20-HLT | 1-Wire — Hot Liquor Tank (ROM: `0x3100000c31dd5a28`) |
-| SSR Relay × 2 | SSR1 (GPIO 41), SSR2 (GPIO 42) — ALWAYS_OFF on boot |
-| Raspberry Pi | Runs Home Assistant OS (HAOS) |
+📖 Full hardware documentation → **[hardware/](hardware/README.md)**
 
-> DS18B20 ROM addresses are unique to this hardware installation.
+| Category | Components |
+|---|---|
+| **Controller** | ESP32-S3-DEV-KIT-NXRX + expansion adapter board |
+| **Temperature** | NTC 10kΩ thermistors × 2 (via ADS1115 ADC), DS18B20 1-Wire sensors × 2 |
+| **Flow** | IFM SM6004 magnetic flow meters (planned), YF-S200 pulse sensors (planned) |
+| **Analog I/O** | ADS1115 16-bit ADC × 2, MCP4728 12-bit DAC × 2 (planned) |
+| **GPIO expansion** | MCP23017 16-bit I2C expander (planned) |
+| **Outputs** | SSR relays × 2 (RIMS heater + spare) |
+| **Signal conversion** | 4-20mA → 0-3.3V converter modules for industrial sensors |
+| **Infrastructure** | Raspberry Pi running Home Assistant OS (HAOS) |
 
 ### Pinout Reference
 
-See [hardware/esp32.md](hardware/esp32.md) for board overview, pinout diagrams and full wiring summary.
-
-### Wiring Summary
-
-| Signal | GPIO | Notes |
-|---|---|---|
-| I2C SDA | GPIO 21 | ADS1115 data |
-| I2C SCL | GPIO 47 | ADS1115 clock |
-| 1-Wire DQ | GPIO 48 | DS18B20 — 4.7 kΩ pull-up to 3.3 V required |
-
-See `gpio_map.md` for the full pin rules, reserved GPIO list, and secrets reference.
+→ [hardware/gpio_map.md](hardware/gpio_map.md)
 
 ---
 
@@ -56,116 +44,87 @@ See `gpio_map.md` for the full pin rules, reserved GPIO list, and secrets refere
 singularity/
 ├── esp32_singularity.yaml        # ESPHome firmware configuration
 ├── singularity_dashboard.yaml    # Home Assistant Lovelace dashboard (auto-deployed)
-├── assets/                       # Hardware reference images
+├── assets/                       # Hardware reference images and datasheets
 ├── hardware/                     # Hardware documentation
-│   ├── README.md                 # Hardware index page
-│   ├── gpio_map.md               # ESP32-S3 GPIO pin rules and bus assignments
+│   ├── README.md                 # Hardware index
+│   ├── esp32.md                  # ESP32-S3 board overview and pinout
+│   ├── esp32_expansion_board.md  # Expansion adapter board
+│   ├── gpio_map.md               # GPIO pin rules and bus assignments
 │   ├── ntc.md                    # NTC thermistor wiring and S-H calibration
 │   ├── ds18b20.md                # DS18B20 wiring and ROM address discovery
-│   ├── expansion_boards.md       # I2C boards, pull-up rules, address map
-│   ├── sm6004.md                 # SM6004 magnetic flow sensor
+│   ├── expansion_boards.md       # I2C boards (ADS1115, MCP4728, MCP23017)
+│   ├── current_to_voltage.md     # 4-20mA → 0-3.3V converter module
+│   ├── sm6004.md                 # IFM SM6004 magnetic flow sensor
 │   └── yf_s200.md                # YF-S200 pulse flow sensor
-├── .gitignore                    # Excludes secrets.yaml and build artifacts
-└── .github/
-    └── workflows/
-        └── deploy.yml            # CI/CD — auto-deploys to HA on push to main
+├── .gitignore
+└── .github/workflows/deploy.yml  # CI/CD — auto-deploys to HA on push to main
 ```
 
 ---
 
 ## Design Philosophy
 
-singularity follows a strict separation between firmware and configuration:
-
 **ESP32 — firmware only (reflash required for changes):**
-- Reads hardware at fixed 1s interval
-- Applies EMA filter (α=0.25) to reduce electrical noise
+- Reads hardware at fixed 1s interval, applies EMA filter (α=0.25)
 - Publishes `_RAW` sensor values to HA
-- Executes output commands (SSR on/off) when instructed by HA
-- No calibration values, no thresholds, no control logic
+- Executes SSR on/off when instructed by HA
+- No calibration, no thresholds, no control logic
 
 **Home Assistant — all configurable from dashboard (no reflash):**
-- Calibration offsets → `input_number` helpers in Settings tab
-- Corrected display values → template sensors (`singularity_templates/`)
-- Setpoints and thresholds → `input_number` helpers (future)
-- Control logic → automations and templates (future)
+- Steinhart-Hart calibration coefficients → Settings tab
+- Temperature offsets → Settings tab
+- Corrected display values → template sensors
 - Logging → logbook tab
 
 **Process automation — planned: Node-RED**
-Complex brewing process automation (mash schedules, PID control, step sequences) is planned via Node-RED, which can be installed directly as a Home Assistant add-on. Node-RED sits between HA and the ESP32 — reading sensor entities and controlling SSR outputs without reflashing firmware.
+Complex brewing sequences (mash schedules, PID control) planned via Node-RED installed as a HA add-on.
 
-**Rule:** If a value can change without touching hardware, it belongs in HA or Node-RED, not ESP32.
-Reflash only when hardware changes (new sensor, new GPIO, new bus).
-
-**Data flow:**
-```
-ESP32 hardware
-    │  reads every 1s, EMA filter
-    ▼
-sensor.*_raw          ← raw, uncalibrated HA entities
-    │
-    + input_number.singularity_offset_*   ← set in Settings tab
-    │
-    ▼
-sensor.*              ← corrected entities used for display and automation
-```
+**Rule:** If a value can change without touching hardware — it belongs in HA or Node-RED, not the firmware.
 
 ---
 
-The singularity dashboard has five tabs and is automatically deployed to the Pi on every push to `main`. No manual pasting required.
+## Dashboard
 
-| Tab | Icon | Description |
-|---|---|---|
-| **Brewing Temperatures** | 🌡️ | Online/offline status banner, corrected sensor readings, SSR controls, brewing history graph |
-| **Log** | 📋 | ESP32 connectivity log, SSR activity graph (24h) |
-| **Settings** | ⚙️ | NTC Steinhart-Hart calibration (R, V-ref, A, B, C), temperature offsets, RAW vs Corrected comparison |
-| **About** | ℹ️ | System versions table (ESP32 firmware, dashboard, HA templates, helpers), project info |
-| **Hardware** | 🔲 | ESP32-S3 pinout images, pin assignment table, I2C device map |
+Five tabs, auto-deployed on every push to `main`:
+
+| Tab | Description |
+|---|---|
+| **Brewing Temperatures** | Online/offline banner, corrected sensor readings, SSR controls, history graph |
+| **Log** | ESP32 connectivity events, SSR activity graph (24h) |
+| **Settings** | NTC S-H calibration (R, V-ref, A, B, C), temperature offsets, RAW vs Corrected |
+| **About** | System versions (ESP32 firmware, dashboard, HA templates) |
+| **Hardware** | ESP32 pinout, pin assignment table, I2C device map |
 
 ---
 
 ## How Deployment Works
 
-Every push to the `main` branch triggers the GitHub Actions workflow:
+Every push to `main` triggers the GitHub Actions workflow automatically:
 
 ```
 Push to main
      │
      ▼
 GitHub Runner (ubuntu-latest)
-     │
-     │  tailscale/github-action@v2
-     │  joins tailnet using TS_AUTHKEY (ephemeral)
-     │
+     │  joins tailnet via TS_AUTHKEY (ephemeral)
      ▼
-Tailscale tunnel to Pi (your-tailscale-ip)
-     │
-     │  rsync over SSH (HA_SSH_KEY)
-     │  installs rsync on Pi first (HAOS Alpine doesn't persist packages)
-     │
+Tailscale tunnel → Raspberry Pi
+     │  rsync over SSH
      ├── /config/esphome/     ← ESPHome YAML configs
      └── /config/             ← singularity_dashboard.yaml
-          │
-          ▼
-ESPHome picks up updated config → compile → OTA flash to ESP32-S3
-HA Lovelace reloads dashboard automatically
 ```
 
-The workflow can also be triggered manually from:
-`https://github.com/exoticatom/singularity/actions` → Run workflow button
+Can also be triggered manually: `https://github.com/exoticatom/singularity/actions` → Run workflow
 
----
+### Secrets *(developer only)*
 
-## Secrets
+> This section is only relevant for maintaining the CI/CD pipeline.
 
-### On the Raspberry Pi — `/config/secrets.yaml` (never committed)
+**On the Raspberry Pi — `/config/secrets.yaml`** (never committed, gitignored)
 
 ```yaml
-# Wi-Fi — main network (existing devices)
 wifi_ssid: "<your-main-ssid>"
 wifi_password: "<your-password>"
-
-# singularity — ESP32-S3 brewing controller
 singularity_wifi_ssid: "<your-singularity-ssid>"
 singularity_wifi_password: "<your-password>"
 singularity_ap_password: "<your-password>"
@@ -173,19 +132,12 @@ singularity_api_encryption_key: "<32-byte-base64-key>"
 singularity_ota_password: "<your-password>"
 ```
 
-All singularity secrets use the `singularity_` prefix to avoid collision
-with other ESPHome devices on your main network.
-
-### On GitHub — Settings → Secrets → Actions
+**On GitHub — Settings → Secrets → Actions:**
 
 | Secret | Purpose |
 |---|---|
-| `HA_SSH_KEY` | RSA private key for `root@homeassistant` via Tailscale |
-| `TS_AUTHKEY` | Tailscale ephemeral auth key — lets GitHub runner join tailnet |
-
-Non-sensitive connection parameters are hardcoded in `deploy.yml`:
-- Tailscale IP: `<your-tailscale-ip>` — SSH port: `22` — user: `root`
-- ESPHome config path: `/config/esphome` — dashboard path: `/config/`
+| `HA_SSH_KEY` | RSA private key for SSH to Pi via Tailscale |
+| `TS_AUTHKEY` | Tailscale ephemeral auth key (reusable, ephemeral) |
 
 ---
 
@@ -193,13 +145,10 @@ Non-sensitive connection parameters are hardcoded in `deploy.yml`:
 
 ### Prerequisites
 
-- Home Assistant OS running on a Raspberry Pi
+- Raspberry Pi running Home Assistant OS
 - ESPHome add-on installed in HA
 - Tailscale add-on installed and connected in HA
-- GitHub repository at `https://github.com/exoticatom/singularity`
-- HACS installed in HA — [installation guide](https://hacs.xyz/docs/use/)
-- HACS custom card: **mini-graph-card** by kalkih
-  - HACS → Frontend → search "mini-graph-card" → Download
+- HACS installed + **mini-graph-card** by kalkih
 
 ### Step 1 — Clone the repository
 
@@ -208,12 +157,10 @@ git clone https://github.com/exoticatom/singularity.git
 cd singularity
 ```
 
-### Step 2 — Create local secrets.yaml (for ESPHome CLI)
-
-Create `secrets.yaml` in the project folder (already gitignored):
+### Step 2 — Create local secrets.yaml
 
 ```yaml
-singularity_wifi_ssid: "<your-singularity-ssid>"
+singularity_wifi_ssid: "<your-ssid>"
 singularity_wifi_password: "<your-password>"
 singularity_ap_password: "<your-password>"
 singularity_api_encryption_key: "<your-key>"
@@ -222,18 +169,14 @@ singularity_ota_password: "<your-password>"
 
 ### Step 3 — Add GitHub Secrets *(developer only)*
 
-> This step is only needed to maintain the CI/CD deployment pipeline.
-> Skip if you are just running the firmware locally.
+> Only needed for CI/CD. Skip if running firmware locally.
 
-Go to `https://github.com/exoticatom/singularity/settings/secrets/actions` and add:
+- `HA_SSH_KEY` — `~/.ssh/id_rsa` contents
+- `TS_AUTHKEY` — from `https://login.tailscale.com/admin/settings/keys` (Reusable + Ephemeral)
 
-- `HA_SSH_KEY` — contents of your SSH private key (`~/.ssh/id_rsa`)
-- `TS_AUTHKEY` — generated at `https://login.tailscale.com/admin/settings/keys`
-  - Type: Auth key — Reusable: yes — Ephemeral: yes
+### Step 4 — Add lovelace entry to Pi
 
-### Step 4 — Add lovelace entry to configuration.yaml on Pi
-
-SSH into the Pi and append to `/config/configuration.yaml`:
+Append to `/config/configuration.yaml`:
 
 ```yaml
 lovelace:
@@ -246,58 +189,27 @@ lovelace:
       filename: singularity_dashboard.yaml
 ```
 
-Then reload HA configuration (Developer Tools → YAML → Reload all).
-
 ### Step 5 — First flash (USB)
-
-The first flash must be done over USB since OTA requires the device to already be running ESPHome firmware. Three options:
 
 **Option A — Local CLI** *(currently used)*
 ```bash
-brew install pipx
-pipx install esphome
-pipx ensurepath
+brew install pipx && pipx install esphome && pipx ensurepath
 esphome run esp32_singularity.yaml
 ```
 
-**Option B — ESPHome Web Flasher** *(to be reviewed once solution is in production)*
-Connect ESP32 via USB and open [web.esphome.io](https://web.esphome.io) in Chrome. No local tooling needed.
+**Option B — Web Flasher** *(to be reviewed for production)*
+[web.esphome.io](https://web.esphome.io) in Chrome — no tooling needed.
 
 **Option C — OTA** *(after first flash only)*
-All subsequent updates deploy automatically via OTA on every push to `main`. No USB needed.
+All subsequent updates deploy automatically via OTA on every push to `main`.
 
-### Step 6 — DS18B20 ROM addresses (already done for this installation)
+### Step 6 — DS18B20 ROM addresses *(already done for this installation)*
 
-**Design decision:** ROM addresses are hardcoded in `esp32_singularity.yaml` rather than using auto-discovery. This ensures each sensor is permanently mapped to its physical location regardless of boot order.
-
-**Current addresses (this installation):**
+Addresses are hardcoded in `esp32_singularity.yaml`:
 - `DS18B20-Boil`: `0x750000105cbe3528`
 - `DS18B20-HLT`: `0x3100000c31dd5a28`
 
-**If you add a new DS18B20 or replace one — how to get the ROM address:**
-
-This is a manual step. The address is unique per physical sensor and must be discovered before it can be used.
-
-**Option A — ESPHome logs with DEBUG (recommended, used in this project)**
-1. Set `logger: level: DEBUG` in `esp32_singularity.yaml`
-2. Flash and connect the ESP32
-3. Open **HA → ESPHome → singularity → Logs**
-4. Look for: `Found 1-Wire device: 0x28XXXXXXXXXXXXXX`
-5. Copy the address, add it to the config, set logger back to INFO
-
-**Option B — Remove the address field temporarily**
-Remove `address:` from the sensor config entirely. ESPHome will scan and report all found devices in the logs on boot, then warn "Please add the address to your configuration."
-
-**Option C — ESPHome CLI scan**
-```bash
-esphome run esp32_singularity.yaml
-```
-Watch the serial output on first boot — the ROM address appears in the first few seconds.
-
-**Option D — Arduino sketch**
-Flash a simple 1-Wire scanner sketch via Arduino IDE. It prints all found device addresses to the serial monitor. Useful if you have multiple sensors and want to identify them before wiring into the main board.
-
-> Note: DEBUG logging generates a lot of output. Remember to switch back to INFO once the address is captured.
+For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery options.
 
 ---
 
@@ -305,15 +217,11 @@ Flash a simple 1-Wire scanner sketch via Arduino IDE. It prints all found device
 
 | Item | Status |
 |---|---|
-| ADS1115 #2 (0x49) — SM6004 flow meters × 2 | Planned |
-| MCP4728 #1 (0x60) — DAC proportional valve control | Planned |
-| MCP4728 #2 (0x61) — DAC expansion outputs | Planned |
-| MCP23017 — GPIO expander for relay outputs | Planned |
+| ADS1115 #2 + SM6004 flow meters × 2 | Planned |
+| MCP4728 × 2 — DAC for proportional valve | Planned |
+| MCP23017 — GPIO expander | Planned |
 | YF-S200 pulse flow sensors | Planned |
-| Dynamic port assignment via HA helpers + templates | Future |
-| SSR automation logic (RIMS PID) | Future |
-
-See [hardware/expansion_boards.md](hardware/expansion_boards.md) for I2C address map and board details.
+| Node-RED process automation (PID, mash schedules) | Future |
 
 ---
 
@@ -321,9 +229,7 @@ See [hardware/expansion_boards.md](hardware/expansion_boards.md) for I2C address
 
 | Date | Change |
 |---|---|
-| 2026-08-25 | Initial setup: GPIO map, ESPHome config, dashboard, CI/CD pipeline |
-| 2026-08-25 | Secrets aligned to `singularity_` prefix convention |
-| 2026-08-25 | CI/CD: Tailscale integration, rsync on HAOS Alpine — all steps green |
-| 2026-08-25 | Dashboard: auto-deploy to `/config/`, lovelace entry in configuration.yaml |
+| 2026-08-25 | Initial setup: ESPHome config, dashboard, CI/CD pipeline |
+| 2026-08-25 | CI/CD: Tailscale + rsync to HAOS — all steps green |
 | 2026-08-26 | Steinhart-Hart NTC calibration configurable from dashboard |
-| 2026-08-26 | Hardware documentation folder created |
+| 2026-08-26 | Hardware documentation folder with 9 pages |
