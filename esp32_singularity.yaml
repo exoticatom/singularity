@@ -49,7 +49,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "2.1.0"
+    version: "1.0.1"
   on_boot:
     priority: -100
     then:
@@ -414,5 +414,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v2.1.0"};
+      return {"v1.0.1"};
     update_interval: 10s

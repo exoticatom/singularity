@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v2.1.0
+# singularity_dashboard.yaml  v1.0.1
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -210,12 +210,12 @@ views:
             </tr>
             <tr style="background:#16213e;">
               <td style="padding:8px; color:#e0e0e0;">🔧 ESP32 Firmware</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_build') }}</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_firmware_version_display') }}</td>
               <td style="padding:8px; color:#81c784;">● Live</td>
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v2.1.0</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.1</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">
