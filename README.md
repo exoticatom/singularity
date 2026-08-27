@@ -91,7 +91,10 @@ singularity follows a strict separation between firmware and configuration:
 - Control logic → automations and templates (future)
 - Logging → logbook tab
 
-**Rule:** If a value can change without touching hardware, it belongs in HA, not ESP32.
+**Process automation — planned: Node-RED**
+Complex brewing process automation (mash schedules, PID control, step sequences) is planned via Node-RED, which can be installed directly as a Home Assistant add-on. Node-RED sits between HA and the ESP32 — reading sensor entities and controlling SSR outputs without reflashing firmware.
+
+**Rule:** If a value can change without touching hardware, it belongs in HA or Node-RED, not ESP32.
 Reflash only when hardware changes (new sensor, new GPIO, new bus).
 
 **Data flow:**
