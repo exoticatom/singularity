@@ -263,13 +263,38 @@ Connect ESP32 via USB and open [web.esphome.io](https://web.esphome.io) in Chrom
 **Option C — OTA** *(after first flash only)*
 All subsequent updates deploy automatically via OTA on every push to `main`. No USB needed.
 
-### Step 6 — DS18B20 ROM addresses (already done)
+### Step 6 — DS18B20 ROM addresses (already done for this installation)
 
-Both DS18B20 sensors have been identified and configured:
+**Design decision:** ROM addresses are hardcoded in `esp32_singularity.yaml` rather than using auto-discovery. This ensures each sensor is permanently mapped to its physical location regardless of boot order.
+
+**Current addresses (this installation):**
 - `DS18B20-Boil`: `0x750000105cbe3528`
 - `DS18B20-HLT`: `0x3100000c31dd5a28`
 
-If you add a new DS18B20, enable DEBUG logging, reboot the ESP32, and look for `Found 1-Wire device:` in the logs.
+**If you add a new DS18B20 or replace one — how to get the ROM address:**
+
+This is a manual step. The address is unique per physical sensor and must be discovered before it can be used.
+
+**Option A — ESPHome logs with DEBUG (recommended, used in this project)**
+1. Set `logger: level: DEBUG` in `esp32_singularity.yaml`
+2. Flash and connect the ESP32
+3. Open **HA → ESPHome → singularity → Logs**
+4. Look for: `Found 1-Wire device: 0x28XXXXXXXXXXXXXX`
+5. Copy the address, add it to the config, set logger back to INFO
+
+**Option B — Remove the address field temporarily**
+Remove `address:` from the sensor config entirely. ESPHome will scan and report all found devices in the logs on boot, then warn "Please add the address to your configuration."
+
+**Option C — ESPHome CLI scan**
+```bash
+esphome run esp32_singularity.yaml
+```
+Watch the serial output on first boot — the ROM address appears in the first few seconds.
+
+**Option D — Arduino sketch**
+Flash a simple 1-Wire scanner sketch via Arduino IDE. It prints all found device addresses to the serial monitor. Useful if you have multiple sensors and want to identify them before wiring into the main board.
+
+> Note: DEBUG logging generates a lot of output. Remember to switch back to INFO once the address is captured.
 
 ---
 
