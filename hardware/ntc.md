@@ -11,6 +11,23 @@ NTC (Negative Temperature Coefficient) thermistors measure temperature via resis
 | NTC1-RIMS | RIMS outlet | A0 (ADC_Port_0) | `sensor.ntc1_rims` |
 | NTC2-MASH | Mash tun | A1 (ADC_Port_1) | `sensor.ntc2_mash` |
 
+### Sensor Used in This Installation
+
+**Kabelfühler — Durchmesser Ø5mm**
+Ordered from [sensorshop24.de](https://www.sensorshop24.de) — no longer available.
+
+| Parameter | Value |
+|---|---|
+| Article number | KP-NTC10k-2L-2.0-560-W |
+| Sensor type | NTC 10kΩ |
+| Cable material | PVC |
+| Cable length | 2m (2-wire) |
+| Probe diameter | Ø5mm |
+| Probe length | 60mm |
+| Waterproof | Yes |
+
+> If sourcing a replacement, look for any NTC 10kΩ cable probe (Kabelfühler) with similar dimensions. Recalibrate A, B, C coefficients for the new sensor using the SRS calculator.
+
 ---
 
 ## Wiring — Voltage Divider Circuit
