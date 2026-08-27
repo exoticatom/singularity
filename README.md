@@ -2,8 +2,8 @@
 
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
-[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.1-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.0.1-orange)](singularity_dashboard.yaml)
+[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.2-green)](esp32_singularity.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.0.3-orange)](singularity_dashboard.yaml)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
@@ -107,25 +107,34 @@ singularity/
 
 ## Design Philosophy
 
-**ESP32 — firmware only (reflash required for sensor/filter changes):**
+**ESP32 — the controller (firmware only; reflash required for sensor/filter changes):**
 - Reads hardware at fixed 1s interval, applies EMA filter (α=0.25)
 - Runs full Steinhart-Hart calculation for NTC sensors on-device
 - All calibration parameters (NTC S-H coefficients, DS18B20 offsets) stored on ESP32 flash
 - Parameters persist across reboots — controller works without HA after first setup
 - **After any restart mid-brew: ESP32 restores all parameters from flash and resumes immediately**
 - Publishes corrected °C values directly to HA
-- SSR states also restored from flash on reboot (RESTORE_DEFAULT_OFF)
+- SSR states restored from flash on reboot (`RESTORE_DEFAULT_OFF` → last known state)
 - Executes SSR on/off when instructed by HA or Node-RED
 
-**Home Assistant — configurable from dashboard (no reflash):**
-- All calibration parameters → Settings tab (writes to ESP32 `number` entities, saved to flash)
-- Logging → logbook tab
-- Boot parameter log viewable in ESPHome → Logs
+**PID control — runs on ESP32, configured from HA:**
+- PID runs entirely on the ESP32, not in HA templates or Node-RED
+- Setpoint, Kp, Ki, Kd and max duty cycle are `number` entities — adjustable from the Settings tab without reflash
+- All PID parameters persist to flash — a power loss mid-brew resumes with the same tuning
+- RIMS heater uses `slow_pwm` output (period: 2s) — required for SSR compatibility; SSRs cannot switch at kHz frequencies
+- Max duty cycle is a safety cap — limits heater output even at full PID demand
+- Rationale: PID on ESP32 means the controller keeps regulating temperature even if HA goes offline
+
+**Home Assistant — display and configuration only (no calculations):**
+- All calibration and PID parameters → Settings tab (writes to ESP32 `number` entities, saved to flash)
+- HA is a configuration UI, not a control layer — if HA restarts, the brew continues unaffected
+- Logging → logbook tab; reconnect automation re-pushes all 14 calibration values to ESP32 on reconnect
+- Last known firmware version stays visible on dashboard even when ESP32 is offline
 
 **Process automation — planned: Node-RED**
-Complex brewing sequences (mash schedules, PID control) planned via Node-RED installed as a HA add-on.
+Complex brewing sequences (mash schedules, step mashing, automated valve control) planned via Node-RED as a HA add-on. PID tuning and setpoint scheduling will be orchestrated from Node-RED, writing to the ESP32 `number` entities.
 
-**Rule:** If a value can change without touching hardware — it belongs in HA or Node-RED, not the firmware.
+**Rule:** Calculations and state that must survive a reboot live on the ESP32. Configuration and display live in HA. Sequences and scheduling live in Node-RED.
 
 ---
 
@@ -281,6 +290,7 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 | 2026-08-25 | CI/CD: Tailscale + rsync to HAOS — all steps green |
 | 2026-08-26 | Steinhart-Hart NTC calibration configurable from dashboard |
 | 2026-08-26 | Hardware documentation folder with 9 pages |
+| 2026-08-26 | PID number entities on ESP32 (setpoint, Kp, Ki, Kd, duty cycle), slow_pwm RIMS heater, reconnect automation, DS18B20 wiring schematic |
 
 ---
 

@@ -16,6 +16,7 @@
 # Outputs:
 #   SSR1 — GPIO 41 — relay output (RESTORE_DEFAULT_OFF)
 #   SSR2 — GPIO 42 — RIMS heater relay (RESTORE_DEFAULT_OFF)
+#   rims_heater_pwm — GPIO 42 — slow_pwm 2s period (future PID output)
 #
 # Design principle: After any restart (planned or mid-brew) the ESP32 restores
 #   all calibration parameters and SSR states from flash and continues operating
@@ -65,9 +66,12 @@ esphome:
             id(ntc2_offset).state);
           ESP_LOGI("singularity", "DS18B20-Boil: Offset=%.1f°C", id(ds18b20_boil_offset).state);
           ESP_LOGI("singularity", "DS18B20-HLT:  Offset=%.1f°C", id(ds18b20_hlt_offset).state);
-          ESP_LOGI("singularity", "SSR1: %s  SSR2: %s",
+          ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f  DutyCycle=%.0f%%",
+            id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
+            id(pid_kd).state, id(pid_duty_cycle).state);
+          ESP_LOGI("singularity", "SSR1: %s  RIMS-PWM: %.0f%% duty",
             id(ssr1).state ? "ON" : "OFF",
-            id(ssr2).state ? "ON" : "OFF");
+            id(pid_duty_cycle).state);
           ESP_LOGI("singularity", "=============================================");
 
 esp32:
@@ -76,8 +80,9 @@ esp32:
     type: arduino
 
 # ── Logging ────────────────────────────────────────────────────────────────────
+# INFO level — hardware bring-up complete, sensors verified.
 logger:
-  level: DEBUG
+  level: INFO
 
 # ── API & OTA ──────────────────────────────────────────────────────────────────
 api:
@@ -134,7 +139,8 @@ number:
     icon: "mdi:resistor"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 R-Fixed: %.0f Ω", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC1 R-Fixed: %.0f Ohm", x);
 
   - platform: template
     name: "NTC1 V-Ref"
@@ -148,7 +154,8 @@ number:
     unit_of_measurement: "V"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 V-Ref: %.2f V", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC1 V-Ref: %.2f V", x);
 
   - platform: template
     name: "NTC1 SH-A"
@@ -161,7 +168,8 @@ number:
     optimistic: true
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-A: %.9f", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-A: %.9f", x);
 
   - platform: template
     name: "NTC1 SH-B"
@@ -174,7 +182,8 @@ number:
     optimistic: true
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-B: %.9f", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-B: %.9f", x);
 
   - platform: template
     name: "NTC1 SH-C"
@@ -187,7 +196,8 @@ number:
     optimistic: true
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-C: %.12f", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-C: %.12f", x);
 
   - platform: template
     name: "NTC1 Offset"
@@ -202,7 +212,8 @@ number:
     icon: "mdi:thermometer-plus"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC1 Offset: %.1f °C", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC1 Offset: %.1f degC", x);
 
   # --- NTC2-MASH ---
   - platform: template
@@ -218,7 +229,8 @@ number:
     icon: "mdi:resistor"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 R-Fixed: %.0f Ω", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC2 R-Fixed: %.0f Ohm", x);
 
   - platform: template
     name: "NTC2 V-Ref"
@@ -232,7 +244,8 @@ number:
     unit_of_measurement: "V"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 V-Ref: %.2f V", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC2 V-Ref: %.2f V", x);
 
   - platform: template
     name: "NTC2 SH-A"
@@ -245,7 +258,8 @@ number:
     optimistic: true
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-A: %.9f", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-A: %.9f", x);
 
   - platform: template
     name: "NTC2 SH-B"
@@ -258,7 +272,8 @@ number:
     optimistic: true
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-B: %.9f", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-B: %.9f", x);
 
   - platform: template
     name: "NTC2 SH-C"
@@ -271,7 +286,8 @@ number:
     optimistic: true
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-C: %.12f", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-C: %.12f", x);
 
   - platform: template
     name: "NTC2 Offset"
@@ -286,7 +302,8 @@ number:
     icon: "mdi:thermometer-plus"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — NTC2 Offset: %.1f °C", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — NTC2 Offset: %.1f degC", x);
 
   # --- DS18B20-Boil offset ---
   - platform: template
@@ -302,7 +319,8 @@ number:
     icon: "mdi:thermometer-plus"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — DS18B20-Boil Offset: %.1f °C", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — DS18B20-Boil Offset: %.1f degC", x);
 
   # --- DS18B20-HLT offset ---
   - platform: template
@@ -318,7 +336,91 @@ number:
     icon: "mdi:thermometer-plus"
     on_value:
       then:
-        - lambda: ESP_LOGI("singularity", "FLASH SAVED — DS18B20-HLT Offset: %.1f °C", x);
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — DS18B20-HLT Offset: %.1f degC", x);
+
+  # ── PID Control Parameters ────────────────────────────────────────────────
+  # Groundwork for future PID RIMS heater control.
+  # All values persist to flash — controller resumes with last known PID state
+  # after any reboot, even without HA available.
+  # These entities are inactive until the PID climate component is added.
+
+  - platform: template
+    name: "PID Setpoint"
+    id: pid_setpoint
+    min_value: 0
+    max_value: 100
+    step: 0.5
+    restore_value: true
+    initial_value: 66.0
+    optimistic: true
+    unit_of_measurement: "°C"
+    icon: "mdi:target"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — PID Setpoint: %.1f degC", x);
+
+  - platform: template
+    name: "PID Kp"
+    id: pid_kp
+    min_value: 0
+    max_value: 100
+    step: 0.01
+    restore_value: true
+    initial_value: 2.0
+    optimistic: true
+    icon: "mdi:alpha-p-circle"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — PID Kp: %.2f", x);
+
+  - platform: template
+    name: "PID Ki"
+    id: pid_ki
+    min_value: 0
+    max_value: 10
+    step: 0.001
+    restore_value: true
+    initial_value: 0.005
+    optimistic: true
+    icon: "mdi:alpha-i-circle"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — PID Ki: %.4f", x);
+
+  - platform: template
+    name: "PID Kd"
+    id: pid_kd
+    min_value: 0
+    max_value: 100
+    step: 0.01
+    restore_value: true
+    initial_value: 2.0
+    optimistic: true
+    icon: "mdi:alpha-d-circle"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — PID Kd: %.2f", x);
+
+  - platform: template
+    name: "PID Duty Cycle"
+    id: pid_duty_cycle
+    min_value: 0
+    max_value: 100
+    step: 1
+    restore_value: true
+    initial_value: 50
+    optimistic: true
+    unit_of_measurement: "%"
+    icon: "mdi:percent"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — PID Duty Cycle: %.0f%%", x);
 
 # ── Sensors ───────────────────────────────────────────────────────────────────
 sensor:
@@ -427,21 +529,27 @@ binary_sensor:
     name: "ESP32 Status"
     id: esp32_status
 
+# ── PWM Output for RIMS Heater ────────────────────────────────────────────────
+# Time-proportional PWM for SSR2 (RIMS heater).
+# Period 2s: at 60% duty → SSR ON 1.2s, OFF 0.8s.
+# This output will be driven by the PID climate component when implemented.
+# Currently inactive — SSR2 is still controlled as a direct switch below.
+output:
+  - platform: slow_pwm
+    pin: GPIO42
+    id: rims_heater_pwm
+    period: 2s
+
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
 # RESTORE_DEFAULT_OFF: first boot = OFF, subsequent reboots = restore last state
+# SSR2 (RIMS heater, GPIO42) is driven exclusively via rims_heater_pwm (slow_pwm).
+# Manual on/off: set duty cycle to 100% or 0% via the PID duty cycle number entity.
 switch:
   - platform: gpio
     pin: GPIO41
     name: "SSR1"
     id: ssr1
     icon: "mdi:electric-switch"
-    restore_mode: RESTORE_DEFAULT_OFF
-
-  - platform: gpio
-    pin: GPIO42
-    name: "SSR2"
-    id: ssr2
-    icon: "mdi:fire"
     restore_mode: RESTORE_DEFAULT_OFF
 
 # ── Dallas (1-Wire) Bus ────────────────────────────────────────────────────────

@@ -111,6 +111,7 @@ views:
         hours_to_show: 24
         entities:
           - binary_sensor.singularity_esp32_status
+          - sensor.singularity_firmware_version_display
 
       - type: history-graph
         title: SSR Activity
@@ -212,6 +213,29 @@ views:
           - entity: number.singularity_ntc2_offset
             name: Offset (°C)
             icon: mdi:thermometer-plus
+
+      # PID parameters — groundwork for RIMS heater PID control
+      - type: entities
+        title: PID — RIMS Heater Control
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "⚠️ PID not yet active — values stored on ESP32 flash for future use"
+          - entity: number.singularity_pid_setpoint
+            name: Setpoint (°C)
+            icon: mdi:target
+          - entity: number.singularity_pid_kp
+            name: Kp — Proportional
+            icon: mdi:alpha-p-circle
+          - entity: number.singularity_pid_ki
+            name: Ki — Integral
+            icon: mdi:alpha-i-circle
+          - entity: number.singularity_pid_kd
+            name: Kd — Derivative
+            icon: mdi:alpha-d-circle
+          - entity: number.singularity_pid_duty_cycle
+            name: Max Duty Cycle (%)
+            icon: mdi:percent
 
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
