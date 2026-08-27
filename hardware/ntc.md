@@ -13,18 +13,24 @@ NTC (Negative Temperature Coefficient) thermistors measure temperature via resis
 
 ### Sensor Used in This Installation
 
-**Kabelfühler — Durchmesser Ø5mm**
-Ordered from [sensorshop24.de](https://www.sensorshop24.de) — no longer available.
+**Kabelfühler — Durchmesser Ø5mm** — Made in Germany
 
 | Parameter | Value |
 |---|---|
 | Article number | KP-NTC10k-2L-2.0-560-W |
 | Sensor type | NTC 10kΩ |
-| Cable material | PVC |
+| Cable material | PVC (also available in Silikon) |
 | Cable length | 2m (2-wire) |
 | Probe diameter | Ø5mm |
 | Probe length | 60mm |
-| Waterproof | Yes |
+| Waterproof | Yes (IP67 optional) |
+| Max temperature | 180°C |
+
+**Where to order:**
+- 🔗 [sensorshop24.de — Kabelfühler Ø5mm](https://www.sensorshop24.de/temperaturfuehler-passiv/kabelfuehler-durchmesser-5mm) — currently available
+- The previously ordered article (`KP-NTC10k-2L-2.0-560-W`) is no longer listed but equivalent sensors are available
+
+**Probe diameter options:** 4mm, 5mm, 6mm etc — all electrically identical, choice depends on physical installation requirements.
 
 > If sourcing a replacement, look for any NTC 10kΩ cable probe (Kabelfühler) with similar dimensions. Recalibrate A, B, C coefficients for the new sensor using the SRS calculator.
 
