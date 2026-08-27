@@ -281,3 +281,9 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 | 2026-08-25 | CI/CD: Tailscale + rsync to HAOS — all steps green |
 | 2026-08-26 | Steinhart-Hart NTC calibration configurable from dashboard |
 | 2026-08-26 | Hardware documentation folder with 9 pages |
+
+---
+
+<div align="center">
+  <img src="assets/Vitamin-Bv.0.1.png" alt="Vitamin B" width="200"/>
+</div>
