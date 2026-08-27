@@ -166,3 +166,40 @@ This prevents garbage readings from being recorded when sensors are disconnected
 - Use twisted pair cable for runs longer than 30cm
 - Keep cable away from mains wiring and SSR outputs
 - Maximum recommended cable length: 2m (beyond this consider shielded cable)
+
+---
+
+## Database Overflow Prevention
+
+NTC sensors update every 1 second. Without filtering this generates ~86,400 state changes per sensor per day — multiplied across brew sessions this grows the HA database significantly.
+
+### What singularity does to prevent this
+
+**1. Delta filter in ESP32 firmware**
+The raw voltage is only sent to HA when it changes by more than **0.1V**. During stable temperature phases (most of a brew session) the sensor value barely moves — so very few state changes are actually recorded.
+
+```yaml
+filters:
+  - exponential_moving_average:
+      alpha: 0.25
+      send_every: 1
+  - delta: 0.1    # only send if voltage changed by >0.1V
+```
+
+**2. RAW sensors excluded from HA recorder**
+`sensor.singularity_ntc1_rims_raw` and `sensor.singularity_ntc2_mash_raw` are excluded from the HA database entirely. They are internal processing values only — no history is stored for them.
+
+```yaml
+# in configuration.yaml on the Pi
+recorder:
+  exclude:
+    entities:
+      - sensor.singularity_ntc1_rims_raw
+      - sensor.singularity_ntc2_mash_raw
+```
+
+**3. Corrected sensors are what gets recorded**
+`sensor.ntc1_rims` and `sensor.ntc2_mash` (the S-H corrected values) are recorded normally. These change infrequently thanks to the delta filter upstream, so database growth is minimal.
+
+**4. Out-of-range values return `none`**
+When a sensor is disconnected (between brew sessions) the template returns `none` instead of garbage values. `none` states are not recorded by HA, so disconnected sensors don't pollute the database either.
