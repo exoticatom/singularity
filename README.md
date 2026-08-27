@@ -1,6 +1,7 @@
 # singularity
 
-[![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](gpio_map.md)
+[![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
+[![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
 [![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.9.1-green)](esp32_singularity.yaml)
 [![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.5.2-orange)](singularity_dashboard.yaml)
 
@@ -35,9 +36,7 @@ Tailscale VPN tunnel.
 
 ### Pinout Reference
 
-![ESP32-S3-DEV-KIT-NXRX pinout](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8.jpg)
-
-![ESP32-S3-DEV-KIT-NXRX board](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
+See [hardware/esp32.md](hardware/esp32.md) for board overview, pinout diagrams and full wiring summary.
 
 ### Wiring Summary
 
@@ -57,10 +56,15 @@ See `gpio_map.md` for the full pin rules, reserved GPIO list, and secrets refere
 singularity/
 ├── esp32_singularity.yaml        # ESPHome firmware configuration
 ├── singularity_dashboard.yaml    # Home Assistant Lovelace dashboard (auto-deployed)
-├── gpio_map.md                   # ESP32-S3 GPIO map, bus assignments, secrets reference
 ├── assets/                       # Hardware reference images
-│   ├── ESP32-S3-Devkit-n16r8.jpg
-│   └── ESP32-S3-Devkit-n16r8_2.jpg
+├── hardware/                     # Hardware documentation
+│   ├── README.md                 # Hardware index page
+│   ├── gpio_map.md               # ESP32-S3 GPIO pin rules and bus assignments
+│   ├── ntc.md                    # NTC thermistor wiring and S-H calibration
+│   ├── ds18b20.md                # DS18B20 wiring and ROM address discovery
+│   ├── expansion_boards.md       # I2C boards, pull-up rules, address map
+│   ├── sm6004.md                 # SM6004 magnetic flow sensor
+│   └── yf_s200.md                # YF-S200 pulse flow sensor
 ├── .gitignore                    # Excludes secrets.yaml and build artifacts
 └── .github/
     └── workflows/
@@ -305,18 +309,12 @@ Flash a simple 1-Wire scanner sketch via Arduino IDE. It prints all found device
 | ADS1115 #2 (0x49) — SM6004 flow meters × 2 | Planned |
 | MCP4728 #1 (0x60) — DAC proportional valve control | Planned |
 | MCP4728 #2 (0x61) — DAC expansion outputs | Planned |
+| MCP23017 — GPIO expander for relay outputs | Planned |
+| YF-S200 pulse flow sensors | Planned |
 | Dynamic port assignment via HA helpers + templates | Future |
+| SSR automation logic (RIMS PID) | Future |
 
----
-
-## Open Items
-
-| # | Item | Status |
-|---|---|---|
-| 1 | DS18B20 ROM addresses | ✅ Boil: `0x750000105cbe3528`, HLT: `0x3100000c31dd5a28` |
-| 2 | NTC calibration (Beta, R values) | Using 10 kΩ / B=3950 defaults — verify with reference thermometer |
-| 3 | ADS1115 #2 + flow meters | Pending hardware |
-| 4 | SSR automation logic (RIMS PID) | Pending — manual control for now |
+See [hardware/expansion_boards.md](hardware/expansion_boards.md) for I2C address map and board details.
 
 ---
 
@@ -328,5 +326,5 @@ Flash a simple 1-Wire scanner sketch via Arduino IDE. It prints all found device
 | 2026-08-25 | Secrets aligned to `singularity_` prefix convention |
 | 2026-08-25 | CI/CD: Tailscale integration, rsync on HAOS Alpine — all steps green |
 | 2026-08-25 | Dashboard: auto-deploy to `/config/`, lovelace entry in configuration.yaml |
-| 2026-08-25 | Hardware tab added to dashboard with pinout images from GitHub |
-| 2026-08-25 | Repo made public to enable raw image URLs in Lovelace dashboard |
+| 2026-08-26 | Steinhart-Hart NTC calibration configurable from dashboard |
+| 2026-08-26 | Hardware documentation folder created |
