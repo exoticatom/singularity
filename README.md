@@ -112,19 +112,15 @@ sensor.*              ← corrected entities used for display and automation
 
 ---
 
-The singularity dashboard has four tabs:
+The singularity dashboard has five tabs and is automatically deployed to the Pi on every push to `main`. No manual pasting required.
 
-**Brewing Temperatures** — live corrected sensor readings, SSR controls, brewing graph
-
-**Log** — SSR on/off activity log (24h) with purge button
-
-**Settings** — per-sensor calibration offset controls, RAW vs Corrected comparison
-
-**Hardware** — ESP32-S3 pinout diagrams, pin assignment table, I2C device map
-
-The dashboard is automatically deployed to the Pi on every push to `main` and
-loaded by HA via the `lovelace.dashboards.singularity-brewing` entry in
-`/config/configuration.yaml`. No manual pasting required.
+| Tab | Icon | Description |
+|---|---|---|
+| **Brewing Temperatures** | 🌡️ | Online/offline status banner, corrected sensor readings, SSR controls, brewing history graph |
+| **Log** | 📋 | ESP32 connectivity log, SSR activity graph (24h) |
+| **Settings** | ⚙️ | NTC Steinhart-Hart calibration (R, V-ref, A, B, C), temperature offsets, RAW vs Corrected comparison |
+| **About** | ℹ️ | System versions table (ESP32 firmware, dashboard, HA templates, helpers), project info |
+| **Hardware** | 🔲 | ESP32-S3 pinout images, pin assignment table, I2C device map |
 
 ---
 
