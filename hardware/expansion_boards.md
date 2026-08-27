@@ -123,6 +123,10 @@ The MCP4728 address is stored in internal EEPROM and cannot be changed with resi
 
 ## MCP23017 — 16-bit GPIO Expander
 
+![MCP23017 IO Expansion Board](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP23017-1.png)
+
+![MCP23017 pinout](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP23017-2.jpg)
+
 Adds 16 additional GPIO pins via I2C. Planned for relay outputs, button inputs, LED indicators.
 
 | Parameter | Value |
