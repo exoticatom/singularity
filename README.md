@@ -1,11 +1,21 @@
-# singularity
+# singularity — Vitamin B Brewing Controller
 
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
 [![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.9.1-green)](esp32_singularity.yaml)
 [![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.5.2-orange)](singularity_dashboard.yaml)
 
-> Just a heads-up: I'm not a pro dev. I just have a lot of hands-on experience tinkering with microcontrollers and Home Assistant. This project reflects that—it's practical, functional, and gets the job done.
+> Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
+
+---
+
+## About the Author
+
+**Mihajlo** — A/V enthusiast, vintage electronics restorer, FPGA tinkerer, home automation obsessive, mountain biker, and brewer. Several Swiss competition wins, mostly for Belgian styles. Brewing since 2012 (started way too late).
+
+Restores Amigas and ZX Spectrums. Automates everything. Brews the rest.
+
+> Just a heads-up: I'm not a pro dev. I just have a lot of hands-on experience tinkering with microcontrollers and Home Assistant. This project reflects that — it's practical, functional, and gets the job done.
 
 ---
 
