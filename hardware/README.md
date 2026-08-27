@@ -9,10 +9,12 @@ This folder contains all hardware-related documentation for the singularity brew
 | Page | Description |
 |---|---|
 | [ESP32-S3-DEV-KIT-NXRX](esp32.md) | Board overview, pinout diagrams, wiring summary |
+| [ESP32-S3 Expansion Board](esp32_expansion_board.md) | Screw terminal breakout adapter for all 44 pins |
 | [GPIO Map](gpio_map.md) | ESP32-S3 pin rules, bus assignments, reserved pins, sensor pin map |
 | [NTC Thermistors](ntc.md) | Wiring, voltage divider circuit, Steinhart-Hart calibration |
 | [DS18B20](ds18b20.md) | 1-Wire digital temperature sensor — wiring and ROM address discovery |
 | [Expansion Boards](expansion_boards.md) | I2C boards (ADS1115, MCP4728, MCP23017), pull-up rules, address map |
+| [Current to Voltage Module](current_to_voltage.md) | 4-20mA → 0-3.3V converter for SM6004 and other industrial sensors |
 | [SM6004 Flow Sensor](sm6004.md) | IFM magnetic-inductive flow meter — 4-20mA wiring via converter module |
 | [YF-S200 Flow Sensor](yf_s200.md) | Hall effect pulse flow sensor — 5V supply, GPIO wiring options |
 
