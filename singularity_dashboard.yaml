@@ -228,6 +228,8 @@ views:
       - type: markdown
         title: singularity — About
         content: |
+          ![Vitamin B](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/Vitamin-Bv.0.1.png)
+
           **singularity** is an ESP32-S3 based brewing controller integrated with Home Assistant.
 
           **Repository:** [github.com/exoticatom/singularity](https://github.com/exoticatom/singularity)
