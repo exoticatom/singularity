@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v2.0.0
+# singularity_dashboard.yaml  v2.1.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -13,6 +13,7 @@
 #   v1.5.0 — NTC Steinhart-Hart calibration cards in Settings tab
 #   v2.0.0 — NTC S-H moved to ESP32 firmware; Settings tab uses number entities;
 #             removed RAW vs Corrected card (no longer applicable); updated About tab
+#   v2.1.0 — DS18B20 offsets moved to ESP32 flash; on_boot parameter logging
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -126,17 +127,17 @@ views:
     icon: mdi:tune
     cards:
 
-      # DS18B20 offsets — HA input_number helpers
+      # DS18B20 offsets — now on ESP32 flash
       - type: entities
         title: DS18B20 Offsets
         show_header_toggle: false
         entities:
           - type: section
-            label: "Corrected = sensor + offset. Range: −10 to +10 °C"
-          - entity: input_number.singularity_offset_ds18b20_boil
+            label: "Applied on ESP32 — persisted to flash"
+          - entity: number.singularity_ds18b20_boil_offset
             name: DS18B20-Boil Offset
             icon: mdi:thermometer-plus
-          - entity: input_number.singularity_offset_ds18b20_hlt
+          - entity: number.singularity_ds18b20_hlt_offset
             name: DS18B20-HLT Offset
             icon: mdi:thermometer-plus
 
@@ -214,7 +215,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v2.0.0</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v2.1.0</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">

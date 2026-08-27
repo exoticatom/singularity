@@ -2,8 +2,8 @@
 
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
-[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v2.0.0-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v2.0.0-orange)](singularity_dashboard.yaml)
+[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v2.1.0-green)](esp32_singularity.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v2.1.0-orange)](singularity_dashboard.yaml)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
@@ -110,15 +110,17 @@ singularity/
 **ESP32 — firmware only (reflash required for sensor/filter changes):**
 - Reads hardware at fixed 1s interval, applies EMA filter (α=0.25)
 - Runs full Steinhart-Hart calculation for NTC sensors on-device
-- NTC calibration parameters (R_fixed, V-Ref, A, B, C, Offset) stored on ESP32 flash
+- All calibration parameters (NTC S-H coefficients, DS18B20 offsets) stored on ESP32 flash
 - Parameters persist across reboots — controller works without HA after first setup
+- **After any restart mid-brew: ESP32 restores all parameters from flash and resumes immediately**
 - Publishes corrected °C values directly to HA
-- Executes SSR on/off when instructed by HA
+- SSR states also restored from flash on reboot (RESTORE_DEFAULT_OFF)
+- Executes SSR on/off when instructed by HA or Node-RED
 
 **Home Assistant — configurable from dashboard (no reflash):**
-- NTC S-H parameters → Settings tab (writes to ESP32 `number` entities, saved to flash)
-- DS18B20 temperature offsets → Settings tab (HA `input_number` helpers)
+- All calibration parameters → Settings tab (writes to ESP32 `number` entities, saved to flash)
 - Logging → logbook tab
+- Boot parameter log viewable in ESPHome → Logs
 
 **Process automation — planned: Node-RED**
 Complex brewing sequences (mash schedules, PID control) planned via Node-RED installed as a HA add-on.
