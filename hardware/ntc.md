@@ -108,18 +108,37 @@ The best way is to use the **SRS NTC Thermistor Calculator**:
 
 **Step-by-step procedure:**
 
-1. **Measure R at 3 known temperatures** — use an ice bath (0°C), room temp (~20°C), and boiling water (100°C) as reference points. Measure the NTC resistance at each temperature with a multimeter.
+1. **Measure your fixed resistor (R_fixed) with a multimeter**
+   This is critical — never use the nominal value. Measure the actual resistance of the fixed resistor before soldering it in. Enter this exact value in the **R-Fixed (Ω)** field in the Settings tab.
 
-2. **Enter the 3 data points** into the calculator:
+2. **Measure NTC resistance at 3 known temperatures**
+   Use an ice bath (0°C), room temperature (~20°C), and boiling water (100°C) as reference points. Measure the NTC resistance at each temperature with a multimeter.
+
+3. **Enter the 3 data points** into the SRS calculator:
    - T1, R1 (e.g. 0°C = 27,280Ω)
    - T2, R2 (e.g. 20°C = 12,090Ω)
    - T3, R3 (e.g. 100°C = 973Ω)
 
-3. **Click Calculate** — the tool outputs A, B, C coefficients.
+4. **Click Calculate** — the tool outputs A, B, C coefficients.
 
-4. **Enter the coefficients** into the Settings tab on the singularity dashboard — no reflash needed.
+5. **Enter all values into the singularity dashboard → Settings tab:**
 
-5. **Verify** — measure temperature at a known reference point and compare against the displayed corrected value. Adjust the offset if needed.
+   The Settings tab shows the calibration card for each NTC:
+
+   ```
+   NTC1-RIMS — Steinhart-Hart Calibration
+   R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³
+
+   R-Fixed (Ω)    → measured resistor value (e.g. 9883)
+   V-Ref (V)      → 3.3
+   Coefficient A  → from calculator (e.g. 0.001207071588)
+   Coefficient B  → from calculator (e.g. 0.0002183328996)
+   Coefficient C  → from calculator (e.g. 1.764463641e-7)
+   ```
+
+   No reflash needed — values update live in HA.
+
+6. **Verify** by comparing the displayed corrected temperature against a reference thermometer. Fine-tune using the **Offset (°C)** field if needed.
 
 > **Tip:** The more spread out your calibration points are, the more accurate the coefficients. Ice bath + boiling water gives the best range for brewing temperatures.
 
