@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.0.2
+# singularity_dashboard.yaml  v1.0.3
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -141,6 +141,12 @@ views:
 
           You can adjust offsets and S-H coefficients in real-time during a brew by comparing against a reference thermometer — no reflash needed.
 
+          **If ESP32 is offline when you change a value:**
+          - HA stores the new value optimistically (displayed immediately)
+          - When ESP32 comes back online, HA automatically re-sends all values within ~3 seconds
+          - ESP32 saves them to flash and applies them
+          - No action needed — changes are never lost
+
       # DS18B20 offsets — now on ESP32 flash
       - type: entities
         title: DS18B20 Offsets
@@ -229,7 +235,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.2</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.3</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">
