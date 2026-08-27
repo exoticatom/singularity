@@ -102,7 +102,26 @@ Where:
 
 ### How to Get Your S-H Coefficients
 
-Use the [Thermistor Calculator](http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalcInst/NTCcalculator.htm) or your NTC datasheet to derive A, B, C from three temperature/resistance measurement points.
+The best way is to use the **SRS NTC Thermistor Calculator**:
+
+🔗 [https://www.thinksrs.com/downloads/programs/therm%20calc/ntccalibrator/ntccalculator.html](https://www.thinksrs.com/downloads/programs/therm%20calc/ntccalibrator/ntccalculator.html)
+
+**Step-by-step procedure:**
+
+1. **Measure R at 3 known temperatures** — use an ice bath (0°C), room temp (~20°C), and boiling water (100°C) as reference points. Measure the NTC resistance at each temperature with a multimeter.
+
+2. **Enter the 3 data points** into the calculator:
+   - T1, R1 (e.g. 0°C = 27,280Ω)
+   - T2, R2 (e.g. 20°C = 12,090Ω)
+   - T3, R3 (e.g. 100°C = 973Ω)
+
+3. **Click Calculate** — the tool outputs A, B, C coefficients.
+
+4. **Enter the coefficients** into the Settings tab on the singularity dashboard — no reflash needed.
+
+5. **Verify** — measure temperature at a known reference point and compare against the displayed corrected value. Adjust the offset if needed.
+
+> **Tip:** The more spread out your calibration points are, the more accurate the coefficients. Ice bath + boiling water gives the best range for brewing temperatures.
 
 ### Safety Checks
 
