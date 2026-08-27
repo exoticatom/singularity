@@ -56,6 +56,8 @@ If signal quality issues occur with long wires, drop back to 100kHz.
 
 ## ADS1115 — 16-bit ADC
 
+![ADS1115 module](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ADS1115.jpg)
+
 Used for NTC thermistors and flow meter analog inputs (via 4-20mA converter modules).
 
 | Parameter | Value |
