@@ -56,7 +56,7 @@ If signal quality issues occur with long wires, drop back to 100kHz.
 
 ## ADS1115 — 16-bit ADC
 
-![ADS1115 module](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ADS1115.jpg)
+<img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ADS1115.jpg" width="50%"/>
 
 > 🔗 [Texas Instruments ADS1115 Product Page](https://www.ti.com/product/ADS1115) | [Adafruit Breakout Guide](https://learn.adafruit.com/adafruit-4-channel-adc-breakouts)
 
@@ -123,7 +123,7 @@ Used for NTC thermistors and flow meter analog inputs (via 4-20mA converter modu
 
 ## MCP4728 — 12-bit Quad DAC
 
-![MCP4728 module](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP4728-1.jpg)
+<img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP4728-1.jpg" width="50%"/>
 
 > 🔗 [AliExpress — MCP4728 I2C DAC Module](https://de.aliexpress.com/item/1005012505445193.html) | [Microchip Datasheet](https://www.mouser.com/datasheet/2/268/22187E-12972.pdf)
 
@@ -177,9 +177,9 @@ The MCP4728 address is stored in internal EEPROM — **cannot be changed with re
 
 ## MCP23017 — 16-bit GPIO Expander
 
-![MCP23017 IO Expansion Board](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP23017-1.png)
+<img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP23017-1.png" width="50%"/>
 
-![MCP23017 pinout](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP23017-2.jpg)
+<img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP23017-2.jpg" width="50%"/>
 
 Adds 16 additional GPIO pins via I2C. Planned for relay outputs, button inputs, LED indicators.
 
