@@ -215,13 +215,15 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 
 ## Planned Expansions
 
+> 📖 See **[hardware/ →](hardware/README.md)** for full hardware documentation including wiring, calibration and datasheets.
+
 | Item | Status |
 |---|---|
 | ADS1115 #2 + SM6004 flow meters × 2 | Planned |
 | MCP4728 × 2 — DAC for proportional valve | Planned |
 | MCP23017 — GPIO expander | Planned |
 | YF-S200 pulse flow sensors | Planned |
-| Node-RED process automation (PID, mash schedules) | Future |
+| Node-RED — process automation (PID, mash schedules, step sequences) | Future |
 
 ---
 
