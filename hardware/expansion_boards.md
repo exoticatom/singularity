@@ -2,6 +2,13 @@
 
 All expansion boards communicate over the I2C bus on GPIO 21 (SDA) and GPIO 47 (SCL).
 
+## Boards
+
+- [I2C Bus — General Rules](#i2c-bus--general-rules)
+- [ADS1115 — 16-bit ADC](#ads1115--16-bit-adc)
+- [MCP4728 — 12-bit Quad DAC](#mcp4728--12-bit-quad-dac)
+- [MCP23017 — 16-bit GPIO Expander](#mcp23017--16-bit-gpio-expander)
+
 ---
 
 ## I2C Bus — General Rules
