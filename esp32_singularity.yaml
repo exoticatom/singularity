@@ -3,38 +3,35 @@
 # Project: singularity
 # Purpose: ESPHome base node configuration for the ESP32-S3-DevKitC-1 brewing
 #          controller. Defines the I2C bus, ADS1115 ADC, two NTC thermistors
-#          (NTC1-RIMS and NTC2-MASH) read from the ADS1115, a Dallas
-#          1-Wire bus with two DS18B20 digital temperature sensors,
-#          and an SSR relay output for the RIMS heater.
+#          (NTC1-RIMS and NTC2-MASH) with full Steinhart-Hart calculation on
+#          the ESP32, a Dallas 1-Wire bus with two DS18B20 digital temperature
+#          sensors, and SSR relay outputs.
 #
 # Sensors:
-#   NTC1-RIMS-RAW   — ADS1115 A0 — raw ADC voltage (V) — S-H calc in HA
-#   NTC2-MASH-RAW   — ADS1115 A1 — raw ADC voltage (V) — S-H calc in HA
-#   DS18B20-Boil-RAW — 1-Wire GPIO 48 — Boil kettle (ROM: 0x750000105cbe3528)
-#   DS18B20-HLT-RAW  — 1-Wire GPIO 48 — Hot Liquor Tank (ROM: 0x3100000c31dd5a28)
-#
-# Corrected sensors (with offset applied) are defined in singularity_templates.yaml on the Pi.
+#   NTC1-RIMS    — ADS1115 A0 — S-H calc on ESP32, params from HA (persisted to flash)
+#   NTC2-MASH    — ADS1115 A1 — S-H calc on ESP32, params from HA (persisted to flash)
+#   DS18B20-Boil — 1-Wire GPIO 48 — Boil kettle (ROM: 0x750000105cbe3528)
+#   DS18B20-HLT  — 1-Wire GPIO 48 — Hot Liquor Tank (ROM: 0x3100000c31dd5a28)
 #
 # Outputs:
 #   SSR1 — GPIO 41 — relay output
-#   SSR2 — GPIO 42 — relay output
+#   SSR2 — GPIO 42 — RIMS heater relay
 #
-# Note: DS18B20 ROM addresses above are specific to this hardware installation.
-#       If you replace a sensor, re-run ROM discovery to get the new address.
+# NTC calibration parameters are exposed as number entities.
+# Values persist to ESP32 flash — controller works without HA after first setup.
+# HA Settings tab is used to configure parameters, not to compute values.
 #
-# GPIO assignments (see gpio_map.md for full reference):
+# Note: DS18B20 ROM addresses are specific to this hardware installation.
+#       Re-run ROM discovery if a sensor is replaced.
+#
+# GPIO assignments (see hardware/gpio_map.md):
 #   I2C  SDA → GPIO 21 | SCL → GPIO 47
-#   1-Wire Data (DQ) → GPIO 48  (4.7 kΩ pull-up to 3.3 V required)
-#   SSR1 → GPIO 41
-#   SSR2 → GPIO 42
+#   1-Wire Data (DQ) → GPIO 48  (4.7 kΩ pull-up to 3.3V required)
+#   SSR1 → GPIO 41 | SSR2 → GPIO 42
 #
-# Polling: all sensors 1s | build version 10s
-# Filter:  NTC → Lambda + sliding avg (5) + EMA α=0.25
-#          DS18B20 → EMA α=0.25
-#
-# Design rule: ESP32 publishes _RAW values only. All calibration offsets,
-# setpoints, thresholds and control logic are configured in HA (never here).
-# Reflash only when hardware changes.
+# Polling: NTC 1s, DS18B20 1s, build version 10s
+# Filter:  NTC → S-H lambda + EMA α=0.25 (baked in)
+#          DS18B20 → EMA α=0.25 (baked in)
 #
 # Target board: ESP32-S3-DevKitC-1
 # ESPHome version: 2026.8.1
@@ -47,7 +44,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.9.1"
+    version: "2.0.0"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -55,13 +52,10 @@ esp32:
     type: arduino
 
 # ── Logging ────────────────────────────────────────────────────────────────────
-# DEBUG level kept intentionally during hardware bring-up phase.
-# Switch to INFO once all sensors are verified and stable.
 logger:
   level: DEBUG
 
 # ── API & OTA ──────────────────────────────────────────────────────────────────
-# Keys are resolved from the global secrets.yaml on the HA instance.
 api:
   encryption:
     key: !secret singularity_api_encryption_key
@@ -72,8 +66,6 @@ ota:
     password: !secret singularity_ota_password
 
 # ── Wi-Fi ──────────────────────────────────────────────────────────────────────
-# Uses singularity-specific secret keys — do NOT use the generic wifi_ssid /
-# wifi_password keys, which belong to a different network.
 wifi:
   ssid: !secret singularity_wifi_ssid
   password: !secret singularity_wifi_password
@@ -85,8 +77,6 @@ wifi:
 captive_portal:
 
 # ── I2C Bus ────────────────────────────────────────────────────────────────────
-# SDA = GPIO 21  |  SCL = GPIO 47
-# Both are in the ALLOWED / SAFE range (see gpio_map.md)
 i2c:
   sda: GPIO21
   scl: GPIO47
@@ -94,58 +84,223 @@ i2c:
   id: bus_a
 
 # ── ADS1115 — 16-bit ADC (I2C address 0x48) ───────────────────────────────────
-# ADDR pin → GND → address 0x48
-# Provides four single-ended channels; we use A0 (NTC1-RIMS) and A1 (NTC2-MASH)
 ads1115:
   - address: 0x48
     i2c_id: bus_a
     id: ads1115_0x48
     continuous_mode: true
 
-# ── NTC Thermistors (via ADS1115) ─────────────────────────────────────────────
-# Steinhart-Hart / Beta-equation calibration constants below are typical for a
-# 10 kΩ NTC (B = 3950).  Adjust per your actual sensor datasheet.
+# ── NTC Calibration Parameters ────────────────────────────────────────────────
+# All values persist to ESP32 flash (restore_value: true).
+# Initial values are factory defaults — used only on first boot.
+# HA Settings tab writes updated values which are saved to flash.
+# Controller runs autonomously even if HA is unavailable after first setup.
+number:
+  # --- NTC1-RIMS ---
+  - platform: template
+    name: "NTC1 R-Fixed"
+    id: ntc1_r_fixed
+    min_value: 1000
+    max_value: 20000
+    step: 1
+    restore_value: true
+    initial_value: 9883
+    optimistic: true
+    unit_of_measurement: "Ω"
+    icon: "mdi:resistor"
+
+  - platform: template
+    name: "NTC1 V-Ref"
+    id: ntc1_v_ref
+    min_value: 1.0
+    max_value: 5.0
+    step: 0.01
+    restore_value: true
+    initial_value: 3.3
+    optimistic: true
+    unit_of_measurement: "V"
+
+  - platform: template
+    name: "NTC1 SH-A"
+    id: ntc1_sh_a
+    min_value: 0
+    max_value: 0.01
+    step: 0.000000001
+    restore_value: true
+    initial_value: 0.001207071588
+    optimistic: true
+
+  - platform: template
+    name: "NTC1 SH-B"
+    id: ntc1_sh_b
+    min_value: 0
+    max_value: 0.01
+    step: 0.000000001
+    restore_value: true
+    initial_value: 0.0002183328996
+    optimistic: true
+
+  - platform: template
+    name: "NTC1 SH-C"
+    id: ntc1_sh_c
+    min_value: 0
+    max_value: 0.001
+    step: 0.000000001
+    restore_value: true
+    initial_value: 0.0000001764463641
+    optimistic: true
+
+  - platform: template
+    name: "NTC1 Offset"
+    id: ntc1_offset
+    min_value: -10
+    max_value: 10
+    step: 0.1
+    restore_value: true
+    initial_value: 0.0
+    optimistic: true
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer-plus"
+
+  # --- NTC2-MASH ---
+  - platform: template
+    name: "NTC2 R-Fixed"
+    id: ntc2_r_fixed
+    min_value: 1000
+    max_value: 20000
+    step: 1
+    restore_value: true
+    initial_value: 9902
+    optimistic: true
+    unit_of_measurement: "Ω"
+    icon: "mdi:resistor"
+
+  - platform: template
+    name: "NTC2 V-Ref"
+    id: ntc2_v_ref
+    min_value: 1.0
+    max_value: 5.0
+    step: 0.01
+    restore_value: true
+    initial_value: 3.3
+    optimistic: true
+    unit_of_measurement: "V"
+
+  - platform: template
+    name: "NTC2 SH-A"
+    id: ntc2_sh_a
+    min_value: 0
+    max_value: 0.01
+    step: 0.000000001
+    restore_value: true
+    initial_value: 0.001209771862
+    optimistic: true
+
+  - platform: template
+    name: "NTC2 SH-B"
+    id: ntc2_sh_b
+    min_value: 0
+    max_value: 0.01
+    step: 0.000000001
+    restore_value: true
+    initial_value: 0.0002173461562
+    optimistic: true
+
+  - platform: template
+    name: "NTC2 SH-C"
+    id: ntc2_sh_c
+    min_value: 0
+    max_value: 0.001
+    step: 0.000000001
+    restore_value: true
+    initial_value: 0.0000001848376283
+    optimistic: true
+
+  - platform: template
+    name: "NTC2 Offset"
+    id: ntc2_offset
+    min_value: -10
+    max_value: 10
+    step: 0.1
+    restore_value: true
+    initial_value: 0.0
+    optimistic: true
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer-plus"
+
+# ── Sensors ───────────────────────────────────────────────────────────────────
 sensor:
-  # --- NTC1-RIMS (Recirculating Infusion Mash System outlet temp) ---
-  # Sends raw ADC voltage. All S-H conversion done in HA template sensors.
+  # --- NTC1-RIMS ---
+  # Full Steinhart-Hart calculation on ESP32.
+  # Parameters read from number entities (persisted to flash).
+  # EMA α=0.25 baked in. Returns NAN if sensor disconnected or out of range.
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A0_GND'
     gain: 6.144
-    name: "NTC1-RIMS-RAW"
+    name: "NTC1-RIMS"
     id: ntc1_rims
-    unit_of_measurement: "V"
+    unit_of_measurement: "°C"
+    device_class: temperature
     state_class: measurement
     update_interval: 1s
     filters:
+      - lambda: |-
+          float v = x;
+          float v_ref = id(ntc1_v_ref).state;
+          float r_fixed = id(ntc1_r_fixed).state;
+          float a = id(ntc1_sh_a).state;
+          float b = id(ntc1_sh_b).state;
+          float c = id(ntc1_sh_c).state;
+          float offset = id(ntc1_offset).state;
+          if (v <= 0 || v >= v_ref) return NAN;
+          float r = r_fixed * v / (v_ref - v);
+          if (r <= 0) return NAN;
+          float lnr = log(r);
+          float inv_t = a + b * lnr + c * pow(lnr, 3);
+          float temp = (1.0f / inv_t) - 273.15f + offset;
+          if (temp < -10 || temp > 150) return NAN;
+          return temp;
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
-      - delta: 0.1
 
-  # --- NTC2-MASH (Mash tun temperature) ---
-  # Sends raw ADC voltage. All S-H conversion done in HA template sensors.
+  # --- NTC2-MASH ---
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A1_GND'
     gain: 6.144
-    name: "NTC2-MASH-RAW"
+    name: "NTC2-MASH"
     id: ntc2_mash
-    unit_of_measurement: "V"
+    unit_of_measurement: "°C"
+    device_class: temperature
     state_class: measurement
     update_interval: 1s
     filters:
+      - lambda: |-
+          float v = x;
+          float v_ref = id(ntc2_v_ref).state;
+          float r_fixed = id(ntc2_r_fixed).state;
+          float a = id(ntc2_sh_a).state;
+          float b = id(ntc2_sh_b).state;
+          float c = id(ntc2_sh_c).state;
+          float offset = id(ntc2_offset).state;
+          if (v <= 0 || v >= v_ref) return NAN;
+          float r = r_fixed * v / (v_ref - v);
+          if (r <= 0) return NAN;
+          float lnr = log(r);
+          float inv_t = a + b * lnr + c * pow(lnr, 3);
+          float temp = (1.0f / inv_t) - 273.15f + offset;
+          if (temp < -10 || temp > 150) return NAN;
+          return temp;
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
-      - delta: 0.1
 
-  # --- DS18B20 — 1-Wire digital temperature sensor (Kettle) ---
-  # Pin GPIO 48 (ALLOWED / SAFE — see gpio_map.md)
-  # Requires a 4.7 kΩ pull-up resistor between GPIO 48 and 3.3 V
+  # --- DS18B20-Boil ---
   - platform: dallas_temp
     address: 0x750000105cbe3528
-    name: "DS18B20-Boil-RAW"
+    name: "DS18B20-Boil"
     id: ds18b20_kettle
     unit_of_measurement: "°C"
     device_class: temperature
@@ -156,10 +311,10 @@ sensor:
           alpha: 0.25
           send_every: 1
 
-  # --- DS18B20 — 1-Wire digital temperature sensor (HLT) ---
+  # --- DS18B20-HLT ---
   - platform: dallas_temp
     address: 0x3100000c31dd5a28
-    name: "DS18B20-HLT-RAW"
+    name: "DS18B20-HLT"
     id: ds18b20_hlt
     unit_of_measurement: "°C"
     device_class: temperature
@@ -170,45 +325,40 @@ sensor:
           alpha: 0.25
           send_every: 1
 
-# ── Connectivity Status ───────────────────────────────────────────────────────
-# Reports ESP32 API connection state to HA independently of any sensor.
-# binary_sensor.singularity_esp32_status: on = connected, off = offline
+# ── Connectivity Status ────────────────────────────────────────────────────────
 binary_sensor:
   - platform: status
     name: "ESP32 Status"
     id: esp32_status
 
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
-# SSR1          — GPIO 41 — spare relay output
-# SSR2 RIMS Heater — GPIO 42 — controls RIMS heating element
-# Both default to OFF on boot for safety (restore_mode: ALWAYS_OFF)
+# RESTORE_DEFAULT_OFF: first boot = OFF, subsequent reboots = restore last state
 switch:
   - platform: gpio
     pin: GPIO41
     name: "SSR1"
     id: ssr1
     icon: "mdi:electric-switch"
-    restore_mode: ALWAYS_OFF
+    restore_mode: RESTORE_DEFAULT_OFF
 
   - platform: gpio
     pin: GPIO42
     name: "SSR2"
     id: ssr2
     icon: "mdi:fire"
-    restore_mode: ALWAYS_OFF
+    restore_mode: RESTORE_DEFAULT_OFF
 
 # ── Dallas (1-Wire) Bus ────────────────────────────────────────────────────────
-# Data line on GPIO 48 — 4.7 kΩ pull-up to 3.3 V required on PCB/breadboard
 one_wire:
   - platform: gpio
     pin: GPIO48
 
-# ── Build Version Text Sensor ─────────────────────────────────────────────────
+# ── Build Version ─────────────────────────────────────────────────────────────
 text_sensor:
   - platform: template
     name: "Build"
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.9.1"};
+      return {"v2.0.0"};
     update_interval: 10s
