@@ -245,19 +245,23 @@ lovelace:
 
 Then reload HA configuration (Developer Tools → YAML → Reload all).
 
-### Step 5 — First flash (USB, one time only)
+### Step 5 — First flash (USB)
 
+The first flash must be done over USB since OTA requires the device to already be running ESPHome firmware. Three options:
+
+**Option A — Local CLI** *(currently used)*
 ```bash
-# Install ESPHome via pipx
 brew install pipx
 pipx install esphome
 pipx ensurepath
-
-# Flash via USB
 esphome run esp32_singularity.yaml
 ```
 
-After the first flash all subsequent updates deploy automatically via OTA on every push to `main`.
+**Option B — ESPHome Web Flasher** *(to be reviewed once solution is in production)*
+Connect ESP32 via USB and open [web.esphome.io](https://web.esphome.io) in Chrome. No local tooling needed.
+
+**Option C — OTA** *(after first flash only)*
+All subsequent updates deploy automatically via OTA on every push to `main`. No USB needed.
 
 ### Step 6 — DS18B20 ROM addresses (already done)
 
