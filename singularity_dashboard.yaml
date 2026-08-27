@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.2
+# singularity_dashboard.yaml  v2.0.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -11,12 +11,16 @@
 #   v1.3.0 — SSR-based online/offline banner, Activity Log, Settings cleanup
 #   v1.4.0 — SSR1/SSR2 entity IDs cleaned up, Controls uses entity friendly names
 #   v1.5.0 — NTC Steinhart-Hart calibration cards in Settings tab
-#   v1.5.1 — remove disclaimer from About tab
-#   v1.5.2 — CI/CD deployment test
+#   v2.0.0 — NTC S-H moved to ESP32 firmware; Settings tab uses number entities;
+#             removed RAW vs Corrected card (no longer applicable); updated About tab
 #
-# Sensor naming convention:
-#   sensor.singularity_*_raw   — raw ESPHome readings (uncorrected, internal only)
-#   sensor.*                   — corrected values (raw + offset, use these everywhere)
+# Sensor naming convention (v2.0.0):
+#   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
+#   sensor.singularity_ntc2_mash    — corrected °C (S-H calculated on ESP32)
+#   sensor.singularity_ds18b20_boil — corrected °C (raw + offset applied in HA template)
+#   sensor.singularity_ds18b20_hlt  — corrected °C (raw + offset applied in HA template)
+#   number.singularity_ntc1_*       — NTC1 calibration params (stored on ESP32 flash)
+#   number.singularity_ntc2_*       — NTC2 calibration params (stored on ESP32 flash)
 #
 # Tabs: Brewing Temperatures | Log | Settings | About | Hardware
 
@@ -58,16 +62,16 @@ views:
         title: Temperature Sensors
         show_header_toggle: false
         entities:
-          - entity: sensor.ds18b20_boil
+          - entity: sensor.singularity_ds18b20_boil
             name: DS18B20-Boil
             icon: mdi:thermometer-lines
-          - entity: sensor.ds18b20_hlt
+          - entity: sensor.singularity_ds18b20_hlt
             name: DS18B20-HLT
             icon: mdi:thermometer-lines
-          - entity: sensor.ntc1_rims
+          - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
             icon: mdi:thermometer-water
-          - entity: sensor.ntc2_mash
+          - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
             icon: mdi:thermometer
 
@@ -81,19 +85,18 @@ views:
             icon: mdi:fire
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
-      # Shows corrected sensor values. Handles unavailable sensors gracefully.
       - type: history-graph
         title: Brewing Graphs
         hours_to_show: 1
         refresh_interval: 10
         entities:
-          - entity: sensor.ds18b20_boil
+          - entity: sensor.singularity_ds18b20_boil
             name: Boil
-          - entity: sensor.ds18b20_hlt
+          - entity: sensor.singularity_ds18b20_hlt
             name: HLT
-          - entity: sensor.ntc1_rims
+          - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
-          - entity: sensor.ntc2_mash
+          - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
 
   # ── Tab 2: Log ───────────────────────────────────────────────────────────────
@@ -123,97 +126,71 @@ views:
     icon: mdi:tune
     cards:
 
+      # DS18B20 offsets — HA input_number helpers
       - type: entities
-        title: Sensor Offsets
+        title: DS18B20 Offsets
         show_header_toggle: false
         entities:
           - type: section
-            label: "Corrected = RAW + offset. Range: −10 to +10 °C"
+            label: "Corrected = sensor + offset. Range: −10 to +10 °C"
           - entity: input_number.singularity_offset_ds18b20_boil
             name: DS18B20-Boil Offset
             icon: mdi:thermometer-plus
           - entity: input_number.singularity_offset_ds18b20_hlt
             name: DS18B20-HLT Offset
             icon: mdi:thermometer-plus
-          - entity: input_number.singularity_offset_ntc1_rims
-            name: NTC1-RIMS Offset
-            icon: mdi:thermometer-plus
-          - entity: input_number.singularity_offset_ntc2_mash
-            name: NTC2-MASH Offset
-            icon: mdi:thermometer-plus
 
+      # NTC1-RIMS calibration — ESP32 number entities (persisted to flash)
       - type: entities
         title: NTC1-RIMS — Steinhart-Hart Calibration
         show_header_toggle: false
         entities:
           - type: section
-            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³"
-          - entity: input_number.singularity_ntc1_r_fixed
+            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
+          - entity: number.singularity_ntc1_r_fixed
             name: R-Fixed (Ω)
             icon: mdi:resistor
-          - entity: input_number.singularity_ntc1_v_ref
+          - entity: number.singularity_ntc1_v_ref
             name: V-Ref (V)
             icon: mdi:sine-wave
-          - entity: input_number.singularity_ntc1_sh_a
+          - entity: number.singularity_ntc1_sh_a
             name: Coefficient A
             icon: mdi:alpha-a
-          - entity: input_number.singularity_ntc1_sh_b
+          - entity: number.singularity_ntc1_sh_b
             name: Coefficient B
             icon: mdi:alpha-b
-          - entity: input_number.singularity_ntc1_sh_c
+          - entity: number.singularity_ntc1_sh_c
             name: Coefficient C
             icon: mdi:alpha-c
+          - entity: number.singularity_ntc1_offset
+            name: Offset (°C)
+            icon: mdi:thermometer-plus
 
+      # NTC2-MASH calibration — ESP32 number entities (persisted to flash)
       - type: entities
         title: NTC2-MASH — Steinhart-Hart Calibration
         show_header_toggle: false
         entities:
           - type: section
-            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³"
-          - entity: input_number.singularity_ntc2_r_fixed
+            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
+          - entity: number.singularity_ntc2_r_fixed
             name: R-Fixed (Ω)
             icon: mdi:resistor
-          - entity: input_number.singularity_ntc2_v_ref
+          - entity: number.singularity_ntc2_v_ref
             name: V-Ref (V)
             icon: mdi:sine-wave
-          - entity: input_number.singularity_ntc2_sh_a
+          - entity: number.singularity_ntc2_sh_a
             name: Coefficient A
             icon: mdi:alpha-a
-          - entity: input_number.singularity_ntc2_sh_b
+          - entity: number.singularity_ntc2_sh_b
             name: Coefficient B
             icon: mdi:alpha-b
-          - entity: input_number.singularity_ntc2_sh_c
+          - entity: number.singularity_ntc2_sh_c
             name: Coefficient C
             icon: mdi:alpha-c
-
-      - type: entities
-        title: RAW vs Corrected
-        show_header_toggle: false
-        entities:
-          - entity: sensor.singularity_ds18b20_boil_raw
-            name: DS18B20-Boil RAW
-            icon: mdi:thermometer-alert
-          - entity: sensor.ds18b20_boil
-            name: DS18B20-Boil Corrected
-            icon: mdi:thermometer-check
-          - entity: sensor.singularity_ds18b20_hlt_raw
-            name: DS18B20-HLT RAW
-            icon: mdi:thermometer-alert
-          - entity: sensor.ds18b20_hlt
-            name: DS18B20-HLT Corrected
-            icon: mdi:thermometer-check
-          - entity: sensor.singularity_ntc1_rims_raw
-            name: NTC1-RIMS RAW
-            icon: mdi:thermometer-alert
-          - entity: sensor.ntc1_rims
-            name: NTC1-RIMS Corrected
-            icon: mdi:thermometer-check
-          - entity: sensor.singularity_ntc2_mash_raw
-            name: NTC2-MASH RAW
-            icon: mdi:thermometer-alert
-          - entity: sensor.ntc2_mash
-            name: NTC2-MASH Corrected
-            icon: mdi:thermometer-check
+          - entity: number.singularity_ntc2_offset
+            name: Offset (°C)
+            icon: mdi:thermometer-plus
 
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
@@ -237,18 +214,13 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.5.2</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v2.0.0</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">
               <td style="padding:8px; color:#e0e0e0;">🔄 HA Templates</td>
-              <td style="padding:8px; color:#ffb74d; font-weight:bold;">v1.0.0</td>
-              <td style="padding:8px; color:#ffb74d;">● On Pi</td>
-            </tr>
-            <tr style="background:#1a1a2e;">
-              <td style="padding:8px; color:#e0e0e0;">🎛️ HA Helpers</td>
-              <td style="padding:8px; color:#ffb74d; font-weight:bold;">v1.0.0</td>
-              <td style="padding:8px; color:#ffb74d;">● On Pi</td>
+              <td style="padding:8px; color:#ffb74d; font-weight:bold;">v2.0.0</td>
+              <td style="padding:8px; color:#ffb74d;">● On Pi (DS18B20 offsets only)</td>
             </tr>
           </table>
 
@@ -259,17 +231,17 @@ views:
 
           **Repository:** [github.com/exoticatom/singularity](https://github.com/exoticatom/singularity)
 
-          **Design rule:** ESP32 publishes raw sensor values only.
-          All calibration, logic and display are configured in HA — no reflash needed.
+          **Design rule:** NTC Steinhart-Hart calibration runs on ESP32 (params persisted to flash).
+          DS18B20 offsets configurable in HA Settings tab. No reflash needed for calibration changes.
 
           | Sensor | GPIO / Bus | ROM / Address |
           |---|---|---|
-          | NTC1-RIMS-RAW | ADS1115 A0 | — |
-          | NTC2-MASH-RAW | ADS1115 A1 | — |
-          | DS18B20-Boil-RAW | 1-Wire GPIO 48 | `0x750000105cbe3528` |
-          | DS18B20-HLT-RAW | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
-          | SSR1 | GPIO 41 | ALWAYS_OFF on boot |
-          | SSR2 | GPIO 42 | ALWAYS_OFF on boot |
+          | NTC1-RIMS | ADS1115 A0 | — |
+          | NTC2-MASH | ADS1115 A1 | — |
+          | DS18B20-Boil | 1-Wire GPIO 48 | `0x750000105cbe3528` |
+          | DS18B20-HLT | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
+          | SSR1 | GPIO 41 | RESTORE_DEFAULT_OFF |
+          | SSR2 | GPIO 42 | RESTORE_DEFAULT_OFF |
 
   # ── Tab 5: Hardware ──────────────────────────────────────────────────────────
   - title: Hardware

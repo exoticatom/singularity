@@ -40,7 +40,7 @@ NTC (Negative Temperature Coefficient) thermistors measure temperature via resis
 
 ## Wiring — Voltage Divider Circuit
 
-Each NTC is wired as a voltage divider with a fixed resistor. The junction voltage is read by the ADS1115 and converted to temperature using the Steinhart-Hart equation in HA.
+Each NTC is wired as a voltage divider with a fixed resistor. The junction voltage is read by the ADS1115 and converted to temperature using the Steinhart-Hart equation **in ESP32 firmware**.
 
 ```
 3.3V
@@ -161,7 +161,7 @@ The best way is to use the **SRS NTC Thermistor Calculator**:
    Coefficient C  → from calculator (e.g. 1.764463641e-7)
    ```
 
-   No reflash needed — values update live in HA.
+   Values are written to the ESP32 via `number` entities and **persisted to ESP32 flash**. The controller continues using last known values even if HA is offline.
 
 6. **Verify** by comparing the displayed corrected temperature against a reference thermometer. Fine-tune using the **Offset (°C)** field if needed.
 
@@ -179,10 +179,21 @@ This prevents garbage readings from being recorded when sensors are disconnected
 
 ## ESP32 Firmware Notes
 
-- Raw ADC voltage is sent as `sensor.singularity_ntc1_rims_raw` (unit: V)
-- EMA filter (α=0.25) applied in firmware for noise reduction
-- Delta filter (0.1V) — only sends update when voltage changes by >0.1V
-- All S-H conversion happens in HA template sensors — no hardcoded values in firmware
+As of v2.0.0, the full Steinhart-Hart calculation runs directly on the ESP32:
+
+- Raw ADC voltage is read from ADS1115 and processed entirely in firmware
+- S-H parameters are stored as `number` entities with `restore_value: true` — they persist to ESP32 flash and survive reboots
+- EMA filter (α=0.25) is baked in — applied after S-H conversion
+- Returns `NAN` (unavailable) if sensor is disconnected or temperature is outside −10°C to 150°C
+- Published entity: `sensor.singularity_ntc1_rims` and `sensor.singularity_ntc2_mash` — corrected °C directly
+
+---
+
+## Database Management
+
+NTC sensors update every 1 second. The EMA filter smooths the output so only meaningful changes are published. Out-of-range values (disconnected sensor) return `NAN` which HA does not record — so disconnected sensors between brew sessions don't pollute the database.
+
+The recorder excludes for `_RAW` entities are no longer needed since there are no raw NTC entities.
 
 ---
 
@@ -191,40 +202,3 @@ This prevents garbage readings from being recorded when sensors are disconnected
 - Use twisted pair cable for runs longer than 30cm
 - Keep cable away from mains wiring and SSR outputs
 - Maximum recommended cable length: 2m (beyond this consider shielded cable)
-
----
-
-## Database Overflow Prevention
-
-NTC sensors update every 1 second. Without filtering this generates ~86,400 state changes per sensor per day — multiplied across brew sessions this grows the HA database significantly.
-
-### What singularity does to prevent this
-
-**1. Delta filter in ESP32 firmware**
-The raw voltage is only sent to HA when it changes by more than **0.1V**. During stable temperature phases (most of a brew session) the sensor value barely moves — so very few state changes are actually recorded.
-
-```yaml
-filters:
-  - exponential_moving_average:
-      alpha: 0.25
-      send_every: 1
-  - delta: 0.1    # only send if voltage changed by >0.1V
-```
-
-**2. RAW sensors excluded from HA recorder**
-`sensor.singularity_ntc1_rims_raw` and `sensor.singularity_ntc2_mash_raw` are excluded from the HA database entirely. They are internal processing values only — no history is stored for them.
-
-```yaml
-# in configuration.yaml on the Pi
-recorder:
-  exclude:
-    entities:
-      - sensor.singularity_ntc1_rims_raw
-      - sensor.singularity_ntc2_mash_raw
-```
-
-**3. Corrected sensors are what gets recorded**
-`sensor.ntc1_rims` and `sensor.ntc2_mash` (the S-H corrected values) are recorded normally. These change infrequently thanks to the delta filter upstream, so database growth is minimal.
-
-**4. Out-of-range values return `none`**
-When a sensor is disconnected (between brew sessions) the template returns `none` instead of garbage values. `none` states are not recorded by HA, so disconnected sensors don't pollute the database either.

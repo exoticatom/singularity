@@ -2,8 +2,8 @@
 
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
-[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.9.1-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.5.2-orange)](singularity_dashboard.yaml)
+[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v2.0.0-green)](esp32_singularity.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v2.0.0-orange)](singularity_dashboard.yaml)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
@@ -39,23 +39,24 @@ The system is split into three distinct layers, each with a clear responsibility
 ┌────────────────────────▼────────────────────────────────┐
 │                  Home Assistant                         │
 │  Dashboard — display, settings, calibration, logs       │
-│  Templates — Steinhart-Hart, offsets, corrected values  │
-│  All configuration without reflashing                   │
+│  DS18B20 offset helpers — adjustable without reflash    │
+│  Templates — DS18B20 corrected values                   │
 └────────────────────────┬────────────────────────────────┘
                          │ ESPHome native API
 ┌────────────────────────▼────────────────────────────────┐
 │                    ESP32-S3                             │
-│  Reads raw sensor data (NTC, DS18B20, flow meters)      │
-│  Controls SSR relays and DAC outputs on command         │
-│  Publishes _RAW values — no logic, no calibration       │
+│  Reads NTC voltage, runs S-H calc, publishes °C         │
+│  Reads DS18B20 digital temp, publishes °C               │
+│  NTC calibration params stored on flash (persist reboot)│
+│  Controls SSR relays on command                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**ESP32** is the hardware interface only. It reads sensors and switches outputs when told to. It knows nothing about brewing.
+**ESP32** runs the NTC Steinhart-Hart calculation locally using parameters stored in flash. Even if HA is unavailable the controller continues with last known calibration values.
 
-**Home Assistant** is the configuration and display layer. Sensor calibration, offsets, and corrected values all live here — changeable from the dashboard without reflashing.
+**Home Assistant** handles DS18B20 offset correction, display and logging. NTC calibration is written to ESP32 via `number` entities which persist to flash.
 
-**Node-RED** (planned) sits on top and implements the actual brewing intelligence — step mashing, temperature ramp control, PID loops, pump sequencing, timers. It reads corrected sensor values from HA and sends SSR/DAC commands back. Node-RED is installed as a HA add-on, so everything runs on the same Raspberry Pi.
+**Node-RED** (planned) implements brewing sequences and PID control at the highest level.
 
 ---
 
@@ -106,16 +107,17 @@ singularity/
 
 ## Design Philosophy
 
-**ESP32 — firmware only (reflash required for changes):**
+**ESP32 — firmware only (reflash required for sensor/filter changes):**
 - Reads hardware at fixed 1s interval, applies EMA filter (α=0.25)
-- Publishes `_RAW` sensor values to HA
+- Runs full Steinhart-Hart calculation for NTC sensors on-device
+- NTC calibration parameters (R_fixed, V-Ref, A, B, C, Offset) stored on ESP32 flash
+- Parameters persist across reboots — controller works without HA after first setup
+- Publishes corrected °C values directly to HA
 - Executes SSR on/off when instructed by HA
-- No calibration, no thresholds, no control logic
 
-**Home Assistant — all configurable from dashboard (no reflash):**
-- Steinhart-Hart calibration coefficients → Settings tab
-- Temperature offsets → Settings tab
-- Corrected display values → template sensors
+**Home Assistant — configurable from dashboard (no reflash):**
+- NTC S-H parameters → Settings tab (writes to ESP32 `number` entities, saved to flash)
+- DS18B20 temperature offsets → Settings tab (HA `input_number` helpers)
 - Logging → logbook tab
 
 **Process automation — planned: Node-RED**
@@ -133,7 +135,7 @@ Five tabs, auto-deployed on every push to `main`:
 |---|---|
 | **Brewing Temperatures** | Online/offline banner, corrected sensor readings, SSR controls, history graph |
 | **Log** | ESP32 connectivity events, SSR activity graph (24h) |
-| **Settings** | NTC S-H calibration (R, V-ref, A, B, C), temperature offsets, RAW vs Corrected |
+| **Settings** | NTC S-H calibration on ESP32 (R, V-ref, A, B, C, Offset), DS18B20 offsets |
 | **About** | System versions (ESP32 firmware, dashboard, HA templates) |
 | **Hardware** | ESP32 pinout, pin assignment table, I2C device map |
 
