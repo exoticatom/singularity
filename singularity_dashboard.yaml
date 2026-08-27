@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.0.1
+# singularity_dashboard.yaml  v1.0.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -13,7 +13,7 @@
 #   v1.5.0 — NTC Steinhart-Hart calibration cards in Settings tab
 #   v2.0.0 — NTC S-H moved to ESP32 firmware; Settings tab uses number entities;
 #             removed RAW vs Corrected card (no longer applicable); updated About tab
-#   v2.1.0 — DS18B20 offsets moved to ESP32 flash; on_boot parameter logging
+#   v1.0.2 — add calibration description to Settings tab
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -127,6 +127,20 @@ views:
     icon: mdi:tune
     cards:
 
+      - type: markdown
+        content: |
+          ### How calibration works
+
+          All calibration values are stored on the **ESP32 flash** — they survive power cuts and reboots without needing HA.
+
+          **When you change a value here:**
+          - HA sends the new value to ESP32 instantly via the native API
+          - ESP32 saves it to flash immediately
+          - The new value takes effect on the next sensor reading (~1 second)
+          - Temperature on the dashboard updates within 1–2 seconds
+
+          You can adjust offsets and S-H coefficients in real-time during a brew by comparing against a reference thermometer — no reflash needed.
+
       # DS18B20 offsets — now on ESP32 flash
       - type: entities
         title: DS18B20 Offsets
@@ -215,7 +229,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.1</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.2</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">
