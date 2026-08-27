@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.0.3
+# singularity_dashboard.yaml  v1.0.4
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -14,6 +14,8 @@
 #   v2.0.0 — NTC S-H moved to ESP32 firmware; Settings tab uses number entities;
 #             removed RAW vs Corrected card (no longer applicable); updated About tab
 #   v1.0.2 — add calibration description to Settings tab
+#   v1.0.3 — PID parameters card in Settings tab, Activity Log includes firmware_version_display
+#   v1.0.4 — RIMS dual-mode control cards (mode select, direct duty, PID params, switch threshold)
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -214,13 +216,34 @@ views:
             name: Offset (°C)
             icon: mdi:thermometer-plus
 
-      # PID parameters — groundwork for RIMS heater PID control
+      # RIMS heater control — mode select + dual-mode parameters
       - type: entities
-        title: PID — RIMS Heater Control
+        title: RIMS Heater — Control Mode
         show_header_toggle: false
         entities:
           - type: section
-            label: "⚠️ PID not yet active — values stored on ESP32 flash for future use"
+            label: "Select mode — OFF / DIRECT (heat-up) / PID (closed-loop). Persisted to flash."
+          - entity: select.singularity_rims_mode
+            name: RIMS Mode
+            icon: mdi:toggle-switch
+          - type: section
+            label: "DIRECT mode — fixed duty cycle for fast heat-up"
+          - entity: number.singularity_rims_direct_duty_cycle
+            name: Direct Duty Cycle (%)
+            icon: mdi:fire
+          - type: section
+            label: "Auto-switch — DIRECT → PID when temp ≥ setpoint − threshold"
+          - entity: number.singularity_rims_pid_switch_threshold
+            name: Switch Threshold (°C)
+            icon: mdi:thermometer-chevron-up
+
+      # PID tuning parameters
+      - type: entities
+        title: RIMS Heater — PID Parameters
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "PID closed-loop control — ntc1_rims as feedback, output capped at max duty"
           - entity: number.singularity_pid_setpoint
             name: Setpoint (°C)
             icon: mdi:target
@@ -233,7 +256,7 @@ views:
           - entity: number.singularity_pid_kd
             name: Kd — Derivative
             icon: mdi:alpha-d-circle
-          - entity: number.singularity_pid_duty_cycle
+          - entity: number.singularity_pid_max_duty_cycle
             name: Max Duty Cycle (%)
             icon: mdi:percent
 
@@ -259,7 +282,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.3</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.4</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">

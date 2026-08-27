@@ -15,8 +15,16 @@
 #
 # Outputs:
 #   SSR1 — GPIO 41 — relay output (RESTORE_DEFAULT_OFF)
-#   SSR2 — GPIO 42 — RIMS heater relay (RESTORE_DEFAULT_OFF)
-#   rims_heater_pwm — GPIO 42 — slow_pwm 2s period (future PID output)
+#   SSR2 — GPIO 42 — RIMS heater, driven exclusively by rims_heater_pwm (slow_pwm 2s)
+#
+# RIMS Heater Control — dual-mode on GPIO 42:
+#   DIRECT mode  — fixed duty cycle (dc_duty_cycle) written directly to slow_pwm
+#   PID mode     — incremental PID using ntc1_rims as feedback, output capped at
+#                  pid_duty_cycle max. Integral resets to 0 on mode switch.
+#   Auto-switch  — while in DIRECT, if ntc1_rims >= (pid_setpoint - pid_switch_threshold)
+#                  the mode switches to PID automatically and logs the event.
+#   Mode select  — rims_mode select entity (OFF / DIRECT / PID), persisted to flash.
+#   Control loop — interval every 2s (matches slow_pwm period).
 #
 # Design principle: After any restart (planned or mid-brew) the ESP32 restores
 #   all calibration parameters and SSR states from flash and continues operating
@@ -44,13 +52,28 @@
 
 ---
 
+# ── RIMS Heater Control — PID runtime state ───────────────────────────────────
+# These globals hold the running PID state between control loop ticks.
+# They are NOT persisted to flash (no restore_value) — reset to 0 on every boot.
+# pid_integral and pid_last_error reset to 0 when switching into PID mode.
+globals:
+  - id: pid_integral
+    type: float
+    initial_value: '0.0'
+  - id: pid_last_error
+    type: float
+    initial_value: '0.0'
+  - id: pid_last_temp
+    type: float
+    initial_value: '0.0'
+
 esphome:
   name: singularity
   friendly_name: singularity
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.2"
+    version: "1.0.3"
   on_boot:
     priority: -100
     then:
@@ -66,12 +89,14 @@ esphome:
             id(ntc2_offset).state);
           ESP_LOGI("singularity", "DS18B20-Boil: Offset=%.1f°C", id(ds18b20_boil_offset).state);
           ESP_LOGI("singularity", "DS18B20-HLT:  Offset=%.1f°C", id(ds18b20_hlt_offset).state);
-          ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f  DutyCycle=%.0f%%",
+          ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f  MaxDuty=%.0f%%",
             id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
             id(pid_kd).state, id(pid_duty_cycle).state);
-          ESP_LOGI("singularity", "SSR1: %s  RIMS-PWM: %.0f%% duty",
-            id(ssr1).state ? "ON" : "OFF",
-            id(pid_duty_cycle).state);
+          ESP_LOGI("singularity", "RIMS: Mode=%s  DirectDuty=%.0f%%  SwitchThreshold=%.1f°C",
+            std::string(id(rims_mode).current_option()).c_str(),
+            id(dc_duty_cycle).state,
+            id(pid_switch_threshold).state);
+          ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "=============================================");
 
 esp32:
@@ -340,10 +365,9 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — DS18B20-HLT Offset: %.1f degC", x);
 
   # ── PID Control Parameters ────────────────────────────────────────────────
-  # Groundwork for future PID RIMS heater control.
-  # All values persist to flash — controller resumes with last known PID state
+  # RIMS heater dual-mode control: DIRECT (fixed duty) or PID (closed-loop).
+  # All values persist to flash — controller resumes with last known state
   # after any reboot, even without HA available.
-  # These entities are inactive until the PID climate component is added.
 
   - platform: template
     name: "PID Setpoint"
@@ -407,7 +431,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — PID Kd: %.2f", x);
 
   - platform: template
-    name: "PID Duty Cycle"
+    name: "PID Max Duty Cycle"
     id: pid_duty_cycle
     min_value: 0
     max_value: 100
@@ -420,7 +444,74 @@ number:
     on_value:
       then:
         - lambda: |-
-            ESP_LOGI("singularity", "FLASH SAVED — PID Duty Cycle: %.0f%%", x);
+            ESP_LOGI("singularity", "FLASH SAVED — PID Max Duty Cycle: %.0f%%", x);
+
+  # Direct duty cycle — used in DIRECT mode (full-power heat-up phase)
+  - platform: template
+    name: "RIMS Direct Duty Cycle"
+    id: dc_duty_cycle
+    min_value: 0
+    max_value: 100
+    step: 1
+    restore_value: true
+    initial_value: 80
+    optimistic: true
+    unit_of_measurement: "%"
+    icon: "mdi:fire"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — RIMS Direct Duty: %.0f%%", x);
+
+  # Auto-switch threshold — when in DIRECT mode, switches to PID when
+  # ntc1_rims >= (pid_setpoint - pid_switch_threshold)
+  - platform: template
+    name: "RIMS PID Switch Threshold"
+    id: pid_switch_threshold
+    min_value: 0.5
+    max_value: 10.0
+    step: 0.5
+    restore_value: true
+    initial_value: 1.0
+    optimistic: true
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer-chevron-up"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — RIMS Switch Threshold: %.1f degC", x);
+
+# ── RIMS Mode Select ──────────────────────────────────────────────────────────
+# Controls which logic drives rims_heater_pwm (GPIO42).
+#   OFF    — output forced to 0%, heater disabled
+#   DIRECT — fixed dc_duty_cycle written every 2s
+#   PID    — incremental PID using ntc1_rims, capped at pid_duty_cycle
+# Persisted to flash — restores last active mode on reboot.
+# Auto-switch: DIRECT → PID when ntc1_rims >= setpoint − threshold (logged).
+select:
+  - platform: template
+    name: "RIMS Mode"
+    id: rims_mode
+    options:
+      - "OFF"
+      - "DIRECT"
+      - "PID"
+    initial_option: "OFF"
+    restore_value: true
+    optimistic: true
+    icon: "mdi:toggle-switch"
+    on_value:
+      then:
+        - lambda: |-
+            // Reset PID state on every mode switch — clean handoff, no integral windup
+            id(pid_integral) = 0.0f;
+            id(pid_last_error) = 0.0f;
+            id(pid_last_temp) = id(ntc1_rims).state;
+            ESP_LOGI("singularity", "RIMS MODE → %s  (PID integral reset)", x.c_str());
+            if (x == "OFF") {
+              id(rims_heater_pwm).set_level(0.0f);
+              ESP_LOGI("singularity", "RIMS HEATER OFF");
+            }
 
 # ── Sensors ───────────────────────────────────────────────────────────────────
 sensor:
@@ -530,20 +621,100 @@ binary_sensor:
     id: esp32_status
 
 # ── PWM Output for RIMS Heater ────────────────────────────────────────────────
-# Time-proportional PWM for SSR2 (RIMS heater).
-# Period 2s: at 60% duty → SSR ON 1.2s, OFF 0.8s.
-# This output will be driven by the PID climate component when implemented.
-# Currently inactive — SSR2 is still controlled as a direct switch below.
+# GPIO42 owned exclusively by rims_heater_pwm. No gpio switch on this pin.
+# Duty is written by the interval control loop below — never directly.
 output:
   - platform: slow_pwm
     pin: GPIO42
     id: rims_heater_pwm
     period: 2s
 
+# ── RIMS Heater Control Loop ──────────────────────────────────────────────────
+# Runs every 2s (matches slow_pwm period).
+#
+# OFF    → force output 0%, do nothing else.
+# DIRECT → write dc_duty_cycle to output.
+#           Auto-switch check: if ntc1_rims >= (setpoint − threshold),
+#           switch rims_mode to PID, reset integral, log the event.
+# PID    → incremental PID (position form, dt=2s).
+#           error     = setpoint − temp
+#           integral += error * dt  (clamped: no windup beyond max_duty range)
+#           derivative = (error − last_error) / dt
+#           output    = Kp*error + Ki*integral + Kd*derivative
+#           clamped to [0, pid_duty_cycle] and written to slow_pwm.
+interval:
+  - interval: 2s
+    then:
+      - lambda: |-
+          const float dt = 2.0f;
+          std::string mode = std::string(id(rims_mode).current_option());
+
+          if (mode == "OFF") {
+            id(rims_heater_pwm).set_level(0.0f);
+            return;
+          }
+
+          float temp = id(ntc1_rims).state;
+          // Safety: if sensor returns NAN, shut off heater regardless of mode
+          if (std::isnan(temp)) {
+            id(rims_heater_pwm).set_level(0.0f);
+            ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims NAN, heater OFF");
+            return;
+          }
+
+          if (mode == "DIRECT") {
+            // Auto-switch to PID when close enough to setpoint
+            float setpoint  = id(pid_setpoint).state;
+            float threshold = id(pid_switch_threshold).state;
+            if (temp >= (setpoint - threshold)) {
+              id(rims_mode).make_call().set_option("PID").perform();
+              ESP_LOGI("singularity", "RIMS AUTO-SWITCH DIRECT→PID  temp=%.2f°C  setpoint=%.1f°C  threshold=%.1f°C",
+                       temp, setpoint, threshold);
+              // mode switch triggers on_value which resets integral — fall through to PID this tick
+              mode = "PID";
+            } else {
+              float duty = id(dc_duty_cycle).state / 100.0f;
+              id(rims_heater_pwm).set_level(duty);
+              ESP_LOGD("singularity", "RIMS DIRECT  duty=%.0f%%  temp=%.2f°C",
+                       id(dc_duty_cycle).state, temp);
+              return;
+            }
+          }
+
+          if (mode == "PID") {
+            float setpoint  = id(pid_setpoint).state;
+            float kp        = id(pid_kp).state;
+            float ki        = id(pid_ki).state;
+            float kd        = id(pid_kd).state;
+            float max_duty  = id(pid_duty_cycle).state / 100.0f;
+
+            float error     = setpoint - temp;
+            id(pid_integral) += error * dt;
+
+            // Anti-windup: clamp integral so its contribution stays within output range
+            float max_i = (ki > 0.0f) ? (max_duty / ki) : 1000.0f;
+            if (id(pid_integral) >  max_i) id(pid_integral) =  max_i;
+            if (id(pid_integral) < -max_i) id(pid_integral) = -max_i;
+
+            float derivative = (error - id(pid_last_error)) / dt;
+            id(pid_last_error) = error;
+            id(pid_last_temp)  = temp;
+
+            float output = kp * error + ki * id(pid_integral) + kd * derivative;
+
+            // Clamp output to [0, max_duty]
+            if (output < 0.0f)      output = 0.0f;
+            if (output > max_duty)  output = max_duty;
+
+            id(rims_heater_pwm).set_level(output);
+            ESP_LOGD("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
+                     temp, error, id(pid_integral), derivative, output * 100.0f);
+          }
+
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
 # RESTORE_DEFAULT_OFF: first boot = OFF, subsequent reboots = restore last state
 # SSR2 (RIMS heater, GPIO42) is driven exclusively via rims_heater_pwm (slow_pwm).
-# Manual on/off: set duty cycle to 100% or 0% via the PID duty cycle number entity.
+# Control is via the interval loop above — mode select in HA Settings tab.
 switch:
   - platform: gpio
     pin: GPIO41
@@ -564,5 +735,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.2"};
+      return {"v1.0.3"};
     update_interval: 10s
