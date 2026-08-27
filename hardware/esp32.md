@@ -6,7 +6,7 @@ The singularity controller is built on the ESP32-S3-DEV-KIT-NXRX development boa
 
 ## Board Overview
 
-![ESP32-S3-DEV-KIT-NXRX board](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
+<img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg" width="50%"/>
 
 | Component | Description |
 |---|---|
@@ -23,7 +23,7 @@ The singularity controller is built on the ESP32-S3-DEV-KIT-NXRX development boa
 
 ## Pinout Diagram
 
-![ESP32-S3-DEV-KIT-NXRX pinout](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8.jpg)
+<img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8.jpg" width="50%"/>
 
 ---
 
