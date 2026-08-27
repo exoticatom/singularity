@@ -18,11 +18,9 @@
 #   SSR2 — GPIO 42 — RIMS heater, driven exclusively by rims_heater_pwm (slow_pwm 2s)
 #
 # RIMS Heater Control — single-mode PID on GPIO 42:
-#   PID mode  — incremental PID using ntc1_rims as feedback, output capped at
-#               pid_duty_cycle. High Kp (5-10) with Ki=0/Kd=0 gives full-power
-#               heat-up behaviour; output reduces automatically near setpoint.
-#   OFF       — output forced to 0%, heater disabled.
-#   Mode select persisted to flash — restores on reboot.
+#   switch.rims_heater ON  — PID running on ntc1_rims, output to rims_heater_pwm
+#   switch.rims_heater OFF — output forced to 0%, PID state reset
+#   Persisted to flash — restores last state on reboot.
 #
 # Design principle: After any restart (planned or mid-brew) the ESP32 restores
 #   all calibration parameters and SSR states from flash and continues operating
@@ -71,7 +69,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.4"
+    version: "1.0.5"
   on_boot:
     priority: -100
     then:
@@ -90,9 +88,8 @@ esphome:
           ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f  MaxDuty=%.0f%%",
             id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
             id(pid_kd).state, id(pid_duty_cycle).state);
-          ESP_LOGI("singularity", "RIMS: Mode=%s",
-            std::string(id(rims_mode).current_option()).c_str());
-          ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
+          ESP_LOGI("singularity", "RIMS: Heater=%s",
+            id(rims_heater).state ? "ON" : "OFF");          ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "=============================================");
 
 esp32:
@@ -371,7 +368,7 @@ number:
     name: "PID Setpoint"
     id: pid_setpoint
     min_value: 0
-    max_value: 100
+    max_value: 80
     step: 0.5
     restore_value: true
     initial_value: 66.0
@@ -479,36 +476,12 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — RIMS Switch Threshold: %.1f degC", x);
 
-# ── RIMS Mode Select ──────────────────────────────────────────────────────────
-# Controls whether the PID loop is active.
-#   OFF — output forced to 0%, heater disabled
-#   PID — incremental PID using ntc1_rims as feedback, output capped at
-#         pid_duty_cycle. High Kp (e.g. 5-10) with Ki=0/Kd=0 gives full-power
-#         heat-up when far from setpoint; output reduces automatically on approach.
-# Persisted to flash — restores last active mode on reboot.
-select:
-  - platform: template
-    name: "RIMS Mode"
-    id: rims_mode
-    options:
-      - "OFF"
-      - "PID"
-    initial_option: "OFF"
-    restore_value: true
-    optimistic: true
-    icon: "mdi:toggle-switch"
-    on_value:
-      then:
-        - lambda: |-
-            // Reset PID state on mode change — clean start, no integral windup
-            id(pid_integral)   = 0.0f;
-            id(pid_last_error) = 0.0f;
-            id(pid_last_temp)  = id(ntc1_rims).state;
-            ESP_LOGI("singularity", "RIMS MODE → %s  (PID state reset)", x.c_str());
-            if (x == "OFF") {
-              id(rims_heater_pwm).set_level(0.0f);
-              ESP_LOGI("singularity", "RIMS HEATER OFF");
-            }
+# ── RIMS Heater Switch ────────────────────────────────────────────────────────
+# Simple ON/OFF switch controlling the PID loop.
+#   OFF — output forced to 0%, PID state reset
+#   ON  — incremental PID running on ntc1_rims, output to rims_heater_pwm
+# Persisted to flash — restores last state on reboot.
+# Note: added under existing switch: block below alongside SSR1.
 
 # ── Sensors ───────────────────────────────────────────────────────────────────
 sensor:
@@ -646,9 +619,8 @@ interval:
     then:
       - lambda: |-
           const float dt = 2.0f;
-          std::string mode = std::string(id(rims_mode).current_option());
 
-          if (mode == "OFF") {
+          if (!id(rims_heater).state) {
             id(rims_heater_pwm).set_level(0.0f);
             return;
           }
@@ -700,6 +672,28 @@ switch:
     icon: "mdi:electric-switch"
     restore_mode: RESTORE_DEFAULT_OFF
 
+  # RIMS heater PID on/off — toggling this resets PID state for clean start
+  - platform: template
+    name: "RIMS Heater"
+    id: rims_heater
+    icon: "mdi:fire"
+    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: true
+    on_turn_on:
+      then:
+        - lambda: |-
+            id(pid_integral)   = 0.0f;
+            id(pid_last_error) = 0.0f;
+            id(pid_last_temp)  = id(ntc1_rims).state;
+            ESP_LOGI("singularity", "RIMS PID ON — state reset, starting control loop");
+    on_turn_off:
+      then:
+        - lambda: |-
+            id(rims_heater_pwm).set_level(0.0f);
+            id(pid_integral)   = 0.0f;
+            id(pid_last_error) = 0.0f;
+            ESP_LOGI("singularity", "RIMS PID OFF — heater output 0%%");
+
 # ── Dallas (1-Wire) Bus ────────────────────────────────────────────────────────
 one_wire:
   - platform: gpio
@@ -712,5 +706,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.4"};
+      return {"v1.0.5"};
     update_interval: 10s
