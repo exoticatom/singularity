@@ -123,18 +123,42 @@ Used for NTC thermistors and flow meter analog inputs (via 4-20mA converter modu
 
 ## MCP4728 — 12-bit Quad DAC
 
-Used for analog outputs (proportional valve control, future expansion).
+![MCP4728 module](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/MCP4728-1.jpg)
+
+> 🔗 [AliExpress — MCP4728 I2C DAC Module](https://de.aliexpress.com/item/1005012505445193.html) | [Microchip Datasheet](https://www.mouser.com/datasheet/2/268/22187E-12972.pdf)
+
+### Technical Specifications
 
 | Parameter | Value |
 |---|---|
-| Default address | 0x60 (ADDR pins → GND) |
-| Channels | 4 (A, B, C, D) |
-| Output range | 0–3.3V |
-| Resolution | 12-bit |
-| Supply | 3.3V |
+| **Chip** | Microchip MCP4728 |
+| **Resolution** | 12-bit |
+| **Channels** | 4 (A, B, C, D) |
+| **Output voltage range** | 0 to VDD (external ref) or 0–2.048V / 0–4.096V (internal ref) |
+| **Internal reference** | 2.048V (×1 or ×2 gain) |
+| **Settling time** | 6 µs (typical) |
+| **Interface** | I2C (100kbps / 400kbps / 3.4Mbps) |
+| **Default I2C address** | 0x60 |
+| **Supply voltage** | 2.7–5.5V |
+| **EEPROM** | Yes — stores DAC values and I2C address |
+| **Temperature range** | −40°C to +125°C |
 
-**Address reprogramming (for second MCP4728):**
-The MCP4728 address is stored in internal EEPROM and cannot be changed with resistors. Use Arduino IDE to send the `MCP4728_CMD_WRITE_I2C_ADDRESS` command to change `0x60` → `0x61` before installing both on the same bus. See main README for procedure.
+### I2C Address Configuration
+
+The MCP4728 address is stored in internal EEPROM — **cannot be changed with resistors or jumpers**. Must be programmed via I2C command using Arduino IDE before installing two units on the same bus.
+
+| A2 | A1 | A0 | I2C Address |
+|---|---|---|---|
+| 0 | 0 | 0 | **0x60** (default) |
+| 0 | 0 | 1 | 0x61 |
+| 0 | 1 | 0 | 0x62 |
+| 0 | 1 | 1 | 0x63 |
+| 1 | 0 | 0 | 0x64 |
+| 1 | 0 | 1 | 0x65 |
+| 1 | 1 | 0 | 0x66 |
+| 1 | 1 | 1 | 0x67 |
+
+> **Note:** Some boards (Adafruit after Aug 2022) may ship at 0x64. Scan I2C bus first to confirm actual address. See main README for reprogramming procedure.
 
 **Port mapping:**
 
