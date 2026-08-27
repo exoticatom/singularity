@@ -58,6 +58,34 @@ If signal quality issues occur with long wires, drop back to 100kHz.
 
 ![ADS1115 module](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ADS1115.jpg)
 
+> 🔗 [Texas Instruments ADS1115 Product Page](https://www.ti.com/product/ADS1115) | [Adafruit Breakout Guide](https://learn.adafruit.com/adafruit-4-channel-adc-breakouts)
+
+### Technical Specifications
+
+| Parameter | Value |
+|---|---|
+| **Resolution** | 16-bit |
+| **Architecture** | Delta-Sigma |
+| **Channels** | 4 single-ended or 2 differential |
+| **Sample rate** | 8–860 SPS (programmable) |
+| **PGA input range** | ±0.256V to ±6.144V (6 settings) |
+| **Interface** | I2C |
+| **I2C addresses** | 0x48–0x4B (set via ADDR pin) |
+| **Supply voltage** | 2.0–5.5V |
+| **Current consumption** | 150µA continuous, 2µA power-down |
+| **Onboard reference** | Yes (internal) |
+| **Comparator** | Yes (programmable) |
+| **Package** | Breakout board |
+
+### Address Configuration
+
+| ADDR pin | I2C Address |
+|---|---|
+| GND | 0x48 |
+| VDD | 0x49 |
+| SDA | 0x4A |
+| SCL | 0x4B |
+
 Used for NTC thermistors and flow meter analog inputs (via 4-20mA converter modules).
 
 | Parameter | Value |
