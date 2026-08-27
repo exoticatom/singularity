@@ -25,6 +25,38 @@ singularity is an ESP32-S3 based brewing controller integrated with Home Assista
 
 Configuration is managed as code, version-controlled in Git, and automatically deployed to Home Assistant via GitHub Actions over a Tailscale VPN tunnel.
 
+### Architecture
+
+The system is split into three distinct layers, each with a clear responsibility:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Node-RED                            │
+│  Process automation — mash schedules, PID, sequences    │
+│  Reads sensors from HA, sends commands to ESP32         │
+└────────────────────────┬────────────────────────────────┘
+                         │ reads entities / calls services
+┌────────────────────────▼────────────────────────────────┐
+│                  Home Assistant                         │
+│  Dashboard — display, settings, calibration, logs       │
+│  Templates — Steinhart-Hart, offsets, corrected values  │
+│  All configuration without reflashing                   │
+└────────────────────────┬────────────────────────────────┘
+                         │ ESPHome native API
+┌────────────────────────▼────────────────────────────────┐
+│                    ESP32-S3                             │
+│  Reads raw sensor data (NTC, DS18B20, flow meters)      │
+│  Controls SSR relays and DAC outputs on command         │
+│  Publishes _RAW values — no logic, no calibration       │
+└─────────────────────────────────────────────────────────┘
+```
+
+**ESP32** is the hardware interface only. It reads sensors and switches outputs when told to. It knows nothing about brewing.
+
+**Home Assistant** is the configuration and display layer. Sensor calibration, offsets, and corrected values all live here — changeable from the dashboard without reflashing.
+
+**Node-RED** (planned) sits on top and implements the actual brewing intelligence — step mashing, temperature ramp control, PID loops, pump sequencing, timers. It reads corrected sensor values from HA and sends SSR/DAC commands back. Node-RED is installed as a HA add-on, so everything runs on the same Raspberry Pi.
+
 ---
 
 ## Hardware
