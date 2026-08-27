@@ -1,12 +1,9 @@
 # gpio_map.md
-#
-# Project: singularity
-# Purpose: ESP32-S3-WROOM-1 GPIO pin reference and bus assignment map.
-#          This file is the single source of truth for all hardware pin
-#          decisions. Every pin assignment must be recorded here before
-#          it is used in any firmware or configuration file.
-#
-# Last updated: 2026-08-25
+# GPIO Map — ESP32-S3-WROOM-1
+
+**Project:** singularity | **Last updated:** 2026-08-26
+
+Single source of truth for all hardware pin assignments. Every GPIO used in firmware or configuration must be recorded here first.
 
 ---
 
