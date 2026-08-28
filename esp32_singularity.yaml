@@ -463,7 +463,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 3s
+    update_interval: 1s
     filters:
       - lambda: |-
           float v = x;
@@ -500,7 +500,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 3s
+    update_interval: 1s
     filters:
       - lambda: |-
           float v = x;
@@ -535,7 +535,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 3s
+    update_interval: 1s
     filters:
       - lambda: |-
           float offset = id(ds18b20_boil_offset).state;
@@ -552,7 +552,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 3s
+    update_interval: 1s
     filters:
       - lambda: |-
           float offset = id(ds18b20_hlt_offset).state;
