@@ -8,8 +8,8 @@
 #          sensors with offset correction, and SSR relay outputs.
 #
 # Sensors:
-#   NTC1-RIMS    — ADS1115 A0 — S-H calc on ESP32, all params persisted to flash
-#   NTC2-MASH    — ADS1115 A1 — S-H calc on ESP32, all params persisted to flash
+#   NTC1-RIMS    — ADS1115 #1 (0x48) A0 — S-H calc on ESP32, all params persisted to flash
+#   NTC2-MASH    — ADS1115 #2 (0x49) A0 — S-H calc on ESP32, all params persisted to flash
 #   DS18B20-Boil — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
 #   DS18B20-HLT  — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
 #
@@ -136,6 +136,10 @@ ads1115:
   - address: 0x48
     i2c_id: bus_a
     id: ads1115_0x48
+    continuous_mode: true
+  - address: 0x49
+    i2c_id: bus_a
+    id: ads1115_0x49
     continuous_mode: true
 
 # ── Calibration Parameters ────────────────────────────────────────────────────
@@ -487,8 +491,8 @@ sensor:
 
   # --- NTC2-MASH ---
   - platform: ads1115
-    ads1115_id: ads1115_0x48
-    multiplexer: 'A1_GND'
+    ads1115_id: ads1115_0x49
+    multiplexer: 'A0_GND'
     gain: 6.144
     name: "NTC2-MASH"
     id: ntc2_mash
