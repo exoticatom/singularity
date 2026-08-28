@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.0.7
+# singularity_dashboard.yaml  v1.0.8
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -14,11 +14,12 @@
 #   v2.0.0 — NTC S-H moved to ESP32 firmware; Settings tab uses number entities;
 #             removed RAW vs Corrected card (no longer applicable); updated About tab
 #   v1.0.2 — add calibration description to Settings tab
-#   v1.0.3 — PID parameters card in Settings tab, Activity Log includes firmware_version_display
+#   v1.0.3 — PID parameters card in Settings tab, Activity Log includes firmware build sensor
 #   v1.0.4 — RIMS dual-mode control cards (mode select, direct duty, PID params, switch threshold)
 #   v1.0.5 — RIMS simplified to single PID card (removed DIRECT mode entities)
 #   v1.0.6 — RIMS mode select + setpoint added to main Brewing Temperatures tab
 #   v1.0.7 — RIMS mode changed to toggle switch, SSR controls removed from main tab, setpoint 0-80°C
+#   v1.0.8 — Fix stale entity IDs: select→switch rims, ssr2→rims_heater, firmware_version_display→build; add 90°C runaway guard
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -123,16 +124,16 @@ views:
         hours_to_show: 24
         entities:
           - binary_sensor.singularity_esp32_status
-          - sensor.singularity_firmware_version_display
+          - sensor.singularity_build
 
       - type: history-graph
-        title: SSR Activity
+        title: SSR / RIMS Activity
         hours_to_show: 24
         entities:
           - entity: switch.singularity_ssr1
             name: SSR1
-          - entity: switch.singularity_ssr2
-            name: SSR2
+          - entity: switch.singularity_rims_heater
+            name: RIMS Heater
 
   # ── Tab 3: Settings ──────────────────────────────────────────────────────────
   - title: Settings
@@ -233,8 +234,8 @@ views:
         entities:
           - type: section
             label: "PID on ntc1_rims → SSR2 (GPIO42). High Kp + Ki=0/Kd=0 = full power heat-up, tapers near setpoint."
-          - entity: select.singularity_rims_mode
-            name: RIMS Mode (OFF / PID)
+          - entity: switch.singularity_rims_heater
+            name: RIMS Heater (OFF / PID)
             icon: mdi:toggle-switch
           - entity: number.singularity_pid_setpoint
             name: Setpoint (°C)
@@ -269,12 +270,12 @@ views:
             </tr>
             <tr style="background:#16213e;">
               <td style="padding:8px; color:#e0e0e0;">🔧 ESP32 Firmware</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_firmware_version_display') }}</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_build') }}</td>
               <td style="padding:8px; color:#81c784;">● Live</td>
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.7</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.8</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
             <tr style="background:#16213e;">

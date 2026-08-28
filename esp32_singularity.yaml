@@ -69,7 +69,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.5"
+    version: "1.0.6"
   on_boot:
     priority: -100
     then:
@@ -89,7 +89,8 @@ esphome:
             id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
             id(pid_kd).state, id(pid_duty_cycle).state);
           ESP_LOGI("singularity", "RIMS: Heater=%s",
-            id(rims_heater).state ? "ON" : "OFF");          ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
+            id(rims_heater).state ? "ON" : "OFF");
+          ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "=============================================");
 
 esp32:
@@ -441,40 +442,6 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — PID Max Duty Cycle: %.0f%%", x);
 
-  # Direct duty cycle — used in DIRECT mode (full-power heat-up phase)
-  - platform: template
-    name: "RIMS Direct Duty Cycle"
-    id: dc_duty_cycle
-    min_value: 0
-    max_value: 100
-    step: 1
-    restore_value: true
-    initial_value: 80
-    optimistic: true
-    unit_of_measurement: "%"
-    icon: "mdi:fire"
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("singularity", "FLASH SAVED — RIMS Direct Duty: %.0f%%", x);
-
-  # Auto-switch threshold — when in DIRECT mode, switches to PID when
-  # ntc1_rims >= (pid_setpoint - pid_switch_threshold)
-  - platform: template
-    name: "RIMS PID Switch Threshold"
-    id: pid_switch_threshold
-    min_value: 0.5
-    max_value: 10.0
-    step: 0.5
-    restore_value: true
-    initial_value: 1.0
-    optimistic: true
-    unit_of_measurement: "°C"
-    icon: "mdi:thermometer-chevron-up"
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("singularity", "FLASH SAVED — RIMS Switch Threshold: %.1f degC", x);
 
 # ── RIMS Heater Switch ────────────────────────────────────────────────────────
 # Simple ON/OFF switch controlling the PID loop.
@@ -626,10 +593,17 @@ interval:
           }
 
           float temp = id(ntc1_rims).state;
-          // Safety: sensor NAN → shut off heater
+          // Safety: sensor NAN → shut off heater (open-circuit / disconnected)
           if (std::isnan(temp)) {
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims NAN, heater OFF");
+            return;
+          }
+          // Safety: runaway guard — shorted NTC reads falsely low, driving full power
+          // Hard cutoff above any realistic mash temperature
+          if (temp > 90.0f) {
+            id(rims_heater_pwm).set_level(0.0f);
+            ESP_LOGW("singularity", "RIMS SAFETY — temp %.1f°C > 90°C hard limit, heater OFF", temp);
             return;
           }
 
@@ -663,7 +637,7 @@ interval:
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
 # RESTORE_DEFAULT_OFF: first boot = OFF, subsequent reboots = restore last state
 # SSR2 (RIMS heater, GPIO42) is driven exclusively via rims_heater_pwm (slow_pwm).
-# Control is via the interval loop above — mode select in HA Settings tab.
+# Enable/disable via switch.rims_heater in HA — interval loop does the rest.
 switch:
   - platform: gpio
     pin: GPIO41
@@ -706,5 +680,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.5"};
+      return {"v1.0.6"};
     update_interval: 10s
