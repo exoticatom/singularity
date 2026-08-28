@@ -344,11 +344,14 @@ DS18B20:
 
 ## Planned Expansions
 
-### ADS1115 #2 — Flow Meters (SM6004)
+### ADS1115 #2 — Flow Meters (SM6004) — On Hold
+
+> Second ADS1115 board deferred. Floating input issue on non-A0 channels when nothing connected.
+> Both NTCs use ADS1115 #1 (0x48): NTC1-RIMS on A0, NTC2-MASH on A1.
 
 | Item | Detail |
 |---|---|
-| I2C address | `0x49` (ADDR → VCC) |
+| I2C address | `0x49` (ADDR → VCC) — not populated |
 | Channels | ADC_Port_4 (A0) — FLOW1, ADC_Port_5 (A1) — FLOW2 |
 | Input signal | 4-20mA via 0-3.3V converter module |
 | Filter | 100nF ceramic cap on each input to GND |

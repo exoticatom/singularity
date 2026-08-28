@@ -69,7 +69,7 @@ The system is split into three distinct layers, each with a clear responsibility
 | **Controller** | ESP32-S3-DEV-KIT-NXRX + expansion adapter board |
 | **Temperature** | NTC 10kΩ thermistors × 2 (via ADS1115 ADC), DS18B20 1-Wire sensors × 2 |
 | **Flow** | IFM SM6004 magnetic flow meters (planned), YF-S200 pulse sensors (planned) |
-| **Analog I/O** | ADS1115 16-bit ADC × 2, MCP4728 12-bit DAC × 2 (planned) |
+| **Analog I/O** | ADS1115 16-bit ADC × 1 (0x48, both NTC channels), MCP4728 12-bit DAC × 2 (planned) |
 | **GPIO expansion** | MCP23017 16-bit I2C expander (planned) |
 | **Outputs** | SSR relays × 2 (RIMS heater + spare) |
 | **Signal conversion** | 4-20mA → 0-3.3V converter modules for industrial sensors |
@@ -274,7 +274,7 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 
 | Item | Status |
 |---|---|
-| ADS1115 #2 + SM6004 flow meters × 2 | Planned |
+| ADS1115 #2 + SM6004 flow meters × 2 | Planned — ADS1115 #2 on hold; flow meters require second board |
 | MCP4728 × 2 — DAC for proportional valve | Planned |
 | MCP23017 — GPIO expander | Planned |
 | YF-S200 pulse flow sensors | Planned |
