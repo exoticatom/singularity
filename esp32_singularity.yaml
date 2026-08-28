@@ -59,9 +59,6 @@ globals:
   - id: pid_last_error
     type: float
     initial_value: '0.0'
-  - id: pid_last_temp
-    type: float
-    initial_value: '0.0'
 
 esphome:
   name: singularity
@@ -69,7 +66,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.6"
+    version: "1.0.7"
   on_boot:
     priority: -100
     then:
@@ -448,7 +445,6 @@ number:
 #   OFF — output forced to 0%, PID state reset
 #   ON  — incremental PID running on ntc1_rims, output to rims_heater_pwm
 # Persisted to flash — restores last state on reboot.
-# Note: added under existing switch: block below alongside SSR1.
 
 # ── Sensors ───────────────────────────────────────────────────────────────────
 sensor:
@@ -483,7 +479,6 @@ sensor:
           float inv_t = a + b * lnr + c * pow(lnr, 3);
           float temp = (1.0f / inv_t) - 273.15f + offset;
           // Reject physically impossible temperatures for a brewing NTC
-          if (temp < 0 || temp > 100) return NAN;
           if (temp < 0 || temp > 100) return NAN;
           return temp;
       - exponential_moving_average:
@@ -520,7 +515,6 @@ sensor:
           float inv_t = a + b * lnr + c * pow(lnr, 3);
           float temp = (1.0f / inv_t) - 273.15f + offset;
           // Reject physically impossible temperatures for a brewing NTC
-          if (temp < 0 || temp > 100) return NAN;
           if (temp < 0 || temp > 100) return NAN;
           return temp;
       - exponential_moving_average:
@@ -634,14 +628,13 @@ interval:
 
           float derivative   = (error - id(pid_last_error)) / dt;
           id(pid_last_error) = error;
-          id(pid_last_temp)  = temp;
 
           float output = kp * error + ki * id(pid_integral) + kd * derivative;
           if (output < 0.0f)     output = 0.0f;
           if (output > max_duty) output = max_duty;
 
           id(rims_heater_pwm).set_level(output);
-          ESP_LOGD("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
+          ESP_LOGI("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
                    temp, error, id(pid_integral), derivative, output * 100.0f);
 
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
@@ -668,7 +661,6 @@ switch:
         - lambda: |-
             id(pid_integral)   = 0.0f;
             id(pid_last_error) = 0.0f;
-            id(pid_last_temp)  = id(ntc1_rims).state;
             ESP_LOGI("singularity", "RIMS PID ON — state reset, starting control loop");
     on_turn_off:
       then:
@@ -690,5 +682,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.6"};
+      return {"v1.0.7"};
     update_interval: 10s

@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.0.8
+# singularity_dashboard.yaml  v1.0.9
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -20,6 +20,7 @@
 #   v1.0.6 — RIMS mode select + setpoint added to main Brewing Temperatures tab
 #   v1.0.7 — RIMS mode changed to toggle switch, SSR controls removed from main tab, setpoint 0-80°C
 #   v1.0.8 — Fix stale entity IDs: select→switch rims, ssr2→rims_heater, firmware_version_display→build; add 90°C runaway guard
+#   v1.0.9 — Remove stale HA Templates row; simplify RIMS Heater label
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -87,7 +88,7 @@ views:
         show_header_toggle: false
         entities:
           - entity: switch.singularity_rims_heater
-            name: RIMS Heater (OFF / PID)
+            name: RIMS Heater
             icon: mdi:fire
 
       - type: entities
@@ -235,7 +236,7 @@ views:
           - type: section
             label: "PID on ntc1_rims → SSR2 (GPIO42). High Kp + Ki=0/Kd=0 = full power heat-up, tapers near setpoint."
           - entity: switch.singularity_rims_heater
-            name: RIMS Heater (OFF / PID)
+            name: RIMS Heater
             icon: mdi:toggle-switch
           - entity: number.singularity_pid_setpoint
             name: Setpoint (°C)
@@ -275,13 +276,8 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.8</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.9</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
-            </tr>
-            <tr style="background:#16213e;">
-              <td style="padding:8px; color:#e0e0e0;">🔄 HA Templates</td>
-              <td style="padding:8px; color:#ffb74d; font-weight:bold;">v2.0.0</td>
-              <td style="padding:8px; color:#ffb74d;">● On Pi (DS18B20 offsets only)</td>
             </tr>
           </table>
 
