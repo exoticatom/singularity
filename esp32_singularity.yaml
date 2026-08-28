@@ -9,7 +9,7 @@
 #
 # Sensors:
 #   NTC1-RIMS    — ADS1115 #1 (0x48) A0 — S-H calc on ESP32, all params persisted to flash
-#   NTC2-MASH    — ADS1115 #2 (0x49) A1 — S-H calc on ESP32, all params persisted to flash
+#   NTC2-MASH    — ADS1115 #1 (0x48) A1 — S-H calc on ESP32, all params persisted to flash
 #   DS18B20-Boil — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
 #   DS18B20-HLT  — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
 #
@@ -136,10 +136,6 @@ ads1115:
   - address: 0x48
     i2c_id: bus_a
     id: ads1115_0x48
-    continuous_mode: true
-  - address: 0x49
-    i2c_id: bus_a
-    id: ads1115_0x49
     continuous_mode: true
 
 # ── Calibration Parameters ────────────────────────────────────────────────────
@@ -477,13 +473,18 @@ sensor:
           float b = id(ntc1_sh_b).state;
           float c = id(ntc1_sh_c).state;
           float offset = id(ntc1_offset).state;
-          if (v <= 0 || v >= v_ref) return NAN;
+          // Guard: reject voltages outside plausible NTC divider range
+          // Floating inputs on this hardware settle at ~0.58V; valid NTC range starts ~0.9V (5°C)
+          // Threshold 0.7V gives safe margin — rejects floating, accepts all brewing temps
+          if (v < 0.7f || v >= v_ref) return NAN;
           float r = r_fixed * v / (v_ref - v);
           if (r <= 0) return NAN;
           float lnr = log(r);
           float inv_t = a + b * lnr + c * pow(lnr, 3);
           float temp = (1.0f / inv_t) - 273.15f + offset;
-          if (temp < -10 || temp > 150) return NAN;
+          // Reject physically impossible temperatures for a brewing NTC
+          if (temp < 0 || temp > 100) return NAN;
+          if (temp < 0 || temp > 100) return NAN;
           return temp;
       - exponential_moving_average:
           alpha: 0.25
@@ -491,7 +492,7 @@ sensor:
 
   # --- NTC2-MASH ---
   - platform: ads1115
-    ads1115_id: ads1115_0x49
+    ads1115_id: ads1115_0x48
     multiplexer: 'A1_GND'
     gain: 6.144
     name: "NTC2-MASH"
@@ -509,13 +510,18 @@ sensor:
           float b = id(ntc2_sh_b).state;
           float c = id(ntc2_sh_c).state;
           float offset = id(ntc2_offset).state;
-          if (v <= 0 || v >= v_ref) return NAN;
+          // Guard: reject voltages outside plausible NTC divider range
+          // Floating inputs on this hardware settle at ~0.58V; valid NTC range starts ~0.9V (5°C)
+          // Threshold 0.7V gives safe margin — rejects floating, accepts all brewing temps
+          if (v < 0.7f || v >= v_ref) return NAN;
           float r = r_fixed * v / (v_ref - v);
           if (r <= 0) return NAN;
           float lnr = log(r);
           float inv_t = a + b * lnr + c * pow(lnr, 3);
           float temp = (1.0f / inv_t) - 273.15f + offset;
-          if (temp < -10 || temp > 150) return NAN;
+          // Reject physically impossible temperatures for a brewing NTC
+          if (temp < 0 || temp > 100) return NAN;
+          if (temp < 0 || temp > 100) return NAN;
           return temp;
       - exponential_moving_average:
           alpha: 0.25
