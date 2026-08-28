@@ -130,9 +130,8 @@ Without common ground the current loop has no return path and readings will be i
 
 | Sensor | Module output → ADS1115 channel |
 |---|---|
-| SM6004 #1 — Flow (OUT2) | ADC_Port_4 (ADS1115 #2, A0) |
-| SM6004 #1 — Temp (OUT1) | ADC_Port_5 (ADS1115 #2, A1) |
-| SM6004 #2 — Flow (OUT2) | ADC_Port_6 (ADS1115 #2, A2) |
+| SM6004 #1 — Flow (OUT2) | ADS1115 #1 (0x48) A2 |
+| SM6004 #1 — Temp (OUT1) | ADS1115 #1 (0x48) A3 |
 
 One module required per sensor output channel.
 
@@ -140,4 +139,4 @@ One module required per sensor output channel.
 
 ## Status
 
-Planned — pending ADS1115 #2 installation.
+Planned — pending 4-20mA converter modules. Will connect to ADS1115 #1 (0x48) A2/A3.

@@ -344,13 +344,7 @@ DS18B20:
 
 ## Planned Expansions
 
-### ADS1115 #2 — Not Required
 
-> All 4 ADS1115 channels on board #1 (0x48) are sufficient:
-> A0 — NTC1-RIMS, A1 — NTC2-MASH, A2 — SM6004 FLOW1, A3 — SM6004 FLOW2.
-> Second board not needed.
-
----
 
 ### MCP4728 DAC — Analog Outputs
 
