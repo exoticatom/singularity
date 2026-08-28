@@ -9,7 +9,7 @@
 #
 # Sensors:
 #   NTC1-RIMS    — ADS1115 #1 (0x48) A0 — S-H calc on ESP32, all params persisted to flash
-#   NTC2-MASH    — ADS1115 #2 (0x49) A0 — S-H calc on ESP32, all params persisted to flash
+#   NTC2-MASH    — ADS1115 #2 (0x49) A1 — S-H calc on ESP32, all params persisted to flash
 #   DS18B20-Boil — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
 #   DS18B20-HLT  — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
 #
@@ -467,7 +467,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 1s
+    update_interval: 3s
     filters:
       - lambda: |-
           float v = x;
@@ -492,14 +492,14 @@ sensor:
   # --- NTC2-MASH ---
   - platform: ads1115
     ads1115_id: ads1115_0x49
-    multiplexer: 'A0_GND'
+    multiplexer: 'A1_GND'
     gain: 6.144
     name: "NTC2-MASH"
     id: ntc2_mash
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 1s
+    update_interval: 3s
     filters:
       - lambda: |-
           float v = x;
@@ -529,7 +529,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 1s
+    update_interval: 3s
     filters:
       - lambda: |-
           float offset = id(ds18b20_boil_offset).state;
@@ -546,7 +546,7 @@ sensor:
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement
-    update_interval: 1s
+    update_interval: 3s
     filters:
       - lambda: |-
           float offset = id(ds18b20_hlt_offset).state;
