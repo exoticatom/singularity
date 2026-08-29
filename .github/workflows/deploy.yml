@@ -99,11 +99,20 @@ jobs:
           scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             singularity_dashboard.yaml \
             root@100.66.190.74:/config/singularity_dashboard.yaml
+      # ── 8. Deploy HA templates to /config/singularity_templates/ ──────────
+      - name: Deploy HA templates to /config/singularity_templates/
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@100.66.190.74 \
+            "mkdir -p /config/singularity_templates"
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            singularity_templates/singularity_templates.yaml \
+            root@100.66.190.74:/config/singularity_templates/singularity_templates.yaml
 
-      # ── 8. Summary ────────────────────────────────────────────────────────
+      # ── 9. Summary ────────────────────────────────────────────────────────
       - name: Deployment summary
         run: |
           echo "✅ ESPHome configs synced to 100.66.190.74:/config/esphome/"
           echo "✅ Dashboard deployed to 100.66.190.74:/config/singularity_dashboard.yaml"
+          echo "✅ Templates deployed to 100.66.190.74:/config/singularity_templates/"
           echo "   Triggered by: ${{ github.actor }} on branch ${{ github.ref_name }}"
           echo "   Commit: ${{ github.sha }}"
