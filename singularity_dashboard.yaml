@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.2
+# singularity_dashboard.yaml  v1.1.3
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -180,38 +180,18 @@ views:
           - No action needed — changes are never lost
 
       # DS18B20 offsets — now on ESP32 flash
-      - type: markdown
-        content: >
-          **DS18B20 Offsets** — default values
-
-          | Parameter | Default |
-          |---|---|
-          | DS18B20-Boil Offset | 0.0 °C |
-          | DS18B20-HLT Offset | 0.0 °C |
       - type: entities
         title: DS18B20 Offsets
         show_header_toggle: false
         entities:
           - entity: number.singularity_ds18b20_boil_offset
-            name: DS18B20-Boil Offset
+            name: "DS18B20-Boil Offset (default: 0.0°C)"
             icon: mdi:thermometer-plus
           - entity: number.singularity_ds18b20_hlt_offset
-            name: DS18B20-HLT Offset
+            name: "DS18B20-HLT Offset (default: 0.0°C)"
             icon: mdi:thermometer-plus
 
       # NTC1-RIMS calibration — ESP32 number entities (persisted to flash)
-      - type: markdown
-        content: >
-          **NTC1-RIMS — Steinhart-Hart defaults** (first-boot values, your calibrated values saved to flash)
-
-          | Parameter | Default |
-          |---|---|
-          | R-Fixed | 9883 Ω |
-          | V-Ref | 3.3 V |
-          | Coefficient A | 0.001207072 |
-          | Coefficient B | 0.0002183329 |
-          | Coefficient C | 1.764464e-07 |
-          | Offset | 0.0 °C |
       - type: entities
         title: NTC1-RIMS — Steinhart-Hart Calibration
         show_header_toggle: false
@@ -219,37 +199,25 @@ views:
           - type: section
             label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
           - entity: number.singularity_ntc1_r_fixed
-            name: R-Fixed (Ω)
+            name: "R-Fixed (default: 9883 Ω)"
             icon: mdi:resistor
           - entity: number.singularity_ntc1_v_ref
-            name: V-Ref (V)
+            name: "V-Ref (default: 3.3 V)"
             icon: mdi:sine-wave
           - entity: number.singularity_ntc1_sh_a
-            name: Coefficient A
+            name: "Coefficient A (default: 0.001207072)"
             icon: mdi:alpha-a
           - entity: number.singularity_ntc1_sh_b
-            name: Coefficient B
+            name: "Coefficient B (default: 0.0002183329)"
             icon: mdi:alpha-b
           - entity: number.singularity_ntc1_sh_c
-            name: Coefficient C
+            name: "Coefficient C (default: 1.764464e-07)"
             icon: mdi:alpha-c
           - entity: number.singularity_ntc1_offset
-            name: Offset (°C)
+            name: "Offset (default: 0.0°C)"
             icon: mdi:thermometer-plus
 
       # NTC2-MASH calibration — ESP32 number entities (persisted to flash)
-      - type: markdown
-        content: >
-          **NTC2-MASH — Steinhart-Hart defaults** (first-boot values, your calibrated values saved to flash)
-
-          | Parameter | Default |
-          |---|---|
-          | R-Fixed | 9902 Ω |
-          | V-Ref | 3.3 V |
-          | Coefficient A | 0.001209772 |
-          | Coefficient B | 0.0002173462 |
-          | Coefficient C | 1.848376e-07 |
-          | Offset | 0.0 °C |
       - type: entities
         title: NTC2-MASH — Steinhart-Hart Calibration
         show_header_toggle: false
@@ -257,36 +225,25 @@ views:
           - type: section
             label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
           - entity: number.singularity_ntc2_r_fixed
-            name: R-Fixed (Ω)
+            name: "R-Fixed (default: 9902 Ω)"
             icon: mdi:resistor
           - entity: number.singularity_ntc2_v_ref
-            name: V-Ref (V)
+            name: "V-Ref (default: 3.3 V)"
             icon: mdi:sine-wave
           - entity: number.singularity_ntc2_sh_a
-            name: Coefficient A
+            name: "Coefficient A (default: 0.001209772)"
             icon: mdi:alpha-a
           - entity: number.singularity_ntc2_sh_b
-            name: Coefficient B
+            name: "Coefficient B (default: 0.0002173462)"
             icon: mdi:alpha-b
           - entity: number.singularity_ntc2_sh_c
-            name: Coefficient C
+            name: "Coefficient C (default: 1.848376e-07)"
             icon: mdi:alpha-c
           - entity: number.singularity_ntc2_offset
-            name: Offset (°C)
+            name: "Offset (default: 0.0°C)"
             icon: mdi:thermometer-plus
 
       # RIMS heater — PID control
-      - type: markdown
-        content: >
-          **RIMS Heater PID — defaults**
-
-          | Parameter | Default |
-          |---|---|
-          | Setpoint | 66.0 °C |
-          | Kp | 10.0 |
-          | Ki | 0.2 |
-          | Kd | 5.0 |
-          | Max Duty | 100 % |
       - type: entities
         title: RIMS Heater — PID Control
         show_header_toggle: false
@@ -297,19 +254,19 @@ views:
             name: RIMS Heater
             icon: mdi:toggle-switch
           - entity: number.singularity_pid_setpoint
-            name: Setpoint (°C)
+            name: "Setpoint (default: 66.0°C)"
             icon: mdi:target
           - entity: number.singularity_pid_kp
-            name: Kp — Proportional
+            name: "Kp Proportional (default: 10.0)"
             icon: mdi:alpha-p-circle
           - entity: number.singularity_pid_ki
-            name: Ki — Integral
+            name: "Ki Integral (default: 0.2)"
             icon: mdi:alpha-i-circle
           - entity: number.singularity_pid_kd
-            name: Kd — Derivative
+            name: "Kd Derivative (default: 5.0)"
             icon: mdi:alpha-d-circle
           - entity: number.singularity_pid_max_duty_cycle
-            name: Max Duty Cycle (%)
+            name: "Max Duty Cycle (default: 100%)"
             icon: mdi:percent
 
   # ── Tab 4: About ────────────────────────────────────────────────────────────
@@ -334,7 +291,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.2</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.3</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
