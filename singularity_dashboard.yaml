@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.9
+# singularity_dashboard.yaml  v1.2.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -98,19 +98,54 @@ views:
             icon: mdi:target
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
-      - type: history-graph
-        title: Brewing Graphs
-        hours_to_show: 1
-        refresh_interval: 10
-        entities:
-          - entity: sensor.singularity_ds18b20_boil
-            name: Boil
-          - entity: sensor.singularity_ds18b20_hlt
-            name: HLT
+      - type: custom:apexcharts-card
+        header:
+          show: true
+          title: Brewing Temperatures
+          show_states: true
+          colorize_states: true
+        graph_span: 1h
+        update_interval: 5s
+        yaxis:
+          - id: temp
+            min: 0
+            max: 100
+            decimals: 1
+        apex_config:
+          chart:
+            height: 280
+          annotations:
+            yaxis:
+              - y: "[[[ return states['number.singularity_pid_setpoint'].state ]]]"
+                borderColor: "#ff9800"
+                borderWidth: 1
+                strokeDashArray: 4
+                label:
+                  text: Setpoint
+                  style:
+                    color: "#ff9800"
+                    background: transparent
+        series:
           - entity: sensor.singularity_ntc1_rims
             name: NTC1-RIMS
+            color: "#ef5350"
+            stroke_width: 2
+            yaxis_id: temp
           - entity: sensor.singularity_ntc2_mash
             name: NTC2-MASH
+            color: "#42a5f5"
+            stroke_width: 2
+            yaxis_id: temp
+          - entity: sensor.singularity_ds18b20_boil
+            name: DS18B20-Boil
+            color: "#ff7043"
+            stroke_width: 2
+            yaxis_id: temp
+          - entity: sensor.singularity_ds18b20_hlt
+            name: DS18B20-HLT
+            color: "#26c6da"
+            stroke_width: 2
+            yaxis_id: temp
 
   # ── Tab 2: Log ───────────────────────────────────────────────────────────────
   - title: Log

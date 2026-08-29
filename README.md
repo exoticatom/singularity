@@ -233,7 +233,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.1.9 | ✅ Active | 5 tabs, touch-friendly |
+| HA dashboard v1.2.0 | ✅ Active | 5 tabs, touch-friendly |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | 🔲 Planned | ADS1115 A2/A3 |
