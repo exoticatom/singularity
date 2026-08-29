@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.4
+# singularity_dashboard.yaml  v1.1.5
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -205,14 +205,17 @@ views:
             name: "V-Ref (default: 3.3 V)"
             icon: mdi:sine-wave
           - entity: number.singularity_ntc1_sh_a
-            name: "Coefficient A (default: 0.001207072)"
+            name: Coefficient A
             icon: mdi:alpha-a
+            secondary_info: "default: 0.001207072"
           - entity: number.singularity_ntc1_sh_b
-            name: "Coefficient B (default: 0.0002183329)"
+            name: Coefficient B
             icon: mdi:alpha-b
+            secondary_info: "default: 0.0002183329"
           - entity: number.singularity_ntc1_sh_c
-            name: "Coefficient C (default: 1.764464e-07)"
+            name: Coefficient C
             icon: mdi:alpha-c
+            secondary_info: "default: 1.764464e-07"
           - entity: number.singularity_ntc1_offset
             name: "Offset (default: 0.0°C)"
             icon: mdi:thermometer-plus
@@ -231,14 +234,17 @@ views:
             name: "V-Ref (default: 3.3 V)"
             icon: mdi:sine-wave
           - entity: number.singularity_ntc2_sh_a
-            name: "Coefficient A (default: 0.001209772)"
+            name: Coefficient A
             icon: mdi:alpha-a
+            secondary_info: "default: 0.001209772"
           - entity: number.singularity_ntc2_sh_b
-            name: "Coefficient B (default: 0.0002173462)"
+            name: Coefficient B
             icon: mdi:alpha-b
+            secondary_info: "default: 0.0002173462"
           - entity: number.singularity_ntc2_sh_c
-            name: "Coefficient C (default: 1.848376e-07)"
+            name: Coefficient C
             icon: mdi:alpha-c
+            secondary_info: "default: 1.848376e-07"
           - entity: number.singularity_ntc2_offset
             name: "Offset (default: 0.0°C)"
             icon: mdi:thermometer-plus
@@ -328,7 +334,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.4</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.5</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
