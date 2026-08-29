@@ -115,6 +115,21 @@ Used for NTC thermistors and flow meter analog inputs (via 4-20mA converter modu
 | ADC_Port_2 | A2 | #1 (0x48) | SM6004 FLOW1 (planned) |
 | ADC_Port_3 | A3 | #1 (0x48) | SM6004 FLOW2 (planned) |
 
+### Notes on floating inputs
+
+When an ADS1115 input has **nothing connected**, it floats to an indeterminate voltage. This behaviour varies by board:
+
+- Some boards float **negative** → ESPHome returns `unavailable` (safe — indicates disconnected sensor)
+- Some boards float **positive** (~0.5–1.5V) → passes the voltage guard and produces a **false temperature reading** (dangerous if PID relies on it)
+
+The singularity firmware uses a 0.7V minimum voltage guard to reject most floating cases, but this is not 100% reliable across all board variants. **Always verify that disconnected sensors show `unavailable` in HA before enabling PID control.**
+
+See README Project Status for full details on this issue.
+
+### PGA Gain
+
+Gain is set to `6.144` (±6.144V range) even though the signal is 0–3.3V. This gives maximum resolution for the 0–3.3V NTC voltage divider output without risking saturation. The ADS1115 will not be damaged by inputs within its supply voltage range regardless of PGA setting.
+
 ---
 
 ## MCP4728 — 12-bit Quad DAC

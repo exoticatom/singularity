@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.5
+# singularity_dashboard.yaml  v1.1.6
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -159,26 +159,6 @@ views:
             Values shown below are unavailable. Last known values are stored on the ESP32 flash and will be restored automatically on reconnect.
             </div>
 
-      - type: markdown
-        content: |
-          ### How calibration works
-
-          All calibration values are stored on the **ESP32 flash** — they survive power cuts and reboots without needing HA.
-
-          **When you change a value here:**
-          - HA sends the new value to ESP32 instantly via the native API
-          - ESP32 saves it to flash immediately
-          - The new value takes effect on the next sensor reading (~1 second)
-          - Temperature on the dashboard updates within 1–2 seconds
-
-          You can adjust offsets and S-H coefficients in real-time during a brew by comparing against a reference thermometer — no reflash needed.
-
-          **If ESP32 is offline when you change a value:**
-          - HA stores the new value optimistically (displayed immediately)
-          - When ESP32 comes back online, HA automatically re-sends all values within ~3 seconds
-          - ESP32 saves them to flash and applies them
-          - No action needed — changes are never lost
-
       # DS18B20 offsets — now on ESP32 flash
       - type: entities
         title: DS18B20 Offsets
@@ -275,42 +255,23 @@ views:
             name: "Max Duty Cycle (default: 100%)"
             icon: mdi:percent
 
-      # ── How to calibrate ──────────────────────────────────────────────────────
+      # ── How calibration works — moved here as last Settings card ─────────────
       - type: markdown
-        title: How to Calibrate
+        title: How calibration works
         content: |
-          ### NTC Thermistors (Steinhart-Hart)
+          All calibration values are stored on the **ESP32 flash** — they survive power cuts and reboots without needing HA.
 
-          **What you need:** a calibrated reference thermometer and hot water at 3 known temperatures (e.g. 25°C, 50°C, 75°C).
+          Values take effect within 1 second of being changed. You can adjust in real-time during a brew — no reflash needed.
 
-          1. Place NTC and reference thermometer in the same water bath
-          2. At each temperature record the **ADC voltage** from ESPHome logs (enable DEBUG temporarily)
-          3. Calculate resistance: `R = R_fixed × V / (V_ref − V)`
-          4. Use a Steinhart-Hart calculator (e.g. [SH Calculator](https://www.thinksrs.com/downloads/programs/therm%20calc/ntccalibrator/ntccalculator.html)) to derive A, B, C from your 3 R/T pairs
-          5. Enter A, B, C, R_fixed and V_ref in Settings — takes effect within 1 second
+          **If ESP32 is offline when you change a value:**
+          - HA stores the new value optimistically (displayed immediately)
+          - When ESP32 comes back online, HA automatically re-sends all values within ~3 seconds
+          - ESP32 saves them to flash and applies them
+          - No action needed — changes are never lost
 
-          **Offset:** use a single-point correction. Measure at a known temperature with a reference thermometer, enter the difference as Offset.
-
-          ---
-
-          ### DS18B20 Sensors
-
-          DS18B20 sensors are factory-calibrated and typically accurate to ±0.5°C. Use Offset only if you verify against a reference thermometer.
-
-          1. Place DS18B20 in ice water (0°C) or boiling water (100°C at sea level)
-          2. Compare reading to reference thermometer
-          3. Enter the difference as Offset (e.g. if reading 1.2°C in ice water, set Offset to −1.2)
-
-          ---
-
-          ### PID Tuning (RIMS heater)
-
-          Start with the defaults (Kp=10, Ki=0.2, Kd=5). Tune after first brew:
-
-          - **Overshoots setpoint** → reduce Kp
-          - **Holds slightly below setpoint** → increase Ki
-          - **Oscillates** → reduce Ki, increase Kd
-          - **Too slow to reach setpoint** → increase Kp
+          For detailed calibration procedures see the hardware documentation:
+          - **NTC thermistors** → [hardware/ntc.md](https://github.com/exoticatom/singularity/blob/main/hardware/ntc.md)
+          - **DS18B20 sensors** → [hardware/ds18b20.md](https://github.com/exoticatom/singularity/blob/main/hardware/ds18b20.md)
 
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
@@ -334,7 +295,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.5</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.6</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
