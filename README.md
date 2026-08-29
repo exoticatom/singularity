@@ -7,7 +7,7 @@
 [![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
 [![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
 [![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
-[![Installation](https://img.shields.io/badge/📦%20Installation-Guide-orange)](installation.md)
+[![Installation](https://img.shields.io/badge/📦%20Installation-Guide-blue)](installation.md)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
@@ -161,9 +161,17 @@ Five tabs, auto-deployed on every push to `main`:
 
 ---
 
+## Installation
+
+→ **[installation.md](installation.md)** — End User and Developer setup guides
+
+---
+
 ## How Deployment Works
 
-Every push to `main` triggers the GitHub Actions workflow automatically:
+> *Developer only — skip if you are not maintaining the CI/CD pipeline.*
+
+Every push to `main` automatically deploys to the Pi via GitHub Actions + Tailscale:
 
 ```
 Push to main
@@ -175,39 +183,19 @@ GitHub Runner (ubuntu-latest)
 Tailscale tunnel → Raspberry Pi
      │  rsync over SSH
      ├── /config/esphome/     ← ESPHome YAML configs
-     └── /config/             ← singularity_dashboard.yaml
+     └── /config/             ← singularity_dashboard.yaml + singularity_templates/
 ```
 
 Can also be triggered manually: `https://github.com/exoticatom/singularity/actions` → Run workflow
 
-### Secrets *(developer only)*
-
-> This section is only relevant for maintaining the CI/CD pipeline.
-
-**On the Raspberry Pi — `/config/secrets.yaml`** (never committed, gitignored)
-
-```yaml
-wifi_ssid: "<your-main-ssid>"
-wifi_password: "<your-password>"
-singularity_wifi_ssid: "<your-singularity-ssid>"
-singularity_wifi_password: "<your-password>"
-singularity_ap_password: "<your-password>"
-singularity_api_encryption_key: "<32-byte-base64-key>"
-singularity_ota_password: "<your-password>"
-```
-
-**On GitHub — Settings → Secrets → Actions:**
+**Required GitHub Secrets** (Settings → Secrets → Actions):
 
 | Secret | Purpose |
 |---|---|
 | `HA_SSH_KEY` | RSA private key for SSH to Pi via Tailscale |
 | `TS_AUTHKEY` | Tailscale ephemeral auth key (reusable, ephemeral) |
 
----
-
-## Installation
-
-→ **[installation.md](installation.md)** — End User and Developer setup guides
+See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 ---
 
@@ -275,9 +263,16 @@ singularity_ota_password: "<your-password>"
 |---|---|
 | 2026-08-25 | Initial setup: ESPHome config, dashboard, CI/CD pipeline |
 | 2026-08-25 | CI/CD: Tailscale + rsync to HAOS — all steps green |
-| 2026-08-26 | Steinhart-Hart NTC calibration configurable from dashboard |
-| 2026-08-26 | Hardware documentation folder with 9 pages |
-| 2026-08-26 | PID number entities on ESP32 (setpoint, Kp, Ki, Kd, duty cycle), slow_pwm RIMS heater, reconnect automation, DS18B20 wiring schematic |
+| 2026-08-26 | Steinhart-Hart NTC calibration on ESP32 — all params configurable from dashboard |
+| 2026-08-26 | Hardware documentation folder — 11 pages covering all components |
+| 2026-08-26 | PID RIMS heater control — slow_pwm, Kp/Ki/Kd/duty from dashboard, flash-persisted |
+| 2026-08-26 | DS18B20 offset correction on ESP32 — persisted to flash |
+| 2026-08-26 | Reconnect automation — re-pushes 14 calibration values on ESP32 reconnect |
+| 2026-08-26 | Dashboard v1.1.x — offline banners, default values in Settings, calibration cards |
+| 2026-08-26 | Fast connectivity detection — 10s offline via uptime heartbeat template |
+| 2026-08-26 | Firmware v1.0.8 — 1s uptime heartbeat, 3min reboot_timeout |
+| 2026-08-26 | Recorder exclude — uptime + wifi_signal removed from HA DB |
+| 2026-08-26 | Documentation: home_assistant.md, calibration.md, installation.md added |
 
 ---
 
