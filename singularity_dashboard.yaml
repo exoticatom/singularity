@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.0.9
+# singularity_dashboard.yaml  v1.1.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -21,6 +21,7 @@
 #   v1.0.7 — RIMS mode changed to toggle switch, SSR controls removed from main tab, setpoint 0-80°C
 #   v1.0.8 — Fix stale entity IDs: select→switch rims, ssr2→rims_heater, firmware_version_display→build; add 90°C runaway guard
 #   v1.0.9 — Remove stale HA Templates row; simplify RIMS Heater label
+#   v1.1.0 — Offline warning banner on Settings tab
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -141,6 +142,20 @@ views:
     path: singularity-settings
     icon: mdi:tune
     cards:
+
+      # ── Offline warning ──────────────────────────────────────────────────────
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
+        card:
+          type: markdown
+          content: |
+            <div style="background:#b71c1c; border-radius:8px; padding:12px 16px; color:#ef9a9a;">
+            ⚠️ <strong>ESP32 is offline</strong> — settings cannot be read or changed until the controller reconnects.
+            Values shown below are unavailable. Last known values are stored on the ESP32 flash and will be restored automatically on reconnect.
+            </div>
 
       - type: markdown
         content: |
@@ -276,7 +291,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.0.9</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.0</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
