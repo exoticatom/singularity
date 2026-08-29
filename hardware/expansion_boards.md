@@ -48,6 +48,7 @@ If signal quality issues occur with long wires, drop back to 100kHz.
 |---|---|---|
 | `0x20` | MCP23017 #1 | Planned |
 | `0x48` | ADS1115 #1 | Active — NTC1 (A0), NTC2 (A1), FLOW1 (A2), FLOW2 (A3) |
+| `0x49` | ADS1115 #2 | On hold — floating input issue (see README Project Status for details) |
 | `0x60` | MCP4728 #1 | Planned |
 | `0x61` | MCP4728 #2 | Planned (address reprogrammed) |
 

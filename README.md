@@ -279,6 +279,7 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 | ADS1115 #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | NTC1-RIMS thermistor | ✅ Tested | Reading correctly on A0 |
 | NTC2-MASH thermistor | ✅ Tested | Reading correctly on A1 |
+| ADS1115 #2 (0x49) | 🔬 On hold | Floating input issue — see note below |
 | DS18B20-Boil | ✅ Tested | ROM `0x750000105cbe3528` confirmed |
 | DS18B20-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
 | SSR1 (GPIO41) | ⏳ Wired | Not load tested |
@@ -288,6 +289,8 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 | MCP23017 GPIO expander | 🔲 Planned | I2C 0x20 |
 | MCP4728 DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
 | Alarm/buzzer | 🔲 Planned | Hardware + HA notification |
+
+> **Note — ADS1115 #2 floating input issue:** Two boards were tested. One board's unconnected analog inputs drifted **negative** (below GND) — ESPHome correctly returns `unavailable`, indicating sensor not connected. The second board's inputs drifted **positive** (~0.58V) — passed the voltage guard and produced false temperature readings (~64°C) with nothing connected. A PID relying on a false 64°C reading could behave dangerously. Root cause not yet confirmed — may be board-specific or batch-specific. 6 more boards ordered for further testing. Second ADS1115 on hold until resolved. A0 on board #1 (0x48) drifts negative and is safe; both NTCs use board #1 only.
 
 ### Software
 
