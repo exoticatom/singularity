@@ -268,6 +268,46 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 
 ---
 
+## Project Status
+
+### Hardware
+
+| Component | Status | Notes |
+|---|---|---|
+| ESP32-S3-DevKitC-1 | ✅ Active | Firmware v1.0.7 |
+| ADS1115 #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
+| NTC1-RIMS thermistor | ✅ Tested | Reading correctly on A0 |
+| NTC2-MASH thermistor | ✅ Tested | Reading correctly on A1 |
+| DS18B20-Boil | ✅ Tested | ROM `0x750000105cbe3528` confirmed |
+| DS18B20-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
+| SSR1 (GPIO41) | ⏳ Wired | Not load tested |
+| SSR2 — RIMS heater (GPIO42) | ⏳ Wired | PID ready, not load tested |
+| SM6004 flow meters × 2 | 🔲 Planned | ADS1115 A2/A3 + 4-20mA converters |
+| Relay board — pump control | 🔲 Planned | Via MCP23017 GPIO expander |
+| MCP23017 GPIO expander | 🔲 Planned | I2C 0x20 |
+| MCP4728 DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
+| Alarm/buzzer | 🔲 Planned | Hardware + HA notification |
+
+### Software
+
+| Feature | Status | Notes |
+|---|---|---|
+| ESPHome firmware v1.0.7 | ✅ Active | OTA updates working |
+| NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
+| DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
+| Flash persistence (restore_value) | ✅ Tested | Survives reboot |
+| PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
+| 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
+| CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
+| HA dashboard v1.0.9 | ✅ Active | 5 tabs, touch-friendly |
+| Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
+| Flow meter firmware (SM6004) | 🔲 Planned | ADS1115 A2/A3 |
+| Pump relay control | 🔲 Planned | MCP23017 |
+| Proportional valve control | 🔲 Planned | MCP4728 DAC |
+| Node-RED mash schedules + timers | 🔲 Planned | Mash step automation, alarms |
+
+---
+
 ## Planned Expansions
 
 > 📖 See **[hardware/ →](hardware/README.md)** for full hardware documentation including wiring, calibration and datasheets.
