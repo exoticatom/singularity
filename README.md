@@ -5,6 +5,7 @@
 [![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.2-green)](esp32_singularity.yaml)
 [![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.0.3-orange)](singularity_dashboard.yaml)
 [![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
+[![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
@@ -99,7 +100,8 @@ singularity/
 │   ├── expansion_boards.md       # I2C boards (ADS1115, MCP4728, MCP23017)
 │   ├── current_to_voltage.md     # 4-20mA → 0-3.3V converter module
 │   ├── sm6004.md                 # IFM SM6004 magnetic flow sensor
-│   └── yf_s200.md                # YF-S200 pulse flow sensor
+│   ├── yf_s200.md                # YF-S200 pulse flow sensor
+│   └── calibration.md            # Calibration guide — NTC, DS18B20, ADS1115, SM6004, PID
 ├── .gitignore
 └── .github/workflows/deploy.yml  # CI/CD — auto-deploys to HA on push to main
 ```

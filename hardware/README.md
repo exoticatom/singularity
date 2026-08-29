@@ -17,6 +17,7 @@ This folder contains all hardware-related documentation for the singularity brew
 | ⚡ [Current to Voltage Module](current_to_voltage.md) | 4-20mA → 0-3.3V converter for SM6004 and other industrial sensors |
 | 💧 [SM6004 Flow Sensor](sm6004.md) | IFM magnetic-inductive flow meter — 4-20mA wiring via converter module |
 | 💧 [YF-S200 Flow Sensor](yf_s200.md) | Hall effect pulse flow sensor — 5V supply, GPIO wiring options |
+| 🧪 [Calibration Guide](calibration.md) | Calibration procedures for NTC, DS18B20, ADS1115, SM6004, PID |
 
 ---
 

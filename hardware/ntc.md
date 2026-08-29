@@ -100,82 +100,11 @@ GND
 
 ---
 
-## Calibration — Steinhart-Hart Equation
+## Calibration
 
-singularity uses the full 3-coefficient Steinhart-Hart equation for accurate temperature conversion across a wide range:
+> 📖 Full calibration procedure → **[hardware/calibration.md](calibration.md#ntc-thermistors--steinhart-hart-calibration)**
 
-```
-1/T = A + B·ln(R) + C·(ln(R))³
-T(°C) = (1/T_kelvin) - 273.15 + offset
-```
-
-Where:
-- `R` = NTC resistance = `r_fixed × V / (v_ref − V)`
-- `V` = raw ADC voltage from ESP32
-- `T` = temperature in Kelvin
-
-### Calibration Values (configurable from Settings tab)
-
-| Parameter | NTC1-RIMS | NTC2-MASH | Notes |
-|---|---|---|---|
-| R-Fixed (Ω) | 9883 | 9902 | Measured actual resistor value |
-| V-Ref (V) | 3.3 | 3.3 | ESP32 supply voltage |
-| A | 0.001207071588 | 0.001209771862 | Steinhart-Hart coefficient |
-| B | 0.0002183328996 | 0.0002173461562 | Steinhart-Hart coefficient |
-| C | 0.0000001764463641 | 0.0000001848376283 | Steinhart-Hart coefficient |
-| Offset (°C) | 0.0 | 0.0 | Fine-tune after physical calibration |
-
-### How to Get Your S-H Coefficients
-
-The best way is to use the **SRS NTC Thermistor Calculator**:
-
-🔗 [https://www.thinksrs.com/downloads/programs/therm%20calc/ntccalibrator/ntccalculator.html](https://www.thinksrs.com/downloads/programs/therm%20calc/ntccalibrator/ntccalculator.html)
-
-**Step-by-step procedure:**
-
-1. **Measure your fixed resistor (R_fixed) with a multimeter**
-   This is critical — never use the nominal value. Measure the actual resistance of the fixed resistor before soldering it in. Enter this exact value in the **R-Fixed (Ω)** field in the Settings tab.
-
-2. **Measure NTC resistance at 3 known temperatures**
-   Use an ice bath (0°C), room temperature (~20°C), and boiling water (100°C) as reference points. Measure the NTC resistance at each temperature with a multimeter.
-
-3. **Enter the 3 data points** into the SRS calculator:
-   - T1, R1 (e.g. 0°C = 27,280Ω)
-   - T2, R2 (e.g. 20°C = 12,090Ω)
-   - T3, R3 (e.g. 100°C = 973Ω)
-
-4. **Click Calculate** — the tool outputs A, B, C coefficients.
-
-5. **Enter all values into the singularity dashboard → Settings tab:**
-
-   The Settings tab shows the calibration card for each NTC:
-
-   ```
-   NTC1-RIMS — Steinhart-Hart Calibration
-   R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³
-
-   R-Fixed (Ω)    → measured resistor value (e.g. 9883)
-   V-Ref (V)      → 3.3
-   Coefficient A  → from calculator (e.g. 0.001207071588)
-   Coefficient B  → from calculator (e.g. 0.0002183328996)
-   Coefficient C  → from calculator (e.g. 1.764463641e-7)
-   ```
-
-   Values are written to the ESP32 via `number` entities and **persisted to ESP32 flash**. The controller continues using last known values even if HA is offline.
-
-6. **Verify** by comparing the displayed corrected temperature against a reference thermometer. Fine-tune using the **Offset (°C)** field if needed.
-
-> **Tip:** The more spread out your calibration points are, the more accurate the coefficients. Ice bath + boiling water gives the best range for brewing temperatures.
-
-### Safety Checks
-
-The template sensor returns `none` (unavailable) when:
-- Sensor is disconnected (voltage = 0 or ≥ V-ref)
-- Calculated temperature is outside −10°C to 150°C range
-
-This prevents garbage readings from being recorded when sensors are disconnected between brew sessions.
-
----
+All NTC calibration parameters (R-Fixed, V-Ref, Steinhart-Hart A/B/C coefficients, Offset) are configurable from the HA Settings tab without reflashing. Values are stored on ESP32 flash and survive reboots.
 
 ## ESP32 Firmware Notes
 
