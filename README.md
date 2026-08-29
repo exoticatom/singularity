@@ -141,6 +141,8 @@ Complex brewing sequences (mash schedules, step mashing, automated valve control
 
 **Rule:** Calculations and state that must survive a reboot live on the ESP32. Configuration and display live in HA. Sequences and scheduling live in Node-RED.
 
+**Rule — incremental complexity:** Start with the simplest working implementation. Do not cover edge cases upfront. Add complexity only when a real need is confirmed. Simple code is easier to debug on a microcontroller with limited tooling.
+
 ---
 
 ## Dashboard
