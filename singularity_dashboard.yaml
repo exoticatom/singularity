@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.2.0
+# singularity_dashboard.yaml  v1.2.1
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -69,22 +69,73 @@ views:
               <span style="background:#b71c1c; border-radius:8px; padding:6px 14px; color:#ef9a9a; font-weight:bold; font-size:14px;">🔴 singularity.local — Offline ⚠️</span>
             </div>
 
-      - type: entities
-        title: Temperature Sensors
-        show_header_toggle: false
-        entities:
-          - entity: sensor.singularity_ds18b20_boil
-            name: DS18B20-Boil
-            icon: mdi:thermometer-lines
-          - entity: sensor.singularity_ds18b20_hlt
-            name: DS18B20-HLT
-            icon: mdi:thermometer-lines
-          - entity: sensor.singularity_ntc1_rims
-            name: NTC1-RIMS
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.singularity_ntc1_rims
+            primary: "{{ states(entity) | round(1) }} °C"
+            secondary: NTC1-RIMS
             icon: mdi:thermometer-water
-          - entity: sensor.singularity_ntc2_mash
-            name: NTC2-MASH
+            icon_color: >
+              {% set t = states(entity) | float(-1) %}
+              {% if t < 0 %} disabled
+              {% elif t < 50 %} blue
+              {% elif t < 69 %} green
+              {% elif t < 75 %} orange
+              {% else %} red
+              {% endif %}
+            tap_action:
+              action: more-info
+
+          - type: custom:mushroom-template-card
+            entity: sensor.singularity_ntc2_mash
+            primary: "{{ states(entity) | round(1) }} °C"
+            secondary: NTC2-MASH
             icon: mdi:thermometer
+            icon_color: >
+              {% set t = states(entity) | float(-1) %}
+              {% if t < 0 %} disabled
+              {% elif t < 50 %} blue
+              {% elif t < 69 %} green
+              {% elif t < 75 %} orange
+              {% else %} red
+              {% endif %}
+            tap_action:
+              action: more-info
+
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.singularity_ds18b20_boil
+            primary: "{{ states(entity) | round(1) }} °C"
+            secondary: DS18B20-Boil
+            icon: mdi:thermometer-lines
+            icon_color: >
+              {% set t = states(entity) | float(-1) %}
+              {% if t < 0 %} disabled
+              {% elif t < 50 %} blue
+              {% elif t < 70 %} green
+              {% elif t < 85 %} orange
+              {% else %} red
+              {% endif %}
+            tap_action:
+              action: more-info
+
+          - type: custom:mushroom-template-card
+            entity: sensor.singularity_ds18b20_hlt
+            primary: "{{ states(entity) | round(1) }} °C"
+            secondary: DS18B20-HLT
+            icon: mdi:thermometer-lines
+            icon_color: >
+              {% set t = states(entity) | float(-1) %}
+              {% if t < 0 %} disabled
+              {% elif t < 50 %} blue
+              {% elif t < 70 %} green
+              {% elif t < 85 %} orange
+              {% else %} red
+              {% endif %}
+            tap_action:
+              action: more-info
 
       - type: entities
         title: RIMS Heater
