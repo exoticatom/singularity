@@ -537,7 +537,7 @@ sensor:
   - platform: dallas_temp
     address: 0x750000105cbe3528
     name: "DS18B20-Boil"
-    id: ds18b20_kettle
+    id: ds18b20_boil
     unit_of_measurement: "°C"
     device_class: temperature
     state_class: measurement

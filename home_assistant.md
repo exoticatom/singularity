@@ -51,7 +51,7 @@ sensor.singularity_wifi_signal      dBm   WiFi RSSI — updates every 60s (diagn
 
 ```
 binary_sensor.singularity_esp32_status      on/off   Native ESPHome connectivity (slow — ~30-60s)
-binary_sensor.esp32_fast_status             on/off   Template sensor — offline within 10s (see below)
+binary_sensor.singularity_esp32_fast_status  on/off   Template sensor — offline within 10s (see below)
 ```
 
 ### Number Entities (read/write, persisted on ESP32 flash)
@@ -313,7 +313,7 @@ trigger: binary_sensor.singularity_esp32_status → ON
             DS18B20: Boil offset, HLT offset
 ```
 
-> **Note:** Values are already on ESP32 flash and applied immediately on boot. The automation is a safety net — if someone changed a value in HA while the ESP32 was offline, this ensures it gets applied.
+> **Note:** Values are already on ESP32 flash and applied immediately on boot. The automation is a safety net — if someone changed a value in HA while the ESP32 was offline, this ensures it gets applied. PID parameters (Setpoint, Kp, Ki, Kd, Max Duty) are not re-pushed — they also persist on ESP32 flash independently.
 
 ---
 
