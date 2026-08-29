@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.1
+# singularity_dashboard.yaml  v1.1.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -23,6 +23,7 @@
 #   v1.0.9 — Remove stale HA Templates row; simplify RIMS Heater label
 #   v1.1.0 — Offline warning banner on Settings tab
 #   v1.1.1 — Default values shown as secondary info on all Settings entities
+#   v1.1.2 — Default values shown as reference tables above each calibration card
 #
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
@@ -179,22 +180,38 @@ views:
           - No action needed — changes are never lost
 
       # DS18B20 offsets — now on ESP32 flash
+      - type: markdown
+        content: >
+          **DS18B20 Offsets** — default values
+
+          | Parameter | Default |
+          |---|---|
+          | DS18B20-Boil Offset | 0.0 °C |
+          | DS18B20-HLT Offset | 0.0 °C |
       - type: entities
         title: DS18B20 Offsets
         show_header_toggle: false
         entities:
-          - type: section
-            label: "Applied on ESP32 — persisted to flash. Default: 0.0°C"
           - entity: number.singularity_ds18b20_boil_offset
             name: DS18B20-Boil Offset
             icon: mdi:thermometer-plus
-            secondary_info: "default 0.0°C"
           - entity: number.singularity_ds18b20_hlt_offset
             name: DS18B20-HLT Offset
             icon: mdi:thermometer-plus
-            secondary_info: "default 0.0°C"
 
       # NTC1-RIMS calibration — ESP32 number entities (persisted to flash)
+      - type: markdown
+        content: >
+          **NTC1-RIMS — Steinhart-Hart defaults** (first-boot values, your calibrated values saved to flash)
+
+          | Parameter | Default |
+          |---|---|
+          | R-Fixed | 9883 Ω |
+          | V-Ref | 3.3 V |
+          | Coefficient A | 0.001207072 |
+          | Coefficient B | 0.0002183329 |
+          | Coefficient C | 1.764464e-07 |
+          | Offset | 0.0 °C |
       - type: entities
         title: NTC1-RIMS — Steinhart-Hart Calibration
         show_header_toggle: false
@@ -204,29 +221,35 @@ views:
           - entity: number.singularity_ntc1_r_fixed
             name: R-Fixed (Ω)
             icon: mdi:resistor
-            secondary_info: "default 9883 Ω"
           - entity: number.singularity_ntc1_v_ref
             name: V-Ref (V)
             icon: mdi:sine-wave
-            secondary_info: "default 3.3 V"
           - entity: number.singularity_ntc1_sh_a
             name: Coefficient A
             icon: mdi:alpha-a
-            secondary_info: "default 0.001207072"
           - entity: number.singularity_ntc1_sh_b
             name: Coefficient B
             icon: mdi:alpha-b
-            secondary_info: "default 0.0002183329"
           - entity: number.singularity_ntc1_sh_c
             name: Coefficient C
             icon: mdi:alpha-c
-            secondary_info: "default 1.764464e-07"
           - entity: number.singularity_ntc1_offset
             name: Offset (°C)
             icon: mdi:thermometer-plus
-            secondary_info: "default 0.0°C"
 
       # NTC2-MASH calibration — ESP32 number entities (persisted to flash)
+      - type: markdown
+        content: >
+          **NTC2-MASH — Steinhart-Hart defaults** (first-boot values, your calibrated values saved to flash)
+
+          | Parameter | Default |
+          |---|---|
+          | R-Fixed | 9902 Ω |
+          | V-Ref | 3.3 V |
+          | Coefficient A | 0.001209772 |
+          | Coefficient B | 0.0002173462 |
+          | Coefficient C | 1.848376e-07 |
+          | Offset | 0.0 °C |
       - type: entities
         title: NTC2-MASH — Steinhart-Hart Calibration
         show_header_toggle: false
@@ -236,29 +259,34 @@ views:
           - entity: number.singularity_ntc2_r_fixed
             name: R-Fixed (Ω)
             icon: mdi:resistor
-            secondary_info: "default 9902 Ω"
           - entity: number.singularity_ntc2_v_ref
             name: V-Ref (V)
             icon: mdi:sine-wave
-            secondary_info: "default 3.3 V"
           - entity: number.singularity_ntc2_sh_a
             name: Coefficient A
             icon: mdi:alpha-a
-            secondary_info: "default 0.001209772"
           - entity: number.singularity_ntc2_sh_b
             name: Coefficient B
             icon: mdi:alpha-b
-            secondary_info: "default 0.0002173462"
           - entity: number.singularity_ntc2_sh_c
             name: Coefficient C
             icon: mdi:alpha-c
-            secondary_info: "default 1.848376e-07"
           - entity: number.singularity_ntc2_offset
             name: Offset (°C)
             icon: mdi:thermometer-plus
-            secondary_info: "default 0.0°C"
 
       # RIMS heater — PID control
+      - type: markdown
+        content: >
+          **RIMS Heater PID — defaults**
+
+          | Parameter | Default |
+          |---|---|
+          | Setpoint | 66.0 °C |
+          | Kp | 10.0 |
+          | Ki | 0.2 |
+          | Kd | 5.0 |
+          | Max Duty | 100 % |
       - type: entities
         title: RIMS Heater — PID Control
         show_header_toggle: false
@@ -268,27 +296,21 @@ views:
           - entity: switch.singularity_rims_heater
             name: RIMS Heater
             icon: mdi:toggle-switch
-            secondary_info: "default OFF"
           - entity: number.singularity_pid_setpoint
             name: Setpoint (°C)
             icon: mdi:target
-            secondary_info: "default 66.0°C"
           - entity: number.singularity_pid_kp
             name: Kp — Proportional
             icon: mdi:alpha-p-circle
-            secondary_info: "default 10.0"
           - entity: number.singularity_pid_ki
             name: Ki — Integral
             icon: mdi:alpha-i-circle
-            secondary_info: "default 0.2"
           - entity: number.singularity_pid_kd
             name: Kd — Derivative
             icon: mdi:alpha-d-circle
-            secondary_info: "default 5.0"
           - entity: number.singularity_pid_max_duty_cycle
             name: Max Duty Cycle (%)
             icon: mdi:percent
-            secondary_info: "default 100%"
 
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
@@ -312,7 +334,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.1</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.2</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
