@@ -93,11 +93,6 @@ views:
           - entity: switch.singularity_rims_heater
             name: RIMS Heater
             icon: mdi:fire
-
-      - type: entities
-        title: Setpoint
-        show_header_toggle: false
-        entities:
           - entity: number.singularity_pid_setpoint
             name: Target Temperature (°C)
             icon: mdi:target
