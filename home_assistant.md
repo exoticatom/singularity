@@ -159,7 +159,7 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ## Dashboard
 
 **File:** `singularity_dashboard.yaml` → deployed to `/config/singularity_dashboard.yaml`  
-**Version:** v1.1.9  
+**Version:** v1.2.0  
 **Registered in:** `/config/configuration.yaml` as `lovelace` dashboard
 
 ### Tab layout
@@ -242,7 +242,7 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ├────────────────────────────────────────────┤
 │  System Versions                           │
 │  🔧 ESP32 Firmware  │  v1.0.8  │  ● Live  │
-│  📊 Dashboard       │  v1.1.9  │  ● Live  │
+│  📊 Dashboard       │  v1.2.0  │  ● Live  │
 ├────────────────────────────────────────────┤
 │  About singularity                         │
 │  Sensor map, GPIO assignments              │
@@ -368,7 +368,7 @@ ESP32 on_value lambda
 | v1.1.6 | Calibration sections in hardware docs + links |
 | v1.1.7 | Offline ⚠️ banner on Log, About, Hardware tabs |
 | v1.1.8 | ⚠️ added to main tab offline banner |
-| v1.1.9 | Coefficient defaults in name (short notation), RIMS+Setpoint merged |
+| v1.2.0 | Replace history-graph with apexcharts-card — 4 sensors, live setpoint line, colour coded |
 
 ---
 
