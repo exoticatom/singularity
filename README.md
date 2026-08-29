@@ -6,6 +6,7 @@
 [![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.0.3-orange)](singularity_dashboard.yaml)
 [![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
 [![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
+[![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
@@ -87,6 +88,7 @@ The system is split into three distinct layers, each with a clear responsibility
 
 ```
 singularity/
+├── home_assistant.md                 # Home Assistant integration — entities, dashboard, automations
 ├── esp32_singularity.yaml        # ESPHome firmware configuration
 ├── singularity_dashboard.yaml    # Home Assistant Lovelace dashboard (auto-deployed)
 ├── assets/                       # Hardware reference images and datasheets
