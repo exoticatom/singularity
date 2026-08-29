@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.3
+# singularity_dashboard.yaml  v1.1.4
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -269,6 +269,43 @@ views:
             name: "Max Duty Cycle (default: 100%)"
             icon: mdi:percent
 
+      # ── How to calibrate ──────────────────────────────────────────────────────
+      - type: markdown
+        title: How to Calibrate
+        content: |
+          ### NTC Thermistors (Steinhart-Hart)
+
+          **What you need:** a calibrated reference thermometer and hot water at 3 known temperatures (e.g. 25°C, 50°C, 75°C).
+
+          1. Place NTC and reference thermometer in the same water bath
+          2. At each temperature record the **ADC voltage** from ESPHome logs (enable DEBUG temporarily)
+          3. Calculate resistance: `R = R_fixed × V / (V_ref − V)`
+          4. Use a Steinhart-Hart calculator (e.g. [SH Calculator](https://www.thinksrs.com/downloads/programs/therm%20calc/ntccalibrator/ntccalculator.html)) to derive A, B, C from your 3 R/T pairs
+          5. Enter A, B, C, R_fixed and V_ref in Settings — takes effect within 1 second
+
+          **Offset:** use a single-point correction. Measure at a known temperature with a reference thermometer, enter the difference as Offset.
+
+          ---
+
+          ### DS18B20 Sensors
+
+          DS18B20 sensors are factory-calibrated and typically accurate to ±0.5°C. Use Offset only if you verify against a reference thermometer.
+
+          1. Place DS18B20 in ice water (0°C) or boiling water (100°C at sea level)
+          2. Compare reading to reference thermometer
+          3. Enter the difference as Offset (e.g. if reading 1.2°C in ice water, set Offset to −1.2)
+
+          ---
+
+          ### PID Tuning (RIMS heater)
+
+          Start with the defaults (Kp=10, Ki=0.2, Kd=5). Tune after first brew:
+
+          - **Overshoots setpoint** → reduce Kp
+          - **Holds slightly below setpoint** → increase Ki
+          - **Oscillates** → reduce Ki, increase Kd
+          - **Too slow to reach setpoint** → increase Kp
+
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
     path: singularity-about
@@ -291,7 +328,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.3</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.4</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
