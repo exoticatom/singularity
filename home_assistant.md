@@ -275,7 +275,6 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ├── configuration.yaml              ← lovelace + template include
 ├── automations.yaml                ← reconnect automation (line ~1530)
 ├── singularity_dashboard.yaml      ← deployed from git via CI/CD
-├── singularity_input_numbers.yaml  ← empty (calibration moved to ESP32 flash)
 └── singularity_templates/
     └── singularity_templates.yaml  ← fast connectivity template (deployed via CI/CD)
 ```

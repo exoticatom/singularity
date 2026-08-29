@@ -76,7 +76,7 @@ Used by: DS18B20 digital temperature sensor(s)
 | DS18B20-Boil | 1-Wire | GPIO 48 | `0x750000105cbe3528` | Boil kettle — this installation |
 | DS18B20-HLT | 1-Wire | GPIO 48 | `0x3100000c31dd5a28` | Hot Liquor Tank — this installation |
 | SSR1 | GPIO out | GPIO 41 | — | Spare SSR relay — RESTORE_DEFAULT_OFF |
-| SSR2 | GPIO out | GPIO 42 | — | RIMS heating element — RESTORE_DEFAULT_OFF |
+| SSR2 | slow_pwm output | GPIO 42 | — | RIMS heating element — RESTORE_DEFAULT_OFF |
 
 > **Note:** DS18B20 ROM addresses are unique per physical sensor. The addresses
 > above are specific to this hardware installation. If a sensor is replaced,
@@ -164,7 +164,7 @@ ADS1115 Ax ──┬──► signal source
             GND
 ```
 
-This applies to all 8 ADC ports (ADC_Port_0 through ADC_Port_7).
+This applies to all 4 ADC ports (ADC_Port_0 through ADC_Port_3) — all on ADS1115 #1 (0x48).
 
 ---
 

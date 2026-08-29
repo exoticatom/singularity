@@ -108,7 +108,7 @@ All NTC calibration parameters (R-Fixed, V-Ref, Steinhart-Hart A/B/C coefficient
 
 ## ESP32 Firmware Notes
 
-As of v2.0.0, the full Steinhart-Hart calculation runs directly on the ESP32:
+The full Steinhart-Hart calculation runs directly on the ESP32 (since v1.0.0):
 
 - Raw ADC voltage is read from ADS1115 and processed entirely in firmware
 - S-H parameters are stored as `number` entities with `restore_value: true` — they persist to ESP32 flash and survive reboots

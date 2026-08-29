@@ -2,8 +2,8 @@
 
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
-[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.2-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.0.3-orange)](singularity_dashboard.yaml)
+[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.8-green)](esp32_singularity.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.1.9-orange)](singularity_dashboard.yaml)
 [![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
 [![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
 [![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
@@ -42,8 +42,8 @@ The system is split into three distinct layers, each with a clear responsibility
 ┌────────────────────────▼────────────────────────────────┐
 │                  Home Assistant                         │
 │  Dashboard — display, settings, calibration, logs       │
-│  DS18B20 offset helpers — adjustable without reflash    │
-│  Templates — DS18B20 corrected values                   │
+│  DS18B20 offset correction via ESP32 number entities    │
+│  Fast connectivity template (10s offline detection)     │
 └────────────────────────┬────────────────────────────────┘
                          │ ESPHome native API
 ┌────────────────────────▼────────────────────────────────┐
@@ -57,7 +57,7 @@ The system is split into three distinct layers, each with a clear responsibility
 
 **ESP32** runs the NTC Steinhart-Hart calculation locally using parameters stored in flash. Even if HA is unavailable the controller continues with last known calibration values.
 
-**Home Assistant** handles DS18B20 offset correction, display and logging. NTC calibration is written to ESP32 via `number` entities which persist to flash.
+**Home Assistant** is display and configuration only. DS18B20 offsets are written to ESP32 `number` entities (stored on flash). NTC calibration parameters are also on flash. HA shows live readings, logs events, and provides a settings UI — the ESP32 runs the brew independently.
 
 **Node-RED** (planned) implements brewing sequences and PID control at the highest level.
 
@@ -152,7 +152,7 @@ Five tabs, auto-deployed on every push to `main`:
 | **Brewing Temperatures** | Online/offline banner, corrected sensor readings, SSR controls, history graph |
 | **Log** | ESP32 connectivity events, SSR activity graph (24h) |
 | **Settings** | NTC S-H calibration on ESP32 (R, V-ref, A, B, C, Offset), DS18B20 offsets |
-| **About** | System versions (ESP32 firmware, dashboard, HA templates) |
+| **About** | System versions (ESP32 firmware, dashboard) |
 | **Hardware** | ESP32 pinout, pin assignment table, I2C device map |
 
 ---
@@ -279,7 +279,7 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 
 | Component | Status | Notes |
 |---|---|---|
-| ESP32-S3-DevKitC-1 | ✅ Active | Firmware v1.0.7 |
+| ESP32-S3-DevKitC-1 | ✅ Active | Firmware v1.0.8 |
 | ADS1115 #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | NTC1-RIMS thermistor | ✅ Tested | Reading correctly on A0 |
 | NTC2-MASH thermistor | ✅ Tested | Reading correctly on A1 |
@@ -294,20 +294,21 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 | MCP4728 DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
 | Alarm/buzzer | 🔲 Planned | Hardware + HA notification |
 
-> **Note — ADS1115 #2 floating input issue:** Two boards were tested. One board's unconnected analog inputs drifted **negative** (below GND) — ESPHome correctly returns `unavailable`, indicating sensor not connected. The second board's inputs drifted **positive** (~0.58V) — passed the voltage guard and produced false temperature readings (~64°C) with nothing connected. A PID relying on a false 64°C reading could behave dangerously. Root cause not yet confirmed — may be board-specific or batch-specific. 6 more boards ordered for further testing. Second ADS1115 on hold until resolved. A0 on board #1 (0x48) drifts negative and is safe; both NTCs use board #1 only.
+> **Note — ADS1115 #2 floating input issue:** Two boards were tested. One drifted **negative** (below GND) — ESPHome correctly returns `unavailable`. The other drifted **positive** (~0.58V) — produced false temperature readings (~64°C) with nothing connected. A PID relying on a false 64°C reading could behave dangerously. Root cause not confirmed — may be board-specific. 6 more boards ordered for testing. **Decision: all 4 channels (A0–A3) stay on ADS1115 #1 (0x48). ADS1115 #2 is not in scope** — flow meters will also use #1 A2/A3.
 
 ### Software
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.0.7 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.0.8 | ✅ Active | OTA updates working |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.0.9 | ✅ Active | 5 tabs, touch-friendly |
+| HA dashboard v1.1.9 | ✅ Active | 5 tabs, touch-friendly |
+| Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | 🔲 Planned | ADS1115 A2/A3 |
 | Pump relay control | 🔲 Planned | MCP23017 |
