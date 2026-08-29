@@ -16,7 +16,7 @@ This page covers calibration procedures for all sensors and modules in the singu
 
 ## How calibration values are stored
 
-All calibration values are stored on the **ESP32 flash** using `restore_value: true` — they survive power cuts and reboots without needing HA.
+All calibration values are stored on the **[ESP32](esp32.md) flash** using `restore_value: true` — they survive power cuts and reboots without needing [Home Assistant](../home_assistant.md).
 
 Values take effect within 1 second of being changed in the Settings tab. You can adjust in real-time during a brew — no reflash needed.
 
@@ -27,7 +27,7 @@ Values take effect within 1 second of being changed in the Settings tab. You can
 
 ---
 
-## NTC Thermistors — Steinhart-Hart Calibration
+## [NTC Thermistors](ntc.md) — Steinhart-Hart Calibration
 
 > 🔗 See also: [NTC Thermistors — hardware/ntc.md](ntc.md)
 
@@ -87,7 +87,7 @@ The firmware returns `unavailable` when:
 
 ---
 
-## DS18B20 — Offset Correction
+## [DS18B20](ds18b20.md) — Offset Correction
 
 > 🔗 See also: [DS18B20 — hardware/ds18b20.md](ds18b20.md)
 
@@ -112,7 +112,7 @@ DS18B20 sensors are factory-calibrated and typically accurate to ±0.5°C. A sin
 
 ---
 
-## ADS1115 — Input Verification
+## [ADS1115](expansion_boards.md) — Input Verification
 
 > 🔗 See also: [Expansion Boards — hardware/expansion_boards.md](expansion_boards.md)
 
@@ -140,7 +140,7 @@ Gain is set to `6.144` (±6.144V range) even though the signal is 0–3.3V. This
 
 ---
 
-## SM6004 + 4-20mA Converter — ZERO/SPAN Calibration
+## [SM6004](sm6004.md) + [4-20mA Converter](current_to_voltage.md) — ZERO/SPAN Calibration
 
 > 🔗 See also: [SM6004 — hardware/sm6004.md](sm6004.md) | [Current to Voltage Converter — hardware/current_to_voltage.md](current_to_voltage.md)
 

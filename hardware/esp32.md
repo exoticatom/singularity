@@ -31,9 +31,9 @@ The singularity controller is built on the ESP32-S3-DEV-KIT-NXRX development boa
 
 | GPIO | Function | Role | Status |
 |---|---|---|---|
-| GPIO 21 | SDA | I2C data — ADS1115 | ✅ in use |
-| GPIO 47 | SCL | I2C clock — ADS1115 | ✅ in use |
-| GPIO 48 | 1-Wire DQ | DS18B20 sensors | ✅ in use |
+| GPIO 21 | SDA | I2C data — [ADS1115](expansion_boards.md) | ✅ in use |
+| GPIO 47 | SCL | I2C clock — [ADS1115](expansion_boards.md) | ✅ in use |
+| GPIO 48 | 1-Wire DQ | [DS18B20](ds18b20.md) sensors | ✅ in use |
 | GPIO 41 | Output | SSR1 relay | ✅ in use |
 | GPIO 42 | Output | SSR2 RIMS Heater relay | ✅ in use |
 | GPIO 43 | U0TXD | UART0 TX — serial console | ❌ reserved |
@@ -57,7 +57,7 @@ See [gpio_map.md](gpio_map.md) for full pin rules, reserved pins and available G
 | Wi-Fi | 802.11 b/g/n (2.4GHz) |
 | Bluetooth | BLE 5.0 |
 | GPIO | 45 programmable pins |
-| ADC | 2 × 12-bit SAR ADC (but use ADS1115 for accuracy) |
+| ADC | 2 × 12-bit SAR ADC (but use [ADS1115](expansion_boards.md) for accuracy) |
 | I2C | 2 × hardware I2C controllers |
 | SPI | 4 × SPI |
 | UART | 3 × UART |

@@ -86,7 +86,7 @@ If signal quality issues occur with long wires, drop back to 100kHz.
 | SDA | 0x4A |
 | SCL | 0x4B |
 
-Used for NTC thermistors and flow meter analog inputs (via 4-20mA converter modules).
+Used for [NTC](ntc.md) thermistors and flow meter analog inputs (via [4-20mA converter modules](current_to_voltage.md)).
 
 | Parameter | Value |
 |---|---|
@@ -112,8 +112,8 @@ Used for NTC thermistors and flow meter analog inputs (via 4-20mA converter modu
 |---|---|---|---|
 | ADC_Port_0 | A0 | #1 (0x48) | NTC1-RIMS |
 | ADC_Port_1 | A1 | #1 (0x48) | NTC2-MASH |
-| ADC_Port_2 | A2 | #1 (0x48) | SM6004 FLOW1 (planned) |
-| ADC_Port_3 | A3 | #1 (0x48) | SM6004 FLOW2 (planned) |
+| ADC_Port_2 | A2 | #1 (0x48) | [SM6004](sm6004.md) FLOW1 (planned) |
+| ADC_Port_3 | A3 | #1 (0x48) | [SM6004](sm6004.md) FLOW2 (planned) |
 
 ### Calibration and safety verification
 
@@ -200,6 +200,6 @@ Adds 16 additional GPIO pins via I2C. Planned for relay outputs, button inputs, 
 ## General Wiring Notes
 
 - All I2C devices share the same two wires (SDA, SCL) plus power and ground
-- Connect all GNDs together (ESP32, all modules, power supply)
+- Connect all GNDs together ([ESP32](esp32.md), all modules, power supply)
 - Use short wires between modules where possible — each cm adds capacitance
 - For enclosure builds: route I2C wiring away from SSR and mains wiring

@@ -1,6 +1,6 @@
 # NTC Thermistors
 
-NTC (Negative Temperature Coefficient) thermistors measure temperature via resistance change. singularity uses two NTC sensors read through the ADS1115 ADC.
+NTC (Negative Temperature Coefficient) thermistors measure temperature via resistance change. singularity uses two NTC sensors read through the [ADS1115](expansion_boards.md) ADC.
 
 ---
 
@@ -40,7 +40,7 @@ NTC (Negative Temperature Coefficient) thermistors measure temperature via resis
 
 ## Wiring — Voltage Divider Circuit
 
-Each NTC is wired as a voltage divider with a fixed resistor. The junction voltage is read by the ADS1115 and converted to temperature using the Steinhart-Hart equation **in ESP32 firmware**.
+Each NTC is wired as a voltage divider with a fixed resistor. The junction voltage is read by the [ADS1115](expansion_boards.md) and converted to temperature using the Steinhart-Hart equation **in [ESP32](esp32.md) firmware**.
 
 ```
 3.3V
@@ -104,7 +104,7 @@ GND
 
 > 📖 Full calibration procedure → **[hardware/calibration.md](calibration.md#ntc-thermistors--steinhart-hart-calibration)**
 
-All NTC calibration parameters (R-Fixed, V-Ref, Steinhart-Hart A/B/C coefficients, Offset) are configurable from the HA Settings tab without reflashing. Values are stored on ESP32 flash and survive reboots.
+All NTC calibration parameters (R-Fixed, V-Ref, Steinhart-Hart A/B/C coefficients, Offset) are configurable from the [Home Assistant](../home_assistant.md) Settings tab without reflashing. Values are stored on [ESP32](esp32.md) flash and survive reboots.
 
 ## ESP32 Firmware Notes
 

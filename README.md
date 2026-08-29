@@ -24,9 +24,9 @@ Restores Amigas and ZX Spectrums. Automates everything. Brews the rest.
 
 ## What is singularity?
 
-singularity is an ESP32-S3 based brewing controller integrated with Home Assistant. It monitors temperatures across the brewing process, controls heating elements via SSR relays, and is designed to be extended with flow meters, proportional valves and automated brewing logic via Node-RED.
+singularity is an [ESP32-S3](hardware/esp32.md) based brewing controller integrated with [Home Assistant](home_assistant.md). It monitors temperatures across the brewing process, controls heating elements via SSR relays, and is designed to be extended with flow meters, proportional valves and automated brewing logic via Node-RED.
 
-Configuration is managed as code, version-controlled in Git, and automatically deployed to Home Assistant via GitHub Actions over a Tailscale VPN tunnel.
+Configuration is managed as code, version-controlled in Git, and automatically deployed to [Home Assistant](home_assistant.md) via GitHub Actions over a Tailscale VPN tunnel.
 
 ### Architecture
 
@@ -57,7 +57,7 @@ The system is split into three distinct layers, each with a clear responsibility
 
 **ESP32** runs the NTC Steinhart-Hart calculation locally using parameters stored in flash. Even if HA is unavailable the controller continues with last known calibration values.
 
-**Home Assistant** is display and configuration only. DS18B20 offsets are written to ESP32 `number` entities (stored on flash). NTC calibration parameters are also on flash. HA shows live readings, logs events, and provides a settings UI — the ESP32 runs the brew independently.
+**[Home Assistant](home_assistant.md)** is display and configuration only. [DS18B20](hardware/ds18b20.md) offsets are written to [ESP32](hardware/esp32.md) `number` entities (stored on flash). [NTC](hardware/ntc.md) calibration parameters are also on flash. HA shows live readings, logs events, and provides a settings UI — the ESP32 runs the brew independently.
 
 **Node-RED** (planned) implements brewing sequences and PID control at the highest level.
 
@@ -69,14 +69,14 @@ The system is split into three distinct layers, each with a clear responsibility
 
 | Category | Components |
 |---|---|
-| **Controller** | ESP32-S3-DEV-KIT-NXRX + expansion adapter board |
-| **Temperature** | NTC 10kΩ thermistors × 2 (via ADS1115 ADC), DS18B20 1-Wire sensors × 2 |
-| **Flow** | IFM SM6004 magnetic flow meters (planned), YF-S200 pulse sensors (planned) |
-| **Analog I/O** | ADS1115 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), MCP4728 12-bit DAC × 2 (planned) |
-| **GPIO expansion** | MCP23017 16-bit I2C expander (planned) |
+| **Controller** | [ESP32-S3-DEV-KIT-NXRX](hardware/esp32.md) + [expansion adapter board](hardware/esp32_expansion_board.md) |
+| **Temperature** | [NTC](hardware/ntc.md) 10kΩ thermistors × 2 (via [ADS1115](hardware/expansion_boards.md) ADC), [DS18B20](hardware/ds18b20.md) 1-Wire sensors × 2 |
+| **Flow** | IFM [SM6004](hardware/sm6004.md) magnetic flow meters (planned), [YF-S200](hardware/yf_s200.md) pulse sensors (planned) |
+| **Analog I/O** | [ADS1115](hardware/expansion_boards.md) 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), [MCP4728](hardware/expansion_boards.md) 12-bit DAC × 2 (planned) |
+| **GPIO expansion** | [MCP23017](hardware/expansion_boards.md) 16-bit I2C expander (planned) |
 | **Outputs** | SSR relays × 2 (RIMS heater + spare) |
-| **Signal conversion** | 4-20mA → 0-3.3V converter modules for industrial sensors |
-| **Infrastructure** | Raspberry Pi running Home Assistant OS (HAOS) |
+| **Signal conversion** | [4-20mA → 0-3.3V converter modules](hardware/current_to_voltage.md) for industrial sensors |
+| **Infrastructure** | Raspberry Pi running [Home Assistant](home_assistant.md) OS (HAOS) |
 
 ### Pinout Reference
 
@@ -130,7 +130,7 @@ singularity/
 - Max duty cycle is a safety cap — limits heater output even at full PID demand
 - Rationale: PID on ESP32 means the controller keeps regulating temperature even if HA goes offline
 
-**Home Assistant — display and configuration only (no calculations):**
+**[Home Assistant](home_assistant.md) — display and configuration only (no calculations):**
 - All calibration and PID parameters → Settings tab (writes to ESP32 `number` entities, saved to flash)
 - HA is a configuration UI, not a control layer — if HA restarts, the brew continues unaffected
 - Logging → logbook tab; reconnect automation re-pushes all 14 calibration values to ESP32 on reconnect
@@ -205,7 +205,7 @@ singularity_ota_password: "<your-password>"
 
 ### Prerequisites
 
-- Raspberry Pi running Home Assistant OS
+- Raspberry Pi running [Home Assistant](home_assistant.md) OS
 - ESPHome add-on installed in HA
 - Tailscale add-on installed and connected in HA
 - HACS installed + **mini-graph-card** by kalkih
@@ -279,19 +279,19 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 
 | Component | Status | Notes |
 |---|---|---|
-| ESP32-S3-DevKitC-1 | ✅ Active | Firmware v1.0.8 |
-| ADS1115 #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
-| NTC1-RIMS thermistor | ✅ Tested | Reading correctly on A0 |
-| NTC2-MASH thermistor | ✅ Tested | Reading correctly on A1 |
-| ADS1115 #2 (0x49) | 🔬 On hold | Floating input issue — see note below |
-| DS18B20-Boil | ✅ Tested | ROM `0x750000105cbe3528` confirmed |
-| DS18B20-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
+| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.0.8 |
+| [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
+| [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |
+| [NTC2-MASH thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A1 |
+| [ADS1115](hardware/expansion_boards.md) #2 (0x49) | 🔬 On hold | Floating input issue — see note below |
+| [DS18B20](hardware/ds18b20.md)-Boil | ✅ Tested | ROM `0x750000105cbe3528` confirmed |
+| [DS18B20](hardware/ds18b20.md)-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
 | SSR1 (GPIO41) | ⏳ Wired | Not load tested |
 | SSR2 — RIMS heater (GPIO42) | ⏳ Wired | PID ready, not load tested |
-| SM6004 flow meters × 2 | 🔲 Planned | ADS1115 A2/A3 + 4-20mA converters |
-| Relay board — pump control | 🔲 Planned | Via MCP23017 GPIO expander |
-| MCP23017 GPIO expander | 🔲 Planned | I2C 0x20 |
-| MCP4728 DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
+| [SM6004](hardware/sm6004.md) flow meters × 2 | 🔲 Planned | ADS1115 A2/A3 + [4-20mA converters](hardware/current_to_voltage.md) |
+| Relay board — pump control | 🔲 Planned | Via [MCP23017](hardware/expansion_boards.md) GPIO expander |
+| [MCP23017](hardware/expansion_boards.md) GPIO expander | 🔲 Planned | I2C 0x20 |
+| [MCP4728](hardware/expansion_boards.md) DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
 | Alarm/buzzer | 🔲 Planned | Hardware + HA notification |
 
 > **Note — ADS1115 #2 floating input issue:** Two boards were tested. One drifted **negative** (below GND) — ESPHome correctly returns `unavailable`. The other drifted **positive** (~0.58V) — produced false temperature readings (~64°C) with nothing connected. A PID relying on a false 64°C reading could behave dangerously. Root cause not confirmed — may be board-specific. 6 more boards ordered for testing. **Decision: all 4 channels (A0–A3) stay on ADS1115 #1 (0x48). ADS1115 #2 is not in scope** — flow meters will also use #1 A2/A3.
@@ -323,10 +323,10 @@ For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery opt
 
 | Item | Status |
 |---|---|
-| ADS1115 A2 + SM6004 flow meters × 2 | Planned — A2/A3 on existing board (0x48) |
-| MCP4728 × 2 — DAC for proportional valve | Planned |
-| MCP23017 — GPIO expander | Planned |
-| YF-S200 pulse flow sensors | Planned |
+| [ADS1115](hardware/expansion_boards.md) A2 + [SM6004](hardware/sm6004.md) flow meters × 2 | Planned — A2/A3 on existing board (0x48) |
+| [MCP4728](hardware/expansion_boards.md) × 2 — DAC for proportional valve | Planned |
+| [MCP23017](hardware/expansion_boards.md) — GPIO expander | Planned |
+| [YF-S200](hardware/yf_s200.md) pulse flow sensors | Planned |
 | Node-RED — process automation (PID, mash schedules, step sequences) | Future |
 
 ---

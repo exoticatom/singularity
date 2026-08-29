@@ -2,7 +2,7 @@
 
 > ← Back to **[README.md](README.md)**
 
-This page documents everything that was configured in Home Assistant for the singularity brewing controller — entities, automations, templates, dashboard, and how they all connect.
+This page documents everything that was configured in [Home Assistant](https://www.home-assistant.io) for the singularity brewing controller — entities, automations, templates, dashboard, and how they all connect.
 
 ---
 
@@ -33,7 +33,7 @@ This page documents everything that was configured in Home Assistant for the sin
 
 ## Entity Map
 
-All singularity entities in Home Assistant — what they do and where they come from:
+All singularity entities in [Home Assistant](https://www.home-assistant.io) — what they do and where they come from:
 
 ### Sensors (read-only, from ESP32)
 

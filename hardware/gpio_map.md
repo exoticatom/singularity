@@ -47,7 +47,7 @@ GPIO 4–18, 21, 35–42, 47, 48
 ## Bus Assignments
 
 ### I2C Bus
-Used by: ADS1115 (ADC for NTC thermistors)
+Used by: [ADS1115](expansion_boards.md) (ADC for [NTC](ntc.md) thermistors)
 
 | Signal | GPIO |
 |--------|------|
@@ -55,7 +55,7 @@ Used by: ADS1115 (ADC for NTC thermistors)
 | SCL    | GPIO 47 |
 
 ### 1-Wire Bus
-Used by: DS18B20 digital temperature sensor(s)
+Used by: [DS18B20](ds18b20.md) digital temperature sensor(s)
 
 | Signal     | GPIO |
 |------------|------|
@@ -110,7 +110,7 @@ Used by: DS18B20 digital temperature sensor(s)
 ## Secrets Configuration (Manual — Do Not Commit)
 
 The following keys must be present in the **global `secrets.yaml`** on the
-Home Assistant instance (Raspberry Pi). This file is managed manually on the
+[Home Assistant](../home_assistant.md) instance (Raspberry Pi). This file is managed manually on the
 device and is **never committed to the repository**.
 
 ```yaml
@@ -151,7 +151,7 @@ singularity_ota_password: "<your-password>"
 
 ### General Rule — ADC Input Filtering
 
-Every ADS1115 analog input (A0–A3 on both chips) has a **100 nF ceramic capacitor**
+Every [ADS1115](expansion_boards.md) analog input (A0–A3 on both chips) has a **100 nF ceramic capacitor**
 connected between the input pin and GND. This filters high-frequency interference
 from switching power supplies, pump motors, relays, and RF noise — all common in a
 brewing environment. The capacitor is placed as close to the ADS1115 pin as possible.
@@ -170,10 +170,10 @@ This applies to all 4 ADC ports (ADC_Port_0 through ADC_Port_3) — all on ADS11
 
 ### NTC Thermistor Circuit (per channel)
 
-Used for: NTC1-RIMS (ADC_Port_0), NTC2-MASH (ADC_Port_1)
+Used for: [NTC1-RIMS](ntc.md) (ADC_Port_0), [NTC2-MASH](ntc.md) (ADC_Port_1)
 
 **Principle:** Voltage divider between a fixed 10 kΩ resistor and the NTC thermistor.
-The junction voltage changes with temperature and is read by the ADS1115.
+The junction voltage changes with temperature and is read by the [ADS1115](expansion_boards.md).
 
 ```
 3.3V
@@ -261,7 +261,7 @@ This smooths rapid noise while still tracking real temperature changes within a 
 
 ### DS18B20 1-Wire Circuit
 
-Used for: DS18B20-Kettle (GPIO 48)
+Used for: [DS18B20](ds18b20.md)-Kettle (GPIO 48)
 
 ```
 3.3V
@@ -346,7 +346,7 @@ DS18B20:
 
 
 
-### MCP4728 DAC — Analog Outputs
+### [MCP4728](expansion_boards.md) DAC — Analog Outputs
 
 | Item | Detail |
 |---|---|
@@ -356,10 +356,10 @@ DS18B20:
 
 ---
 
-### YF-S200 Hall Effect Flow Sensor
+### [YF-S200](yf_s200.md) Hall Effect Flow Sensor
 
-The YF-S200 is a pulse-output flow sensor (Hall effect), not analog 4-20mA.
-It does **not** connect to the ADS1115 — it connects directly to an ESP32 GPIO pin.
+The [YF-S200](yf_s200.md) is a pulse-output flow sensor (Hall effect), not analog 4-20mA.
+It does **not** connect to the [ADS1115](expansion_boards.md) — it connects directly to an [ESP32](esp32.md) GPIO pin.
 
 **Power supply:** 5V (required — sensor does not work reliably at 3.3V)
 

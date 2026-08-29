@@ -2,7 +2,7 @@
 
 > 🔗 [AliExpress — Current To Voltage Module 0/4-20mA to 0-3.3V/0-5V/0-10V](https://de.aliexpress.com/item/1005003402577144.html)
 
-Used to convert the 4-20mA analog outputs of industrial sensors (SM6004 flow meter) to a 0-3.3V voltage signal readable by the ADS1115 ADC.
+Used to convert the 4-20mA analog outputs of industrial sensors ([SM6004](sm6004.md) flow meter) to a 0-3.3V voltage signal readable by the [ADS1115](expansion_boards.md) ADC.
 
 <img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ConvertorModule.jpg" width="50%"/>
 
@@ -53,7 +53,7 @@ Used to convert the 4-20mA analog outputs of industrial sensors (SM6004 flow met
 
 ---
 
-## Calibration for SM6004 Flow Meter
+## Calibration for [SM6004](sm6004.md) Flow Meter
 
 The SM6004 outputs **4mA at minimum flow** (0.1 L/min) and **20mA at maximum flow** (25 L/min). The converter module must be calibrated to map this range exactly to 0–3.3V.
 
@@ -139,4 +139,4 @@ One module required per sensor output channel.
 
 ## Status
 
-Planned — pending 4-20mA converter modules. Will connect to ADS1115 #1 (0x48) A2/A3.
+Planned — pending 4-20mA converter modules. Will connect to [ADS1115](expansion_boards.md) #1 (0x48) A2/A3.

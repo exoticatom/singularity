@@ -2,7 +2,7 @@
 
 > 🔗 [AliExpress — ESP32-S3 Development Board with Expansion Adapter Kit](https://de.aliexpress.com/item/1005008790807170.html)
 
-The expansion adapter board breaks out all 44 pins of the ESP32-S3-DevKitC-1 to screw terminal connectors, making it much easier to connect sensors, relays and other peripherals without soldering or breadboards.
+The expansion adapter board breaks out all 44 pins of the [ESP32-S3-DevKitC-1](esp32.md) to screw terminal connectors, making it much easier to connect sensors, relays and other peripherals without soldering or breadboards.
 
 ---
 
@@ -43,12 +43,12 @@ The expansion adapter board breaks out all 44 pins of the ESP32-S3-DevKitC-1 to 
 
 | Screw terminal | GPIO | Connected to |
 |---|---|---|
-| SDA | GPIO 21 | ADS1115 SDA |
-| SCL | GPIO 47 | ADS1115 SCL |
-| IO48 | GPIO 48 | DS18B20 1-Wire DQ |
+| SDA | GPIO 21 | [ADS1115](expansion_boards.md) SDA |
+| SCL | GPIO 47 | [ADS1115](expansion_boards.md) SCL |
+| IO48 | GPIO 48 | [DS18B20](ds18b20.md) 1-Wire DQ |
 | IO41 | GPIO 41 | SSR1 relay |
 | IO42 | GPIO 42 | SSR2 RIMS Heater relay |
-| 3V3 | — | ADS1115 VDD, DS18B20 VDD, pull-up resistors |
+| 3V3 | — | [ADS1115](expansion_boards.md) VDD, [DS18B20](ds18b20.md) VDD, pull-up resistors |
 | GND | — | All sensor GNDs |
 
 ---
