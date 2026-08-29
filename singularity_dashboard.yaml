@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.2.2
+# singularity_dashboard.yaml  v1.2.3
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -76,14 +76,7 @@ views:
             primary: "{{ states(entity) | round(1) }} °C"
             secondary: NTC1-RIMS
             icon: mdi:thermometer-water
-            icon_color: >
-              {% set t = states(entity) | float(-1) %}
-              {% if t < 0 %} disabled
-              {% elif t < 50 %} blue
-              {% elif t < 69 %} green
-              {% elif t < 75 %} orange
-              {% else %} red
-              {% endif %}
+            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
             tap_action:
               action: more-info
 
@@ -92,14 +85,7 @@ views:
             primary: "{{ states(entity) | round(1) }} °C"
             secondary: NTC2-MASH
             icon: mdi:thermometer
-            icon_color: >
-              {% set t = states(entity) | float(-1) %}
-              {% if t < 0 %} disabled
-              {% elif t < 50 %} blue
-              {% elif t < 69 %} green
-              {% elif t < 75 %} orange
-              {% else %} red
-              {% endif %}
+            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
             tap_action:
               action: more-info
 
@@ -110,13 +96,7 @@ views:
             primary: "{{ states(entity) | round(1) }} °C"
             secondary: DS18B20-Boil
             icon: mdi:thermometer-lines
-            icon_color: >
-              {% set t = states(entity) | float(-1) %}
-              {% if t < 0 %} disabled
-              {% elif t < 92 %} blue
-              {% elif t < 99 %} orange
-              {% else %} red
-              {% endif %}
+            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 92 %}blue{% elif t < 99 %}orange{% else %}red{% endif %}"
             tap_action:
               action: more-info
 
@@ -125,14 +105,7 @@ views:
             primary: "{{ states(entity) | round(1) }} °C"
             secondary: DS18B20-HLT
             icon: mdi:thermometer-lines
-            icon_color: >
-              {% set t = states(entity) | float(-1) %}
-              {% if t < 0 %} disabled
-              {% elif t < 50 %} blue
-              {% elif t < 70 %} green
-              {% elif t < 85 %} orange
-              {% else %} red
-              {% endif %}
+            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 70 %}green{% elif t < 85 %}orange{% else %}red{% endif %}"
             tap_action:
               action: more-info
 
