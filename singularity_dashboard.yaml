@@ -48,7 +48,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_esp32_status
+            entity: binary_sensor.esp32_fast_status
             state: "on"
         card:
           type: markdown
@@ -60,7 +60,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_esp32_status
+            entity: binary_sensor.esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -121,7 +121,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_esp32_status
+            entity: binary_sensor.esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -133,7 +133,7 @@ views:
         title: Activity Log
         hours_to_show: 24
         entities:
-          - binary_sensor.singularity_esp32_status
+          - binary_sensor.esp32_fast_status
           - sensor.singularity_build
 
       - type: history-graph
@@ -155,7 +155,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_esp32_status
+            entity: binary_sensor.esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -282,7 +282,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_esp32_status
+            entity: binary_sensor.esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -341,7 +341,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.singularity_esp32_status
+            entity: binary_sensor.esp32_fast_status
             state: "off"
         card:
           type: markdown

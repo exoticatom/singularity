@@ -1,44 +1,12 @@
-# singularity_templates/singularity_templates.yaml  v1.0.5
-#
-# Fast-response connectivity sensor — 10-second offline detection.
-# Format: include_dir_merge_list — file must be a plain YAML list.
-#
-# How it works:
-#   sensor.singularity_uptime publishes every 1s when ESP32 is connected.
-#   If last_updated goes stale for >10s the ESP32 has lost connection.
-#   binary_sensor.singularity_esp32_fast_status flips to OFF within ~10s.
-#
-# Attributes:
-#   uptime_seconds  — ESP32 uptime in seconds
-#   wifi_signal     — WiFi RSSI in dBm (updates every 60s)
-#   last_seen       — time of last uptime update
-#   offline_seconds — seconds since last update
-
+# singularity_templates/singularity_templates.yaml  v1.0.7
+# include_dir_merge_list format
+# Entity ID: binary_sensor.singularity_esp32_fast_status
 - binary_sensor:
-    - name: "ESP32 Fast Status"
+    - name: "singularity ESP32 Fast Status"
       unique_id: singularity_esp32_fast_status
       device_class: connectivity
-      state: >
-        {% set s = states('sensor.singularity_uptime') %}
-        {% if s in ['unavailable', 'unknown', 'none'] %}
-          false
-        {% else %}
-          {{ (as_timestamp(now()) - as_timestamp(states.sensor.singularity_uptime.last_updated)) < 10 }}
-        {% endif %}
-      icon: >
-        {% set s = states('sensor.singularity_uptime') %}
-        {% if s not in ['unavailable', 'unknown', 'none']
-              and (as_timestamp(now()) - as_timestamp(states.sensor.singularity_uptime.last_updated)) < 10 %}
-          mdi:wifi
-        {% else %}
-          mdi:wifi-off
-        {% endif %}
+      state: "{{ states('sensor.singularity_uptime') not in ['unavailable', 'unknown', 'none'] and (now() - states.sensor.singularity_uptime.last_updated).total_seconds() < 10 }}"
       attributes:
-        uptime_seconds: "{{ states('sensor.singularity_uptime') | int(0) }}"
+        uptime_seconds: "{{ states('sensor.singularity_uptime') | float(0) | round(1) }}"
         wifi_signal: "{{ states('sensor.singularity_wifi_signal') | default('unknown') }} dBm"
-        last_seen: >
-          {% set t = states.sensor.singularity_uptime.last_updated %}
-          {{ t.strftime('%H:%M:%S') if t else 'unknown' }}
-        offline_seconds: >
-          {% set t = states.sensor.singularity_uptime.last_updated %}
-          {% if t %}{{ (as_timestamp(now()) - as_timestamp(t)) | int }}{% else %}unknown{% endif %}
+        offline_seconds: "{{ (now() - states.sensor.singularity_uptime.last_updated).total_seconds() | int }}"
