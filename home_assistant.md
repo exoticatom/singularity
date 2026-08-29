@@ -272,7 +272,7 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 
 ```
 /config/
-├── configuration.yaml              ← lovelace + template include
+├── configuration.yaml              ← lovelace + template include + recorder exclude
 ├── automations.yaml                ← reconnect automation (line ~1530)
 ├── singularity_dashboard.yaml      ← deployed from git via CI/CD
 └── singularity_templates/
@@ -294,6 +294,15 @@ lovelace:
 
 # Fast connectivity template
 template: !include_dir_merge_list singularity_templates/
+
+# Recorder exclude — uptime is the 1s heartbeat for fast-status detection,
+# but there is no value storing 86,400 rows/day in the DB.
+# Connect/disconnect events are still logged via binary_sensor state changes.
+recorder:
+  exclude:
+    entities:
+      - sensor.singularity_uptime      # 1s heartbeat — not useful as history
+      - sensor.singularity_wifi_signal # 60s diagnostic — not useful as history
 ```
 
 ---
