@@ -4,6 +4,7 @@
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
 [![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.2-green)](esp32_singularity.yaml)
 [![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.0.3-orange)](singularity_dashboard.yaml)
+[![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
