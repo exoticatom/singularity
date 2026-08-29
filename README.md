@@ -205,40 +205,47 @@ singularity_ota_password: "<your-password>"
 
 ## Setup Instructions
 
-### Prerequisites
+---
 
-- Raspberry Pi running [Home Assistant](home_assistant.md) OS
+### 👤 End User Setup
+
+Everything you need to get singularity running on your hardware.
+
+#### Prerequisites
+
+- Raspberry Pi running [Home Assistant](home_assistant.md) OS (HAOS)
 - ESPHome add-on installed in HA
-- Tailscale add-on installed and connected in HA *(developer only — needed for CI/CD auto-deploy)*
-- HACS installed + **mini-graph-card** by kalkih *(optional — not currently used in the dashboard, may be needed for future graph cards)*
+- ESP32-S3-DevKitC-1 board
+- USB-C cable for first flash
 
-### Step 1 — Clone the repository
+#### Step 1 — Flash the firmware (USB, first time only)
 
-```bash
-git clone https://github.com/exoticatom/singularity.git
-cd singularity
-```
+Use the ESPHome web flasher — no tooling needed:
 
-### Step 2 — Create local secrets.yaml
+1. Open [web.esphome.io](https://web.esphome.io) in Chrome
+2. Connect ESP32 via USB-C
+3. Click **Connect** → select the serial port
+4. Click **Install** and select `esp32_singularity.yaml`
+
+> After the first flash all future updates happen automatically over WiFi (OTA).
+
+#### Step 2 — Create secrets file on the Pi
+
+SSH into your Pi or use the HA file editor. Create `/config/secrets.yaml` (if it doesn't exist) and add:
 
 ```yaml
 singularity_wifi_ssid: "<your-ssid>"
-singularity_wifi_password: "<your-password>"
-singularity_ap_password: "<your-password>"
-singularity_api_encryption_key: "<your-key>"
-singularity_ota_password: "<your-password>"
+singularity_wifi_password: "<your-wifi-password>"
+singularity_ap_password: "<fallback-ap-password>"
+singularity_api_encryption_key: "<32-byte-base64-key>"
+singularity_ota_password: "<ota-password>"
 ```
 
-### Step 3 — Add GitHub Secrets *(developer only)*
+> To generate an API encryption key: in ESPHome dashboard → **Secrets** → generate, or use `openssl rand -base64 32`.
 
-> Only needed for CI/CD. Skip if running firmware locally.
+#### Step 3 — Add dashboard to HA
 
-- `HA_SSH_KEY` — `~/.ssh/id_rsa` contents
-- `TS_AUTHKEY` — from `https://login.tailscale.com/admin/settings/keys` (Reusable + Ephemeral)
-
-### Step 4 — Add lovelace entry to Pi
-
-Append to `/config/configuration.yaml`:
+Append to `/config/configuration.yaml` on the Pi:
 
 ```yaml
 lovelace:
@@ -249,29 +256,86 @@ lovelace:
       icon: mdi:thermometer
       show_in_sidebar: true
       filename: singularity_dashboard.yaml
+
+template: !include_dir_merge_list singularity_templates/
+
+recorder:
+  exclude:
+    entities:
+      - sensor.singularity_uptime
+      - sensor.singularity_wifi_signal
 ```
 
-### Step 5 — First flash (USB)
+#### Step 4 — Copy dashboard and template files to Pi
 
-**Option A — Local CLI** *(currently used)*
-```bash
-brew install pipx && pipx install esphome && pipx ensurepath
-esphome run esp32_singularity.yaml
-```
+Copy these files from the repo to `/config/` on the Pi:
+- `singularity_dashboard.yaml`
+- `singularity_templates/singularity_templates.yaml`
 
-**Option B — Web Flasher** *(to be reviewed for production)*
-[web.esphome.io](https://web.esphome.io) in Chrome — no tooling needed.
+#### Step 5 — Restart HA
 
-**Option C — OTA** *(after first flash only)*
-All subsequent updates deploy automatically via OTA on every push to `main`.
+Settings → System → Restart. The singularity dashboard will appear in the sidebar.
 
-### Step 6 — DS18B20 ROM addresses *(already done for this installation)*
+#### Step 6 — DS18B20 ROM addresses
 
-Addresses are hardcoded in `esp32_singularity.yaml`:
+If you are using different DS18B20 sensors than this installation, you need to discover and update the ROM addresses in `esp32_singularity.yaml`. See [hardware/ds18b20.md](hardware/ds18b20.md) for discovery options.
+
+The addresses for **this installation** are already hardcoded:
 - `DS18B20-Boil`: `0x750000105cbe3528`
 - `DS18B20-HLT`: `0x3100000c31dd5a28`
 
-For new sensors see [hardware/ds18b20.md](hardware/ds18b20.md) for discovery options.
+#### Step 7 — Calibrate sensors
+
+Open the singularity dashboard → **Settings tab** and enter calibration values for your sensors. See [hardware/calibration.md](hardware/calibration.md) for procedures.
+
+---
+
+### 🛠️ Developer Setup
+
+Everything above, plus the CI/CD pipeline for automatic deploys on every `git push`.
+
+#### Additional Prerequisites
+
+- Git + GitHub account with a fork of this repo
+- Tailscale account (for the VPN tunnel from GitHub Actions to the Pi)
+- Tailscale add-on installed and connected in HA
+- ESPHome CLI installed locally (`pipx install esphome`)
+
+#### Step 1 — Clone the repo
+
+```bash
+git clone https://github.com/exoticatom/singularity.git
+cd singularity
+```
+
+#### Step 2 — Create local secrets.yaml
+
+Same as end user Step 2 — create `secrets.yaml` in the repo root (it is gitignored).
+
+#### Step 3 — First flash via CLI
+
+```bash
+esphome run esp32_singularity.yaml
+```
+
+#### Step 4 — Set up GitHub Secrets for CI/CD
+
+In your GitHub repo → Settings → Secrets → Actions, add:
+
+| Secret | Value |
+|---|---|
+| `HA_SSH_KEY` | Contents of `~/.ssh/id_rsa` (SSH key with access to the Pi) |
+| `TS_AUTHKEY` | Tailscale ephemeral auth key — from [tailscale.com/admin/settings/keys](https://login.tailscale.com/admin/settings/keys) (Reusable + Ephemeral) |
+
+#### Step 5 — Push to deploy
+
+Every push to `main` automatically:
+1. Connects to the Pi via Tailscale VPN
+2. Copies `singularity_dashboard.yaml` and `singularity_templates/` to `/config/`
+3. Copies `esp32_singularity.yaml` to `/config/esphome/`
+4. OTA flash is triggered by ESPHome on the Pi
+
+See `.github/workflows/deploy.yml` for the full pipeline.
 
 ---
 
