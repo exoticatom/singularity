@@ -177,16 +177,17 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ┌────────────────────────────────────────────┐
 │  🟢 singularity.local — Online             │  ← conditional (ESP32 online)
 │  🔴 singularity.local — Offline ⚠️         │  ← conditional (ESP32 offline)
+├──────────────────┬─────────────────────────┤
+│ 🌡️ NTC1-RIMS     │ 🌡️ NTC2-MASH            │  ← mushroom cards, colour by temp
+│  67.3 °C (green) │  65.8 °C (green)        │    <50 blue, 50-69 green
+├──────────────────┼─────────────────────────┤    69-75 orange, >75 red
+│ 🌡️ DS18B20-Boil  │ 🌡️ DS18B20-HLT          │  ← boil: <92 blue, <99 orange, ≥99 red
+│  98.2 °C (orange)│  72.4 °C (orange)       │    HLT:  <50 blue, <70 green
+├────────────────────────────────────────────┤    70-85 orange, >85 red
+│  RIMS Heater [toggle]  Target Temp [slider]│
 ├────────────────────────────────────────────┤
-│  Temperature Sensors                       │
-│  DS18B20-Boil  │  DS18B20-HLT             │
-│  NTC1-RIMS     │  NTC2-MASH               │
-├────────────────────────────────────────────┤
-│  RIMS Heater                               │
-│  [toggle ON/OFF]  RIMS Heater              │
-│  [slider 0-80°C]  Target Temperature       │
-├────────────────────────────────────────────┤
-│  📈 Brewing Graphs (history, 1h)           │
+│  📈 apexcharts — 4 sensors + setpoint line │
+│     1h span, 5s refresh, 0-100°C           │
 └────────────────────────────────────────────┘
 ```
 
@@ -369,6 +370,9 @@ ESP32 on_value lambda
 | v1.1.7 | Offline ⚠️ banner on Log, About, Hardware tabs |
 | v1.1.8 | ⚠️ added to main tab offline banner |
 | v1.2.0 | Replace history-graph with apexcharts-card — 4 sensors, live setpoint line, colour coded |
+| v1.2.1 | Mushroom template cards for sensors — colour thresholds per sensor type |
+| v1.2.2 | DS18B20-Boil thresholds: blue <92°C, orange <99°C, red ≥99°C |
+| v1.2.3 | Fix mushroom icon_color whitespace (collapsed to single-line templates) |
 
 ---
 

@@ -3,7 +3,7 @@
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
 [![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.8-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.2.0-orange)](singularity_dashboard.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.2.3-orange)](singularity_dashboard.yaml)
 [![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
 [![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
 [![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
@@ -233,7 +233,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.2.0 | ✅ Active | 5 tabs, touch-friendly |
+| HA dashboard v1.2.3 | ✅ Active | 5 tabs, mushroom sensor cards, apexcharts graph |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | 🔲 Planned | ADS1115 A2/A3 |
