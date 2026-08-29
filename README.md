@@ -209,8 +209,8 @@ singularity_ota_password: "<your-password>"
 
 - Raspberry Pi running [Home Assistant](home_assistant.md) OS
 - ESPHome add-on installed in HA
-- Tailscale add-on installed and connected in HA
-- HACS installed + **mini-graph-card** by kalkih
+- Tailscale add-on installed and connected in HA *(developer only — needed for CI/CD auto-deploy)*
+- HACS installed + **mini-graph-card** by kalkih *(optional — not currently used in the dashboard, may be needed for future graph cards)*
 
 ### Step 1 — Clone the repository
 
