@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.2.1
+# singularity_dashboard.yaml  v1.2.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -113,9 +113,8 @@ views:
             icon_color: >
               {% set t = states(entity) | float(-1) %}
               {% if t < 0 %} disabled
-              {% elif t < 50 %} blue
-              {% elif t < 70 %} green
-              {% elif t < 85 %} orange
+              {% elif t < 92 %} blue
+              {% elif t < 99 %} orange
               {% else %} red
               {% endif %}
             tap_action:
