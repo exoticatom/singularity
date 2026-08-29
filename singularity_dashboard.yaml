@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.1.6
+# singularity_dashboard.yaml  v1.1.7
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -122,6 +122,17 @@ views:
     path: singularity-log
     icon: mdi:clipboard-text-clock
     cards:
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
+        card:
+          type: markdown
+          content: >
+            <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
+            ⚠️ ESP32 is offline</div>
 
       - type: logbook
         title: Activity Log
@@ -279,6 +290,17 @@ views:
     icon: mdi:information-outline
     cards:
 
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
+        card:
+          type: markdown
+          content: >
+            <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
+            ⚠️ ESP32 is offline</div>
+
       - type: markdown
         title: singularity — System Versions
         content: |
@@ -295,7 +317,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.6</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.7</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
@@ -326,6 +348,17 @@ views:
     path: singularity-hardware
     icon: mdi:chip
     cards:
+
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
+        card:
+          type: markdown
+          content: >
+            <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
+            ⚠️ ESP32 is offline</div>
 
       - type: markdown
         title: ESP32-S3-DEV-KIT-NXRX — Board Overview
