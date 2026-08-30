@@ -166,7 +166,7 @@ Flow (L/min) = (voltage / 3.3) × 25
 
 As a Jinja2 template (planned):
 ```yaml
-{% set v = states('sensor.singularity_flow1_raw') | float(0) %}
+{% set v = states('sensor.singularity_flow1') | float(0) %}
 {{ ((v / 3.3) * 25) | round(2) }}
 ```
 

@@ -8,8 +8,8 @@ NTC (Negative Temperature Coefficient) thermistors measure temperature via resis
 
 | Sensor | Location | ADS1115 Channel | Entity |
 |---|---|---|---|
-| NTC1-RIMS | RIMS outlet | A0 (ADC_Port_0) | `sensor.ntc1_rims` |
-| NTC2-MASH | Mash tun | A1 (ADC_Port_1) | `sensor.ntc2_mash` |
+| NTC1-RIMS | RIMS outlet | A0 (ADC_Port_0) | `sensor.singularity_ntc1_rims` |
+| NTC2-MASH | Mash tun | A1 (ADC_Port_1) | `sensor.singularity_ntc2_mash` |
 
 ### Sensor Used in This Installation
 
@@ -121,8 +121,6 @@ The full Steinhart-Hart calculation runs directly on the ESP32 (since v1.0.0):
 ## Database Management
 
 NTC sensors update every 1 second. The EMA filter smooths the output so only meaningful changes are published. Out-of-range values (disconnected sensor) return `NAN` which HA does not record — so disconnected sensors between brew sessions don't pollute the database.
-
-The recorder excludes for `_RAW` entities are no longer needed since there are no raw NTC entities.
 
 ---
 

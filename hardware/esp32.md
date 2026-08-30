@@ -67,4 +67,4 @@ See [gpio_map.md](gpio_map.md) for full pin rules, reserved pins and available G
 
 ## First Flash
 
-See [Step 5](../README.md#step-5--first-flash-usb) in the main README for flashing options (local CLI, web flasher, OTA).
+See [installation.md](../installation.md) for first flash options (web flasher, CLI, OTA).

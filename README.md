@@ -273,6 +273,8 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | 2026-08-26 | Firmware v1.0.8 — 1s uptime heartbeat, 3min reboot_timeout |
 | 2026-08-26 | Recorder exclude — uptime + wifi_signal removed from HA DB |
 | 2026-08-26 | Documentation: home_assistant.md, calibration.md, installation.md added |
+| 2026-08-26 | Dashboard v1.2.0 — apexcharts-card temperature graph (4 sensors + live setpoint line) |
+| 2026-08-26 | Dashboard v1.2.1–v1.2.3 — mushroom-template-card sensor grid with per-sensor colour thresholds |
 
 ---
 

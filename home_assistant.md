@@ -243,7 +243,7 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ├────────────────────────────────────────────┤
 │  System Versions                           │
 │  🔧 ESP32 Firmware  │  v1.0.8  │  ● Live  │
-│  📊 Dashboard       │  v1.2.0  │  ● Live  │
+│  📊 Dashboard       │  v1.2.3  │  ● Live  │
 ├────────────────────────────────────────────┤
 │  About singularity                         │
 │  Sensor map, GPIO assignments              │

@@ -88,10 +88,10 @@ Used by: [DS18B20](ds18b20.md) digital temperature sensor(s)
 
 | GPIO | Intended Use |
 |------|-------------|
-| GPIO 4  | TBD — see Brewing - Sofware notes |
-| GPIO 5  | TBD — see Brewing - Sofware notes |
-| GPIO 6  | TBD — see Brewing - Sofware notes |
-| GPIO 7  | TBD — see Brewing - Sofware notes |
+| GPIO 4  | TBD — expansion / future use |
+| GPIO 5  | TBD — expansion / future use |
+| GPIO 6  | TBD — expansion / future use |
+| GPIO 7  | TBD — expansion / future use |
 | GPIO 35–40 | TBD — expansion / relay outputs |
 
 ---
