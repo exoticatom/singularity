@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.2.3
+# singularity_dashboard.yaml  v1.2.4
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -28,8 +28,8 @@
 # Sensor naming convention (v2.0.0):
 #   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
 #   sensor.singularity_ntc2_mash    — corrected °C (S-H calculated on ESP32)
-#   sensor.singularity_ds18b20_boil — corrected °C (raw + offset applied in HA template)
-#   sensor.singularity_ds18b20_hlt  — corrected °C (raw + offset applied in HA template)
+#   sensor.singularity_ds18b20_boil — corrected °C (offset applied on ESP32)
+#   sensor.singularity_ds18b20_hlt  — corrected °C (offset applied on ESP32)
 #   number.singularity_ntc1_*       — NTC1 calibration params (stored on ESP32 flash)
 #   number.singularity_ntc2_*       — NTC2 calibration params (stored on ESP32 flash)
 #
@@ -364,7 +364,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.1.9</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.2.4</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
