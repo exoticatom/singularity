@@ -79,7 +79,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.9"
+    version: "1.1.0"
   on_boot:
     priority: -100
     then:
@@ -832,33 +832,27 @@ switch:
             id(pid_last_error) = 0.0f;
             ESP_LOGI("singularity", "RIMS PID OFF — heater output 0%%");
 
-  # ── Flow Total Reset Switches — AN1 and AN2 ───────────────────────────────────
-  # Momentary-style template switches — turn on to reset total, auto-off after reset.
-  # Use from HA dashboard or Node-RED at the start of each brew session.
-
+# ── Flow Total Reset Buttons — AN1 and AN2 ───────────────────────────────────
+# button entities fire once on press — no on/off state, renders as a push button in HA.
+# Use from HA dashboard or Node-RED at the start of each brew session.
+button:
   - platform: template
     name: "AN1 Reset Total"
     id: an1_reset
     icon: "mdi:restore"
-    optimistic: true
-    restore_mode: ALWAYS_OFF
-    turn_on_action:
+    on_press:
       - lambda: |-
           id(an1_total_litres) = 0.0f;
           ESP_LOGI("singularity", "AN1 total reset to 0.0 L");
-      - switch.turn_off: an1_reset
 
   - platform: template
     name: "AN2 Reset Total"
     id: an2_reset
     icon: "mdi:restore"
-    optimistic: true
-    restore_mode: ALWAYS_OFF
-    turn_on_action:
+    on_press:
       - lambda: |-
           id(an2_total_litres) = 0.0f;
           ESP_LOGI("singularity", "AN2 total reset to 0.0 L");
-      - switch.turn_off: an2_reset
 
 # ── Dallas (1-Wire) Bus ────────────────────────────────────────────────────────
 one_wire:
@@ -872,5 +866,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.9"};
+      return {"v1.1.0"};
     update_interval: 10s

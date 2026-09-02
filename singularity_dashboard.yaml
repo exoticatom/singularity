@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.3
+# singularity_dashboard.yaml  v1.3.4
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -29,7 +29,7 @@
 #   v1.3.0 — AN1 (RIMS flow) + AN2 (Sparge flow) mushroom cards in Brewing Temperatures tab;
 #             AN1/AN2 offset + reset cards in Settings tab; About tab sensor table updated
 #   v1.3.1 — AN1/AN2 reset buttons added to Brewing Temperatures tab (below flow cards)
-#   v1.3.3 — fix reset switch entity IDs: an1_reset → an1_reset_total, an2_reset → an2_reset_total
+#   v1.3.4 — reset switches replaced with button entities (push button, no toggle state)
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -44,8 +44,10 @@
 #   number.singularity_ntc2_*         — NTC2 calibration params (stored on ESP32 flash)
 #   number.singularity_an1_flow_offset — AN1 L/min offset (stored on ESP32 flash)
 #   number.singularity_an2_flow_offset — AN2 L/min offset (stored on ESP32 flash)
-#   switch.singularity_an1_reset_total      — reset AN1 total (momentary)
-#   switch.singularity_an2_reset_total      — reset AN2 total (momentary)
+#   switch.singularity_an1_reset_total  — (removed, replaced by button)
+#   switch.singularity_an2_reset_total  — (removed, replaced by button)
+#   button.singularity_an1_reset_total  — reset AN1 total (push button)
+#   button.singularity_an2_reset_total  — reset AN2 total (push button)
 #
 # Tabs: Brewing Temperatures | Log | Settings | About | Hardware
 
@@ -140,13 +142,16 @@ views:
                 layout: vertical
                 fill_container: true
               - type: custom:mushroom-template-card
-                entity: switch.singularity_an1_reset_total
+                entity: button.singularity_an1_reset_total
                 primary: Reset AN1
                 secondary: RIMS total → 0 L
                 icon: mdi:restore
                 icon_color: grey
                 tap_action:
-                  action: toggle
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.singularity_an1_reset_total
                 layout: vertical
                 fill_container: true
 
@@ -164,13 +169,16 @@ views:
                 layout: vertical
                 fill_container: true
               - type: custom:mushroom-template-card
-                entity: switch.singularity_an2_reset_total
+                entity: button.singularity_an2_reset_total
                 primary: Reset AN2
                 secondary: Sparge total → 0 L
                 icon: mdi:restore
                 icon_color: grey
                 tap_action:
-                  action: toggle
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.singularity_an2_reset_total
                 layout: vertical
                 fill_container: true
 
@@ -388,8 +396,8 @@ views:
           - entity: number.singularity_an1_flow_offset
             name: "AN1 Flow Offset (default: 0.0 L/min)"
             icon: mdi:tune
-          - entity: switch.singularity_an1_reset_total
-            name: "Reset AN1 Total (momentary)"
+          - entity: button.singularity_an1_reset_total
+            name: "Reset AN1 Total (press to reset)"
             icon: mdi:restore
 
       - type: entities
@@ -401,8 +409,8 @@ views:
           - entity: number.singularity_an2_flow_offset
             name: "AN2 Flow Offset (default: 0.0 L/min)"
             icon: mdi:tune
-          - entity: switch.singularity_an2_reset_total
-            name: "Reset AN2 Total (momentary)"
+          - entity: button.singularity_an2_reset_total
+            name: "Reset AN2 Total (press to reset)"
             icon: mdi:restore
 
       # ── How calibration works — moved here as last Settings card ─────────────
@@ -457,7 +465,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.3</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.4</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
