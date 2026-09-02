@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.2.4
+# singularity_dashboard.yaml  v1.3.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -24,14 +24,26 @@
 #   v1.1.0 — Offline warning banner on Settings tab
 #   v1.1.1 — Default values shown as secondary info on all Settings entities
 #   v1.1.2 — Default values shown as reference tables above each calibration card
+#   v1.2.0 — apexcharts-card temperature graph (4 sensors + live setpoint annotation)
+#   v1.2.1–v1.2.4 — mushroom-template-card sensor grid, per-sensor colour thresholds, version fixes
+#   v1.3.0 — AN1 (RIMS flow) + AN2 (Sparge flow) mushroom cards in Brewing Temperatures tab;
+#             AN1/AN2 offset + reset cards in Settings tab; About tab sensor table updated
 #
-# Sensor naming convention (v2.0.0):
-#   sensor.singularity_ntc1_rims    — corrected °C (S-H calculated on ESP32)
-#   sensor.singularity_ntc2_mash    — corrected °C (S-H calculated on ESP32)
-#   sensor.singularity_ds18b20_boil — corrected °C (offset applied on ESP32)
-#   sensor.singularity_ds18b20_hlt  — corrected °C (offset applied on ESP32)
-#   number.singularity_ntc1_*       — NTC1 calibration params (stored on ESP32 flash)
-#   number.singularity_ntc2_*       — NTC2 calibration params (stored on ESP32 flash)
+# Sensor naming convention:
+#   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
+#   sensor.singularity_ntc2_mash      — corrected °C (S-H calculated on ESP32)
+#   sensor.singularity_ds18b20_boil   — corrected °C (offset applied on ESP32)
+#   sensor.singularity_ds18b20_hlt    — corrected °C (offset applied on ESP32)
+#   sensor.singularity_an1_rate       — RIMS flow rate L/min  (ADS1115 A2, slope 7.57)
+#   sensor.singularity_an1_total      — RIMS flow total L     (session, resets on reboot/manual)
+#   sensor.singularity_an2_rate       — Sparge flow rate L/min (ADS1115 A3, slope 7.57)
+#   sensor.singularity_an2_total      — Sparge flow total L    (session, resets on reboot/manual)
+#   number.singularity_ntc1_*         — NTC1 calibration params (stored on ESP32 flash)
+#   number.singularity_ntc2_*         — NTC2 calibration params (stored on ESP32 flash)
+#   number.singularity_an1_flow_offset — AN1 L/min offset (stored on ESP32 flash)
+#   number.singularity_an2_flow_offset — AN2 L/min offset (stored on ESP32 flash)
+#   switch.singularity_an1_reset      — reset AN1 total (momentary)
+#   switch.singularity_an2_reset      — reset AN2 total (momentary)
 #
 # Tabs: Brewing Temperatures | Log | Settings | About | Hardware
 
@@ -108,6 +120,33 @@ views:
             icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 70 %}green{% elif t < 85 %}orange{% else %}red{% endif %}"
             tap_action:
               action: more-info
+
+      # ── Flow Sensors ────────────────────────────────────────────────────────
+      - type: horizontal-stack
+        cards:
+          # AN1 — RIMS flow: primary = L/min, secondary = total L
+          - type: custom:mushroom-template-card
+            entity: sensor.singularity_an1_rate
+            primary: "{{ states(entity) | float(0) | round(2) }} L/min"
+            secondary: "Total: {{ states('sensor.singularity_an1_total') | float(0) | round(2) }} L"
+            icon: mdi:water-pump
+            icon_color: "{% set r = states(entity) | float(0) %}{% if r < 0.1 %}disabled{% elif r < 3 %}red{% else %}blue{% endif %}"
+            tap_action:
+              action: more-info
+            layout: vertical
+            fill_container: true
+
+          # AN2 — Sparge flow: primary = total L, secondary = L/min
+          - type: custom:mushroom-template-card
+            entity: sensor.singularity_an2_total
+            primary: "{{ states(entity) | float(0) | round(2) }} L"
+            secondary: "Flow: {{ states('sensor.singularity_an2_rate') | float(0) | round(2) }} L/min"
+            icon: mdi:water
+            icon_color: "{% set t = states(entity) | float(0) %}{% if t < 0.1 %}disabled{% elif t < 10 %}blue{% else %}green{% endif %}"
+            tap_action:
+              action: more-info
+            layout: vertical
+            fill_container: true
 
       - type: entities
         title: RIMS Heater
@@ -313,6 +352,33 @@ views:
             name: "Max Duty Cycle (default: 100%)"
             icon: mdi:percent
 
+      # ── Flow Sensor Calibration — AN1 (RIMS) and AN2 (Sparge) ──────────────────
+      - type: entities
+        title: AN1 — RIMS Flow Calibration
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "ADS1115 A2 → slope 7.57 L/min per volt. Offset = SM6004 display − HA reading at steady flow."
+          - entity: number.singularity_an1_flow_offset
+            name: "AN1 Flow Offset (default: 0.0 L/min)"
+            icon: mdi:tune
+          - entity: switch.singularity_an1_reset
+            name: "Reset AN1 Total (momentary)"
+            icon: mdi:restore
+
+      - type: entities
+        title: AN2 — Sparge Flow Calibration
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "ADS1115 A3 → slope 7.57 L/min per volt. Offset = SM6004 display − HA reading at steady flow."
+          - entity: number.singularity_an2_flow_offset
+            name: "AN2 Flow Offset (default: 0.0 L/min)"
+            icon: mdi:tune
+          - entity: switch.singularity_an2_reset
+            name: "Reset AN2 Total (momentary)"
+            icon: mdi:restore
+
       # ── How calibration works — moved here as last Settings card ─────────────
       - type: markdown
         title: How calibration works
@@ -330,6 +396,7 @@ views:
           For detailed calibration procedures see the hardware documentation:
           - **NTC thermistors** → [hardware/ntc.md](https://github.com/exoticatom/singularity/blob/main/hardware/ntc.md)
           - **DS18B20 sensors** → [hardware/ds18b20.md](https://github.com/exoticatom/singularity/blob/main/hardware/ds18b20.md)
+          - **Flow sensors (AN1/AN2)** → [hardware/calibration.md](https://github.com/exoticatom/singularity/blob/main/hardware/calibration.md#sm6004--4-20ma-converter--zerospan-calibration)
 
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
@@ -364,7 +431,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.2.4</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.0</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
@@ -387,6 +454,8 @@ views:
           | NTC2-MASH | ADS1115 A1 | — |
           | DS18B20-Boil | 1-Wire GPIO 48 | `0x750000105cbe3528` |
           | DS18B20-HLT | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
+          | AN1 — RIMS Flow | ADS1115 A2 | slope 7.57 L/min per V |
+          | AN2 — Sparge Flow | ADS1115 A3 | slope 7.57 L/min per V |
           | SSR1 | GPIO 41 | RESTORE_DEFAULT_OFF |
           | SSR2 | GPIO 42 | RESTORE_DEFAULT_OFF |
 

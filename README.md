@@ -2,8 +2,8 @@
 
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
-[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.8-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.2.4-orange)](singularity_dashboard.yaml)
+[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.0.9-green)](esp32_singularity.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.3.0-orange)](singularity_dashboard.yaml)
 [![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
 [![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
 [![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
@@ -226,17 +226,17 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.0.8 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.0.9 | ✅ Active | OTA updates working |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.2.3 | ✅ Active | 5 tabs, mushroom sensor cards, apexcharts graph |
+| HA dashboard v1.3.0 | ✅ Active | 5 tabs, mushroom sensor cards, apexcharts graph, AN1/AN2 flow cards |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
-| Flow meter firmware (SM6004) | 🔬 Testing | Hardware connected + calibrated. ESPHome config pending. |
+| Flow meter firmware (SM6004) | ✅ Implemented | AN1 (RIMS, A2) + AN2 (Sparge, A3) — rate + total + offset + reset |
 | Pump relay control | 🔲 Planned | MCP23017 |
 | Proportional valve control | 🔲 Planned | MCP4728 DAC |
 | Node-RED mash schedules + timers | 🔲 Planned | Mash step automation, alarms |
@@ -276,6 +276,8 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | 2026-08-26 | Dashboard v1.2.0 — apexcharts-card temperature graph (4 sensors + live setpoint line) |
 | 2026-08-26 | Dashboard v1.2.1–v1.2.3 — mushroom-template-card sensor grid with per-sensor colour thresholds |
 | 2026-08-26 | SM6004 flow meters connected + calibrated — max 13.20 L/min, slope 7.57 L/V, ESPHome config pending |
+| 2026-08-26 | Firmware v1.0.9 — AN1 (RIMS flow A2) + AN2 (Sparge flow A3): rate, total, offset, reset switches |
+| 2026-08-26 | Dashboard v1.3.0 — AN1/AN2 mushroom cards in Brewing tab; AN1/AN2 offset + reset in Settings tab |
 
 ---
 

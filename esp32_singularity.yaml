@@ -52,11 +52,24 @@
 # These globals hold the running PID state between control loop ticks.
 # They are NOT persisted to flash (no restore_value) — reset to 0 on every boot.
 # pid_integral and pid_last_error reset to 0 when switching into PID mode.
+#
+# ── Flow totals — AN1 (RIMS) and AN2 (Sparge) ────────────────────────────────
+# an1_total_litres and an2_total_litres accumulate L over time.
+# Integrated every 1s: total += rate_Lmin / 60.0
+# Reset to 0.0 via switch.singularity_an1_reset / switch.singularity_an2_reset.
+# NOT persisted to flash — reset to 0 on every reboot (intentional: totals are
+# per-brew session, not permanent).
 globals:
   - id: pid_integral
     type: float
     initial_value: '0.0'
   - id: pid_last_error
+    type: float
+    initial_value: '0.0'
+  - id: an1_total_litres
+    type: float
+    initial_value: '0.0'
+  - id: an2_total_litres
     type: float
     initial_value: '0.0'
 
@@ -66,7 +79,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
   project:
     name: "exoticatom.singularity"
-    version: "1.0.8"
+    version: "1.0.9"
   on_boot:
     priority: -100
     then:
@@ -88,6 +101,8 @@ esphome:
           ESP_LOGI("singularity", "RIMS: Heater=%s",
             id(rims_heater).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
+          ESP_LOGI("singularity", "AN1 Flow Offset: %.2f L/min", id(an1_flow_offset).state);
+          ESP_LOGI("singularity", "AN2 Flow Offset: %.2f L/min", id(an2_flow_offset).state);
           ESP_LOGI("singularity", "=============================================");
 
 esp32:
@@ -439,6 +454,45 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — PID Max Duty Cycle: %.0f%%", x);
 
+  # ── Flow Offsets — AN1 (RIMS, A2) and AN2 (Sparge, A3) ──────────────────────
+  # Fine-tune offset applied after voltage→L/min conversion.
+  # Use when ADS1115 reading differs slightly from SM6004 display at steady flow.
+  # Procedure: run pump at steady flow, compare SM6004 display vs HA reading,
+  #            set offset = SM6004 display − HA reading.
+  # Persisted to flash — survives reboot.
+
+  - platform: template
+    name: "AN1 Flow Offset"
+    id: an1_flow_offset
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.05
+    restore_value: true
+    initial_value: 0.0
+    optimistic: true
+    unit_of_measurement: "L/min"
+    icon: "mdi:tune"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — AN1 Flow Offset: %.2f L/min", x);
+
+  - platform: template
+    name: "AN2 Flow Offset"
+    id: an2_flow_offset
+    min_value: -5.0
+    max_value: 5.0
+    step: 0.05
+    restore_value: true
+    initial_value: 0.0
+    optimistic: true
+    unit_of_measurement: "L/min"
+    icon: "mdi:tune"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — AN2 Flow Offset: %.2f L/min", x);
+
 
 # ── RIMS Heater Switch ────────────────────────────────────────────────────────
 # Simple ON/OFF switch controlling the PID loop.
@@ -567,6 +621,87 @@ sensor:
           alpha: 0.25
           send_every: 1
 
+  # ── Flow Sensors — AN1 (RIMS, ADS1115 A2) and AN2 (Sparge, ADS1115 A3) ─────
+  #
+  # Conversion: voltage → L/min using calibrated slope + offset
+  #   slope  = 7.57 L/min per volt  (calibrated: 13.20 L/min at 1.743V)
+  #   offset = number entity an1_flow_offset / an2_flow_offset (default 0.0)
+  #
+  # Node-RED variables (via HA entities):
+  #   AN1 rate  → sensor.singularity_an1_rate   (L/min, used for RIMS interlock)
+  #   AN1 total → sensor.singularity_an1_total   (L,     session accumulator)
+  #   AN2 rate  → sensor.singularity_an2_rate   (L/min, secondary display)
+  #   AN2 total → sensor.singularity_an2_total   (L,     sparge volume — primary)
+  #
+  # Totals reset via switch.singularity_an1_reset / switch.singularity_an2_reset.
+  # Totals are NOT flash-persisted — reset to 0 on reboot (per-brew session).
+
+  # --- AN1 — RIMS flow rate (ADS1115 A2) ---
+  - platform: ads1115
+    ads1115_id: ads1115_0x48
+    multiplexer: 'A2_GND'
+    gain: 6.144
+    name: "AN1 Rate"
+    id: an1_rate
+    unit_of_measurement: "L/min"
+    icon: "mdi:water-pump"
+    state_class: measurement
+    update_interval: 1s
+    filters:
+      - lambda: |-
+          // Voltage → L/min: slope 7.57 (calibrated) + offset from flash
+          // Guard: reject negative voltages (floating input / no flow)
+          if (x < 0.01f) return 0.0f;
+          float rate = (x * 7.57f) + id(an1_flow_offset).state;
+          if (rate < 0.0f) rate = 0.0f;
+          return rate;
+      - exponential_moving_average:
+          alpha: 0.25
+          send_every: 1
+
+  # --- AN1 — RIMS flow total (accumulated on ESP32, session only) ---
+  - platform: template
+    name: "AN1 Total"
+    id: an1_total
+    unit_of_measurement: "L"
+    icon: "mdi:water"
+    state_class: total_increasing
+    lambda: |-
+      return id(an1_total_litres);
+    update_interval: 1s
+
+  # --- AN2 — Sparge flow rate (ADS1115 A3) ---
+  - platform: ads1115
+    ads1115_id: ads1115_0x48
+    multiplexer: 'A3_GND'
+    gain: 6.144
+    name: "AN2 Rate"
+    id: an2_rate
+    unit_of_measurement: "L/min"
+    icon: "mdi:water-pump"
+    state_class: measurement
+    update_interval: 1s
+    filters:
+      - lambda: |-
+          if (x < 0.01f) return 0.0f;
+          float rate = (x * 7.57f) + id(an2_flow_offset).state;
+          if (rate < 0.0f) rate = 0.0f;
+          return rate;
+      - exponential_moving_average:
+          alpha: 0.25
+          send_every: 1
+
+  # --- AN2 — Sparge flow total (accumulated on ESP32, session only) ---
+  - platform: template
+    name: "AN2 Total"
+    id: an2_total
+    unit_of_measurement: "L"
+    icon: "mdi:water"
+    state_class: total_increasing
+    lambda: |-
+      return id(an2_total_litres);
+    update_interval: 1s
+
 # ── Connectivity Status ────────────────────────────────────────────────────────
 binary_sensor:
   - platform: status
@@ -649,6 +784,21 @@ interval:
           ESP_LOGI("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
                    temp, error, id(pid_integral), derivative, output * 100.0f);
 
+  # ── Flow Total Integration — AN1 and AN2 ─────────────────────────────────────
+  # Runs every 1s. Adds rate (L/min) / 60 to running total (L).
+  # Only accumulates when rate > 0.05 L/min to avoid counting noise at standstill.
+  - interval: 1s
+    then:
+      - lambda: |-
+          float r1 = id(an1_rate).state;
+          if (!std::isnan(r1) && r1 > 0.05f) {
+            id(an1_total_litres) += r1 / 60.0f;
+          }
+          float r2 = id(an2_rate).state;
+          if (!std::isnan(r2) && r2 > 0.05f) {
+            id(an2_total_litres) += r2 / 60.0f;
+          }
+
 # ── SSR Relay Outputs ─────────────────────────────────────────────────────────
 # RESTORE_DEFAULT_OFF: first boot = OFF, subsequent reboots = restore last state
 # SSR2 (RIMS heater, GPIO42) is driven exclusively via rims_heater_pwm (slow_pwm).
@@ -682,6 +832,34 @@ switch:
             id(pid_last_error) = 0.0f;
             ESP_LOGI("singularity", "RIMS PID OFF — heater output 0%%");
 
+  # ── Flow Total Reset Switches — AN1 and AN2 ───────────────────────────────────
+  # Momentary-style template switches — turn on to reset total, auto-off after reset.
+  # Use from HA dashboard or Node-RED at the start of each brew session.
+
+  - platform: template
+    name: "AN1 Reset Total"
+    id: an1_reset
+    icon: "mdi:restore"
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - lambda: |-
+          id(an1_total_litres) = 0.0f;
+          ESP_LOGI("singularity", "AN1 total reset to 0.0 L");
+      - switch.turn_off: an1_reset
+
+  - platform: template
+    name: "AN2 Reset Total"
+    id: an2_reset
+    icon: "mdi:restore"
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - lambda: |-
+          id(an2_total_litres) = 0.0f;
+          ESP_LOGI("singularity", "AN2 total reset to 0.0 L");
+      - switch.turn_off: an2_reset
+
 # ── Dallas (1-Wire) Bus ────────────────────────────────────────────────────────
 one_wire:
   - platform: gpio
@@ -694,5 +872,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.0.8"};
+      return {"v1.0.9"};
     update_interval: 10s
