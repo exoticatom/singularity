@@ -43,7 +43,7 @@
 # Filter:  NTC → S-H lambda + EMA α=0.25 (baked in)
 #          DS18B20 → offset lambda + EMA α=0.25 (baked in)
 #
-# Target board: ESP32-S3-DevKitC-1
+# Target board: ESP32-S3-N16R8 (16MB flash, 8MB PSRAM) on screw-terminal expansion board
 # ESPHome version: 2026.8.1
 
 ---
@@ -76,10 +76,10 @@ globals:
 esphome:
   name: singularity
   friendly_name: singularity
-  comment: "singularity brewing controller — ESP32-S3-DevKitC-1"
+  comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.0"
+    version: "1.1.1"
   on_boot:
     priority: -100
     then:
@@ -109,6 +109,7 @@ esp32:
   board: esp32-s3-devkitc-1
   framework:
     type: arduino
+  variant: esp32s3
 
 # ── Logging ────────────────────────────────────────────────────────────────────
 # INFO level — hardware bring-up complete, sensors verified.
@@ -866,5 +867,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.0"};
+      return {"v1.1.1"};
     update_interval: 10s
