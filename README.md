@@ -214,7 +214,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | [DS18B20](hardware/ds18b20.md)-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
 | SSR1 (GPIO41) | ⏳ Wired | Not load tested |
 | SSR2 — RIMS heater (GPIO42) | ⏳ Wired | PID ready, not load tested |
-| [SM6004](hardware/sm6004.md) flow meters × 2 | 🔲 Planned | ADS1115 A2/A3 + [4-20mA converters](hardware/current_to_voltage.md) |
+| [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing | Connected, calibrated — ADS1115 A2/A3 + [4-20mA converters](hardware/current_to_voltage.md). Max measured 13.20 L/min. ESPHome config pending. |
 | Relay board — pump control | 🔲 Planned | Via [MCP23017](hardware/expansion_boards.md) GPIO expander |
 | [MCP23017](hardware/expansion_boards.md) GPIO expander | 🔲 Planned | I2C 0x20 |
 | [MCP4728](hardware/expansion_boards.md) DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
@@ -236,7 +236,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | HA dashboard v1.2.3 | ✅ Active | 5 tabs, mushroom sensor cards, apexcharts graph |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
-| Flow meter firmware (SM6004) | 🔲 Planned | ADS1115 A2/A3 |
+| Flow meter firmware (SM6004) | 🔬 Testing | Hardware connected + calibrated. ESPHome config pending. |
 | Pump relay control | 🔲 Planned | MCP23017 |
 | Proportional valve control | 🔲 Planned | MCP4728 DAC |
 | Node-RED mash schedules + timers | 🔲 Planned | Mash step automation, alarms |
@@ -249,7 +249,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Item | Status |
 |---|---|
-| [ADS1115](hardware/expansion_boards.md) A2 + [SM6004](hardware/sm6004.md) flow meters × 2 | Planned — A2/A3 on existing board (0x48) |
+| [ADS1115](hardware/expansion_boards.md) A2 + [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing — calibrated, ESPHome config pending |
 | [MCP4728](hardware/expansion_boards.md) × 2 — DAC for proportional valve | Planned |
 | [MCP23017](hardware/expansion_boards.md) — GPIO expander | Planned |
 | [YF-S200](hardware/yf_s200.md) pulse flow sensors | Planned |
@@ -275,6 +275,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | 2026-08-26 | Documentation: home_assistant.md, calibration.md, installation.md added |
 | 2026-08-26 | Dashboard v1.2.0 — apexcharts-card temperature graph (4 sensors + live setpoint line) |
 | 2026-08-26 | Dashboard v1.2.1–v1.2.3 — mushroom-template-card sensor grid with per-sensor colour thresholds |
+| 2026-08-26 | SM6004 flow meters connected + calibrated — max 13.20 L/min, slope 7.57 L/V, ESPHome config pending |
 
 ---
 

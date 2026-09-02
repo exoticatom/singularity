@@ -148,27 +148,52 @@ The 4-20mA to 0-3.3V converter module has two trimmer pots — ZERO and SPAN —
 
 ### One-time calibration procedure
 
-**What you need:** 4-20mA current source or the SM6004 at known flow states.
+**What you need:** SM6004 connected and running, multimeter.
+
+> **Note:** You do not need to reach 25 L/min (the sensor's rated maximum) to calibrate accurately.
+> The 4-20mA signal is linear — two real-world points are sufficient to determine the full curve.
+> You do not need to measure current directly.
 
 1. Power up the module — D2 LED should light (confirms power)
-2. **At minimum flow (4mA):** turn the **ZERO** pot until `VOUT = 0.0V`
-3. **At maximum flow (20mA):** turn the **SPAN** pot until `VOUT = 3.3V`
+2. **At zero flow (pump off):** turn the **ZERO** pot until `VOUT = 0.0V` — measure at VOUT pin with multimeter
+3. **At maximum achievable flow:** run your pump at steady state, read the L/min value off the SM6004 display, measure `VOUT` with multimeter at the same time
+4. Calculate slope: `slope = L/min ÷ VOUT`
 
-This maps the 4-20mA range to exactly 0–3.3V for the ADS1115 input.
+> **Why you don't need to reach 25 L/min:** The 4-20mA curve is guaranteed linear by the sensor manufacturer.
+> If you nail zero and one real point, the entire range is accurate.
+
+### Calibration values (this installation)
+
+| Point | SM6004 display | VOUT measured | Notes |
+|---|---|---|---|
+| Zero flow | 0.0 L/min | 0.000 V | ZERO pot adjusted |
+| Max achievable | 13.20 L/min | 1.743 V | SPAN pot set to `(13.20/25)×3.3 = 1.743V` |
+
+> The SPAN pot was set by calculating the expected voltage for 13.20 L/min on a 0–25 L/min / 0–3.3V scale,
+> then adjusting until VOUT matched that value. This correctly anchors the linear curve without needing 25 L/min.
 
 ### Flow conversion formula
 
 Once the converter is calibrated, flow (L/min) is calculated from voltage:
 
 ```
-Flow (L/min) = (voltage / 3.3) × 25
+Flow (L/min) = voltage × slope
+slope = 13.20 / 1.743 = 7.57 L/min per volt
+```
+
+ESPHome lambda (planned):
+```cpp
+return x * 7.57f;  // x = ADS1115 voltage in V
 ```
 
 As a Jinja2 template (planned):
 ```yaml
 {% set v = states('sensor.singularity_flow1') | float(0) %}
-{{ ((v / 3.3) * 25) | round(2) }}
+{{ (v * 7.57) | round(2) }}
 ```
+
+> **Recalibrate if:** you replace the converter module, change the PSU, or measure drift vs the SM6004 display.
+> PSU voltage changes (e.g. 23V → 24.5V) do **not** require recalibration — the 4-20mA loop is current-regulated.
 
 ---
 
