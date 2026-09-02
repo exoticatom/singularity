@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.1
+# singularity_dashboard.yaml  v1.3.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -26,10 +26,10 @@
 #   v1.1.2 — Default values shown as reference tables above each calibration card
 #   v1.2.0 — apexcharts-card temperature graph (4 sensors + live setpoint annotation)
 #   v1.2.1–v1.2.4 — mushroom-template-card sensor grid, per-sensor colour thresholds, version fixes
-#   v1.3.1 — AN1/AN2 reset buttons added to Brewing Temperatures tab (below flow cards)
-#  v1.3.0 — AN1 (RIMS flow) + AN2 (Sparge flow) mushroom cards in Brewing Temperatures tab;
+#   v1.3.0 — AN1 (RIMS flow) + AN2 (Sparge flow) mushroom cards in Brewing Temperatures tab;
 #             AN1/AN2 offset + reset cards in Settings tab; About tab sensor table updated
 #   v1.3.1 — AN1/AN2 reset buttons added to Brewing Temperatures tab (below flow cards)
+#   v1.3.2 — AN1/AN2 flow card + reset button grouped in vertical-stack per channel
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -126,54 +126,53 @@ views:
       # ── Flow Sensors ────────────────────────────────────────────────────────
       - type: horizontal-stack
         cards:
-          # AN1 — RIMS flow: primary = L/min, secondary = total L
-          - type: custom:mushroom-template-card
-            entity: sensor.singularity_an1_rate
-            primary: "{{ states(entity) | float(0) | round(2) }} L/min"
-            secondary: "Total: {{ states('sensor.singularity_an1_total') | float(0) | round(2) }} L"
-            icon: mdi:water-pump
-            icon_color: "{% set r = states(entity) | float(0) %}{% if r < 0.1 %}disabled{% elif r < 3 %}red{% else %}blue{% endif %}"
-            tap_action:
-              action: more-info
-            layout: vertical
-            fill_container: true
+          # AN1 — RIMS flow grouped with reset
+          - type: vertical-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: sensor.singularity_an1_rate
+                primary: "{{ states(entity) | float(0) | round(2) }} L/min"
+                secondary: "Total: {{ states('sensor.singularity_an1_total') | float(0) | round(2) }} L"
+                icon: mdi:water-pump
+                icon_color: "{% set r = states(entity) | float(0) %}{% if r < 0.1 %}disabled{% elif r < 3 %}red{% else %}blue{% endif %}"
+                tap_action:
+                  action: more-info
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                entity: switch.singularity_an1_reset
+                primary: Reset AN1
+                secondary: RIMS total → 0 L
+                icon: mdi:restore
+                icon_color: grey
+                tap_action:
+                  action: toggle
+                layout: vertical
+                fill_container: true
 
-          # AN2 — Sparge flow: primary = total L, secondary = L/min
-          - type: custom:mushroom-template-card
-            entity: sensor.singularity_an2_total
-            primary: "{{ states(entity) | float(0) | round(2) }} L"
-            secondary: "Flow: {{ states('sensor.singularity_an2_rate') | float(0) | round(2) }} L/min"
-            icon: mdi:water
-            icon_color: "{% set t = states(entity) | float(0) %}{% if t < 0.1 %}disabled{% elif t < 10 %}blue{% else %}green{% endif %}"
-            tap_action:
-              action: more-info
-            layout: vertical
-            fill_container: true
-
-      # ── Flow Total Reset Buttons ─────────────────────────────────────────────
-      - type: horizontal-stack
-        cards:
-          - type: custom:mushroom-template-card
-            entity: switch.singularity_an1_reset
-            primary: Reset AN1
-            secondary: RIMS total → 0 L
-            icon: mdi:restore
-            icon_color: grey
-            tap_action:
-              action: toggle
-            layout: vertical
-            fill_container: true
-
-          - type: custom:mushroom-template-card
-            entity: switch.singularity_an2_reset
-            primary: Reset AN2
-            secondary: Sparge total → 0 L
-            icon: mdi:restore
-            icon_color: grey
-            tap_action:
-              action: toggle
-            layout: vertical
-            fill_container: true
+          # AN2 — Sparge flow grouped with reset
+          - type: vertical-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: sensor.singularity_an2_total
+                primary: "{{ states(entity) | float(0) | round(2) }} L"
+                secondary: "Flow: {{ states('sensor.singularity_an2_rate') | float(0) | round(2) }} L/min"
+                icon: mdi:water
+                icon_color: "{% set t = states(entity) | float(0) %}{% if t < 0.1 %}disabled{% elif t < 10 %}blue{% else %}green{% endif %}"
+                tap_action:
+                  action: more-info
+                layout: vertical
+                fill_container: true
+              - type: custom:mushroom-template-card
+                entity: switch.singularity_an2_reset
+                primary: Reset AN2
+                secondary: Sparge total → 0 L
+                icon: mdi:restore
+                icon_color: grey
+                tap_action:
+                  action: toggle
+                layout: vertical
+                fill_container: true
 
       - type: entities
         title: RIMS Heater
@@ -458,7 +457,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.1</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.2</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
