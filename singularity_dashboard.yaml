@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.0
+# singularity_dashboard.yaml  v1.3.1
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -26,8 +26,10 @@
 #   v1.1.2 — Default values shown as reference tables above each calibration card
 #   v1.2.0 — apexcharts-card temperature graph (4 sensors + live setpoint annotation)
 #   v1.2.1–v1.2.4 — mushroom-template-card sensor grid, per-sensor colour thresholds, version fixes
-#   v1.3.0 — AN1 (RIMS flow) + AN2 (Sparge flow) mushroom cards in Brewing Temperatures tab;
+#   v1.3.1 — AN1/AN2 reset buttons added to Brewing Temperatures tab (below flow cards)
+#  v1.3.0 — AN1 (RIMS flow) + AN2 (Sparge flow) mushroom cards in Brewing Temperatures tab;
 #             AN1/AN2 offset + reset cards in Settings tab; About tab sensor table updated
+#   v1.3.1 — AN1/AN2 reset buttons added to Brewing Temperatures tab (below flow cards)
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -145,6 +147,31 @@ views:
             icon_color: "{% set t = states(entity) | float(0) %}{% if t < 0.1 %}disabled{% elif t < 10 %}blue{% else %}green{% endif %}"
             tap_action:
               action: more-info
+            layout: vertical
+            fill_container: true
+
+      # ── Flow Total Reset Buttons ─────────────────────────────────────────────
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            entity: switch.singularity_an1_reset
+            primary: Reset AN1
+            secondary: RIMS total → 0 L
+            icon: mdi:restore
+            icon_color: grey
+            tap_action:
+              action: toggle
+            layout: vertical
+            fill_container: true
+
+          - type: custom:mushroom-template-card
+            entity: switch.singularity_an2_reset
+            primary: Reset AN2
+            secondary: Sparge total → 0 L
+            icon: mdi:restore
+            icon_color: grey
+            tap_action:
+              action: toggle
             layout: vertical
             fill_container: true
 
@@ -431,7 +458,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.0</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.1</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
