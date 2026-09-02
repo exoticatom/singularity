@@ -55,60 +55,42 @@ Used to convert the 4-20mA analog outputs of industrial sensors ([SM6004](sm6004
 
 ## Calibration for [SM6004](sm6004.md) Flow Meter
 
-The SM6004 outputs **4mA at minimum flow** (0.1 L/min) and **20mA at maximum flow** (25 L/min). The converter module must be calibrated to map this range exactly to 0–3.3V.
+> 📖 Full step-by-step procedure → **[hardware/calibration.md](calibration.md#sm6004--4-20ma-converter--zerospan-calibration)**
 
-### What you need
-- Multimeter (DC voltage mode)
-- SM6004 powered and connected
-- Converter module powered (D2 LED on)
+You do **not** need a current source, and you do **not** need to reach 25 L/min. The 4-20mA curve is linear — two real-world points are sufficient.
 
-### Step 1 — Set jumpers
-Both J1 jumpers **OPEN** → 4-20mA → 0-3.3V mode.
-
-### Step 2 — Calibrate ZERO (4mA = 0V)
-
-The SM6004 outputs 4mA when flow is at minimum or zero. To simulate this:
-
-**Option A — No flow (easiest)**
-Block or close the pipe so there is zero flow through the SM6004. The sensor outputs 4mA idle current.
-
-**Option B — SM6004 parameter setting**
-In the SM6004 menu set `ASP2` (Analogue Start Point for OUT2) — this is the 4mA point, default = 0.1 L/min.
-
-With 4mA on the input:
+### Step 1 — ZERO (pump off)
+- Stop pump completely (zero flow)
 - Measure VOUT with multimeter
-- Turn **ZERO** potentiometer until VOUT = **0.00V**
+- Turn **ZERO** pot until VOUT = **0.00V**
 
-### Step 3 — Calibrate SPAN (20mA = 3.3V)
+### Step 2 — SPAN (maximum achievable flow)
+- Run pump at your maximum achievable flow
+- Read L/min value off the **SM6004 display** (no need to measure current)
+- Measure VOUT with multimeter at the same time
+- Calculate expected voltage: `(L/min ÷ 25) × 3.3`
+- Turn **SPAN** pot until VOUT matches that calculated value
 
-The SM6004 outputs 20mA at full scale flow (default 25 L/min = `AEP2`).
+### Calibration values (this installation)
 
-**Option A — Run maximum flow**
-Open the valve fully and run 25 L/min through the sensor.
-
-**Option B — SM6004 parameter setting**
-Temporarily set `AEP2` to a low value you can achieve, note the actual mA output, then calculate.
-
-**Option C — Use a 20mA current source** (most accurate)
-If you have a current calibrator or source set to exactly 20mA, inject it directly into IN+ / IN−. Then turn **SPAN** potentiometer until VOUT = **3.30V**.
-
-### Step 4 — Verify
-Check both endpoints:
-- 4mA input → VOUT should be ~0.00V
-- 20mA input → VOUT should be ~3.30V
-
-### Step 5 — Lock down
-Once calibrated do not touch the pots again. If the SM6004 is replaced or the 4-20mA range is rescaled in the SM6004 menu, recalibrate.
-
-### Expected readings in HA after calibration
-
-| SM6004 OUT2 | Converter VOUT | `sensor.singularity_flow1_raw` | Flow |
+| Point | SM6004 display | VOUT set to | Notes |
 |---|---|---|---|
-| 4mA (min) | 0.0V | ~0.0 | 0 L/min |
-| 12mA (mid) | 1.65V | ~1.65 | ~12.5 L/min |
-| 20mA (max) | 3.3V | ~3.3 | 25 L/min |
+| Zero flow | 0.0 L/min | 0.000 V | ZERO pot |
+| Max achievable | 13.20 L/min | 1.743 V | (13.20/25)×3.3 |
 
-HA template formula: `Flow = (voltage / 3.3) × 25`
+**Slope:** `7.57 L/min per volt`
+
+### Step 3 — Fine-tune offset from dashboard
+
+Once connected to ADS1115, compare SM6004 display vs HA reading at steady flow. Adjust `number.singularity_flow1_offset` in the Settings tab — same pattern as DS18B20 offsets. No re-wiring, no pot adjustment needed.
+
+### Expected readings after calibration
+
+| SM6004 display | Converter VOUT | ADS1115 reading | Flow (slope×V) |
+|---|---|---|---|
+| 0.0 L/min | 0.000 V | ~0.000 | 0.0 L/min |
+| 13.20 L/min | 1.743 V | ~1.743 | 13.2 L/min |
+| 25.0 L/min | 3.300 V | ~3.300 | 25.0 L/min |
 
 ---
 
@@ -139,4 +121,4 @@ One module required per sensor output channel.
 
 ## Status
 
-Planned — pending 4-20mA converter modules. Will connect to [ADS1115](expansion_boards.md) #1 (0x48) A2/A3.
+Connected and calibrated — ZERO/SPAN set. ESPHome config pending (ADS1115 A2/A3).
