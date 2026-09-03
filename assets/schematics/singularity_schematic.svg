@@ -1,716 +1,582 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 1800 1700"
-     width="1800" height="1700"
+     viewBox="0 0 2200 1600"
+     width="2200" height="1600"
      font-family="'Courier New', monospace" font-size="11">
 
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!--  singularity — Low Voltage Schematic  v1.1.1                       -->
-  <!--  Layout: power rails TOP → components MIDDLE → data buses BOTTOM   -->
-  <!--                                                                     -->
-  <!--  COLOUR CONVENTION:                                                 -->
-  <!--    GND  → blue   #1565c0    +3.3V → green  #2e7d32                 -->
-  <!--    +5V  → red    #c62828    +24V  → brown  #795548                 -->
-  <!--    SDA/SCL → amber #f9a825  GPIO  → black  #212121                 -->
-  <!--    NTC  → orange #e65100    4-20mA → purple #6a1b9a                -->
-  <!--    DQ/DAC → teal #00695c    Planned → grey dashed                  -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--
+    singularity — Low Voltage Schematic  v1.1.1
+    Layout (left→right): ESP32 | ADS1115 | NTC×2 | DS18B20×2 | SM6004+Conv (×2 top/bottom) | SSR1/SSR2 | LS1 | MCP4728+Valve | MCP23017
+    Power rail: top dashed bus, short drop arrows to each component
+    GND symbol: short stub down + earth glyph + "GND"
+    +3.3V symbol: short stub up + arrow + "+3.3V"
+    Data bus band below components: SDA / SCL / DQ
+    Legend band at bottom
 
-  <!-- White background + outer border -->
-  <rect width="1800" height="1700" fill="#ffffff"/>
-  <rect x="2" y="2" width="1796" height="1696" fill="none" stroke="#90a4ae" stroke-width="1.5"/>
+    COLOUR CONVENTION
+      GND        #1565c0  blue
+      +3.3V      #2e7d32  green
+      +5V        #c62828  red
+      +24V       #795548  brown
+      SDA/SCL    #f9a825  amber
+      GPIO out   #212121  black
+      NTC analog #e65100  orange
+      4-20mA     #6a1b9a  purple
+      DQ/DAC     #00695c  teal
+      Planned    #9e9e9e  grey dashed
+  -->
 
-  <!-- ──────────────────────────────────────────────────────────────────
-       TITLE BLOCK  y=2..50
-       ────────────────────────────────────────────────────────────────── -->
-  <rect x="2" y="2" width="1796" height="46" fill="#eceff1" stroke="#90a4ae" stroke-width="1"/>
-  <text x="900" y="20" text-anchor="middle" fill="#212121" font-size="15" font-weight="bold">singularity — Low Voltage Schematic</text>
-  <text x="900" y="38" text-anchor="middle" fill="#546e7a" font-size="10">ESP32-S3-N16R8 · ADS1115 · NTC×2 · DS18B20×2 · SM6004 · 4-20mA Conv×2 · MCP4728 · BSS138 Shifter · MCP23017 · SSR×2   |   v1.1.1</text>
+  <!-- ── Background & border ─────────────────────────────────────── -->
+  <rect width="2200" height="1600" fill="#ffffff"/>
+  <rect x="2" y="2" width="2196" height="1596" fill="none" stroke="#90a4ae" stroke-width="1.5"/>
 
-  <!-- ──────────────────────────────────────────────────────────────────
-       POWER RAIL BAND  y=52..175  (top, horizontal dashed buses)
-       ────────────────────────────────────────────────────────────────── -->
-  <rect x="2" y="50" width="1796" height="128" fill="#fafafa" stroke="#90a4ae" stroke-width="0.8"/>
-  <text x="10" y="64" fill="#546e7a" font-size="9" font-weight="bold">POWER RAILS</text>
+  <!-- ── DEFS: reusable symbols ──────────────────────────────────── -->
+  <defs>
+    <!-- GND earth symbol, centred at (0,0), draw with transform -->
+    <symbol id="gnd" viewBox="-10 0 20 18">
+      <line x1="0" y1="0" x2="0" y2="6"   stroke="#1565c0" stroke-width="2"/>
+      <line x1="-8" y1="6"  x2="8" y2="6"  stroke="#1565c0" stroke-width="2"/>
+      <line x1="-5" y1="10" x2="5" y2="10" stroke="#1565c0" stroke-width="2"/>
+      <line x1="-2" y1="14" x2="2" y2="14" stroke="#1565c0" stroke-width="2"/>
+    </symbol>
+    <!-- +3.3V power flag (short stub up + label), centred at pin -->
+    <symbol id="vcc33" viewBox="-12 -20 24 20">
+      <line x1="0" y1="0" x2="0" y2="-14" stroke="#2e7d32" stroke-width="2"/>
+      <polygon points="0,-20 -5,-12 5,-12" fill="#2e7d32"/>
+      <text x="0" y="-21" text-anchor="middle" fill="#2e7d32" font-size="8" font-family="Courier New,monospace">+3.3V</text>
+    </symbol>
+    <!-- +5V power flag -->
+    <symbol id="vcc5" viewBox="-10 -20 20 20">
+      <line x1="0" y1="0" x2="0" y2="-14" stroke="#c62828" stroke-width="2"/>
+      <polygon points="0,-20 -5,-12 5,-12" fill="#c62828"/>
+      <text x="0" y="-21" text-anchor="middle" fill="#c62828" font-size="8" font-family="Courier New,monospace">+5V</text>
+    </symbol>
+    <!-- +24V power flag -->
+    <symbol id="vcc24" viewBox="-12 -20 24 20">
+      <line x1="0" y1="0" x2="0" y2="-14" stroke="#795548" stroke-width="2"/>
+      <polygon points="0,-20 -5,-12 5,-12" fill="#795548"/>
+      <text x="0" y="-21" text-anchor="middle" fill="#795548" font-size="8" font-family="Courier New,monospace">+24V</text>
+    </symbol>
+  </defs>
 
-  <!-- +3.3V rail  y=78 -->
-  <text x="10" y="82" fill="#2e7d32" font-size="10" font-weight="bold">+3.3V</text>
-  <line x1="70" y1="78" x2="1780" y2="78" stroke="#2e7d32" stroke-width="2.5" stroke-dasharray="12,5"/>
-  <!-- tap labels -->
-  <text x="72" y="72" fill="#2e7d32" font-size="8">ESP32</text>
-  <text x="310" y="72" fill="#2e7d32" font-size="8">ADS1115</text>
-  <text x="580" y="72" fill="#2e7d32" font-size="8">DS18B20×2</text>
-  <text x="760" y="72" fill="#2e7d32" font-size="8">R_PU(DQ)</text>
-  <text x="900" y="72" fill="#2e7d32" font-size="8">NTC R1/R2</text>
+  <!-- ── Title block ─────────────────────────────────────────────── -->
+  <rect x="2" y="2" width="2196" height="40" fill="#eceff1" stroke="#90a4ae" stroke-width="1"/>
+  <text x="1100" y="18" text-anchor="middle" fill="#212121" font-size="14" font-weight="bold">singularity — Low Voltage Schematic  v1.1.1</text>
+  <text x="1100" y="34" text-anchor="middle" fill="#546e7a" font-size="9">ESP32-S3-N16R8 · ADS1115(0x48) · NTC×2 · DS18B20×2 · SM6004×2 · XY-IT0V×2 · SSR1/SSR2 · BSS138 LS1 · MCP4728(0x60) · MCP23017(0x20)</text>
 
-  <!-- +5V rail  y=102 -->
-  <text x="10" y="106" fill="#c62828" font-size="10" font-weight="bold">+5V</text>
-  <line x1="70" y1="102" x2="1780" y2="102" stroke="#c62828" stroke-width="2.5" stroke-dasharray="12,5"/>
-  <text x="72" y="96" fill="#c62828" font-size="8">ESP32 5V_IN</text>
-  <text x="1300" y="96" fill="#c62828" font-size="8">LS1 HV</text>
-  <text x="1500" y="96" fill="#c62828" font-size="8">MCP4728 VDD</text>
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       COMPONENT BAND   y=55..930
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 
-  <!-- +24V rail  y=126 -->
-  <text x="10" y="130" fill="#795548" font-size="10" font-weight="bold">+24V</text>
-  <line x1="70" y1="126" x2="780" y2="126" stroke="#795548" stroke-width="2.5" stroke-dasharray="12,5"/>
-  <text x="72" y="120" fill="#795548" font-size="8">SM6004 VCC</text>
-  <text x="280" y="120" fill="#795548" font-size="8">Conv#1 VIN+</text>
-  <text x="480" y="120" fill="#795548" font-size="8">Conv#2 VIN+</text>
+  <!-- ═══ U1  ESP32-S3-N16R8   x=30..250 ═══════════════════════════ -->
+  <rect x="30" y="60" width="200" height="480" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="2"/>
+  <rect x="30" y="60" width="200" height="22" rx="4" fill="#eceff1" stroke="#37474f" stroke-width="2"/>
+  <text x="130" y="75" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">U1  ESP32-S3-N16R8</text>
 
-  <!-- GND rail  y=152 -->
-  <text x="10" y="156" fill="#1565c0" font-size="10" font-weight="bold">GND</text>
-  <line x1="70" y1="152" x2="1780" y2="152" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="12,5"/>
-  <text x="72" y="146" fill="#1565c0" font-size="8">ESP32</text>
-  <text x="200" y="146" fill="#1565c0" font-size="8">ADS1115</text>
-  <text x="310" y="146" fill="#1565c0" font-size="8">NTCs(GND)</text>
-  <text x="430" y="146" fill="#1565c0" font-size="8">DS18B20×2</text>
-  <text x="560" y="146" fill="#1565c0" font-size="8">SM6004</text>
-  <text x="640" y="146" fill="#1565c0" font-size="8">Conv#1</text>
-  <text x="720" y="146" fill="#1565c0" font-size="8">Conv#2</text>
-  <text x="840" y="146" fill="#1565c0" font-size="8">SSR1</text>
-  <text x="900" y="146" fill="#1565c0" font-size="8">SSR2</text>
-  <text x="1220" y="146" fill="#1565c0" font-size="8">LS1</text>
-  <text x="1500" y="146" fill="#1565c0" font-size="8">MCP4728</text>
-  <text x="1640" y="146" fill="#1565c0" font-size="8">Valve</text>
-  <text x="1720" y="146" fill="#1565c0" font-size="8">MCP23017</text>
+  <!-- Power flags on ESP32 -->
+  <use href="#vcc33" x="80"  y="100"/>  <line x1="80"  y1="100" x2="30"  y2="100" stroke="#2e7d32" stroke-width="2"/><text x="32" y="98" fill="#37474f" font-size="9">3V3</text>
+  <use href="#vcc5"  x="95"  y="122"/>  <line x1="95"  y1="122" x2="30"  y2="122" stroke="#c62828" stroke-width="2"/><text x="32" y="120" fill="#37474f" font-size="9">5V_IN</text>
+  <use href="#gnd"   x="65"  y="145"/>  <line x1="65"  y1="145" x2="30"  y2="145" stroke="#1565c0" stroke-width="2"/><text x="32" y="143" fill="#37474f" font-size="9">GND</text>
+  <text x="50" y="165" fill="#1565c0" font-size="8">GND</text>
 
-  <!-- ──────────────────────────────────────────────────────────────────
-       COMPONENT BAND  y=178..1100
-       ────────────────────────────────────────────────────────────────── -->
+  <!-- ESP32 right-side GPIO output stubs -->
+  <text x="38" y="228" fill="#546e7a" font-size="9">GPIO21</text>
+  <line x1="230" y1="224" x2="268" y2="224" stroke="#f9a825" stroke-width="2"/>
+  <text x="270" y="227" fill="#f9a825" font-size="9" font-weight="bold">SDA</text>
 
-  <!-- ── U1 ESP32-S3 ────────────────────────────────────────────────── -->
-  <rect x="30" y="200" width="200" height="440" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="2"/>
-  <rect x="30" y="200" width="200" height="24" rx="4" fill="#eceff1" stroke="#37474f" stroke-width="2"/>
-  <text x="130" y="216" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">U1  ESP32-S3-N16R8</text>
-  <line x1="30" y1="224" x2="230" y2="224" stroke="#90a4ae" stroke-width="0.8"/>
+  <text x="38" y="252" fill="#546e7a" font-size="9">GPIO47</text>
+  <line x1="230" y1="248" x2="268" y2="248" stroke="#f9a825" stroke-width="2"/>
+  <text x="270" y="251" fill="#f9a825" font-size="9" font-weight="bold">SCL</text>
 
-  <!-- Power drops from rails to ESP32 -->
-  <!-- 3.3V drop -->
-  <line x1="80" y1="78" x2="80" y2="240" stroke="#2e7d32" stroke-width="2"/>
-  <circle cx="80" cy="78" r="4" fill="#2e7d32"/>
-  <line x1="30" y1="240" x2="80" y2="240" stroke="#2e7d32" stroke-width="2"/>
-  <text x="32" y="238" fill="#37474f" font-size="9">3V3</text>
+  <!-- GPIO48 → 1-Wire DQ — goes to DS18B20 section (x≈680) -->
+  <text x="38" y="280" fill="#546e7a" font-size="9">GPIO48</text>
+  <line x1="230" y1="276" x2="268" y2="276" stroke="#00695c" stroke-width="2.5"/>
+  <text x="270" y="279" fill="#00695c" font-size="9" font-weight="bold">DQ</text>
 
-  <!-- 5V drop -->
-  <line x1="95" y1="102" x2="95" y2="260" stroke="#c62828" stroke-width="2"/>
-  <circle cx="95" cy="102" r="4" fill="#c62828"/>
-  <line x1="30" y1="260" x2="95" y2="260" stroke="#c62828" stroke-width="2"/>
-  <text x="32" y="258" fill="#37474f" font-size="9">5V_IN</text>
+  <text x="38" y="340" fill="#546e7a" font-size="9">GPIO41</text>
+  <line x1="230" y1="336" x2="268" y2="336" stroke="#212121" stroke-width="2"/>
+  <text x="270" y="339" fill="#212121" font-size="9" font-weight="bold">SSR1_ctrl</text>
 
-  <!-- GND drop -->
-  <line x1="65" y1="152" x2="65" y2="280" stroke="#1565c0" stroke-width="2"/>
-  <circle cx="65" cy="152" r="4" fill="#1565c0"/>
-  <line x1="30" y1="280" x2="65" y2="280" stroke="#1565c0" stroke-width="2"/>
-  <text x="32" y="278" fill="#37474f" font-size="9">GND</text>
+  <text x="38" y="365" fill="#546e7a" font-size="9">GPIO42</text>
+  <line x1="230" y1="361" x2="268" y2="361" stroke="#212121" stroke-width="2"/>
+  <text x="270" y="364" fill="#212121" font-size="9" font-weight="bold">SSR2_ctrl</text>
 
-  <!-- ESP32 right-side GPIO pins -->
-  <text x="38" y="330" fill="#546e7a" font-size="9">GPIO21</text>
-  <line x1="230" y1="326" x2="265" y2="326" stroke="#f9a825" stroke-width="2"/>
-  <text x="267" y="329" fill="#f9a825" font-size="9" font-weight="bold">SDA</text>
+  <!-- ═══ U2  ADS1115  x=310..530 ════════════════════════════════════ -->
+  <rect x="310" y="60" width="200" height="340" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="2"/>
+  <rect x="310" y="60" width="200" height="22" rx="4" fill="#e0f2f1" stroke="#37474f" stroke-width="2"/>
+  <text x="410" y="75" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">U2  ADS1115</text>
+  <text x="410" y="87" text-anchor="middle" fill="#546e7a" font-size="9">I²C  0x48</text>
 
-  <text x="38" y="355" fill="#546e7a" font-size="9">GPIO47</text>
-  <line x1="230" y1="351" x2="265" y2="351" stroke="#f9a825" stroke-width="2"/>
-  <text x="267" y="354" fill="#f9a825" font-size="9" font-weight="bold">SCL</text>
+  <!-- ADS1115 power flags -->
+  <use href="#vcc33" x="360" y="110"/>  <line x1="360" y1="110" x2="310" y2="110" stroke="#2e7d32" stroke-width="2"/><text x="312" y="108" fill="#37474f" font-size="9">VDD</text>
+  <use href="#gnd"   x="340" y="133"/>  <line x1="340" y1="133" x2="310" y2="133" stroke="#1565c0" stroke-width="1.5"/><text x="312" y="131" fill="#37474f" font-size="9">GND</text>
+  <text x="320" y="153" fill="#1565c0" font-size="8">GND</text>
+  <!-- ADDR→GND -->
+  <line x1="310" y1="160" x2="340" y2="160" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="312" y="158" fill="#37474f" font-size="9">ADDR→GND</text>
+  <use href="#gnd" x="340" y="163"/>
+  <text x="330" y="183" fill="#1565c0" font-size="8">GND</text>
 
-  <text x="38" y="385" fill="#546e7a" font-size="9">GPIO48</text>
-  <line x1="230" y1="381" x2="265" y2="381" stroke="#00695c" stroke-width="2"/>
-  <text x="267" y="384" fill="#00695c" font-size="9" font-weight="bold">DQ</text>
-
-  <text x="38" y="430" fill="#546e7a" font-size="9">GPIO41</text>
-  <line x1="230" y1="426" x2="265" y2="426" stroke="#212121" stroke-width="2"/>
-  <text x="267" y="429" fill="#212121" font-size="9" font-weight="bold">SSR1</text>
-
-  <text x="38" y="455" fill="#546e7a" font-size="9">GPIO42</text>
-  <line x1="230" y1="451" x2="265" y2="451" stroke="#212121" stroke-width="2"/>
-  <text x="267" y="454" fill="#212121" font-size="9" font-weight="bold">SSR2/PWM</text>
-
-  <!-- ── U2 ADS1115 ────────────────────────────────────────────────── -->
-  <rect x="360" y="220" width="195" height="280" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="2"/>
-  <rect x="360" y="220" width="195" height="24" rx="4" fill="#e0f2f1" stroke="#37474f" stroke-width="2"/>
-  <text x="457" y="236" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">U2  ADS1115</text>
-  <text x="457" y="248" text-anchor="middle" fill="#546e7a" font-size="9">I²C addr 0x48</text>
-
-  <!-- Power drops to ADS1115 -->
-  <line x1="390" y1="78" x2="390" y2="268" stroke="#2e7d32" stroke-width="2"/>
-  <circle cx="390" cy="78" r="4" fill="#2e7d32"/>
-  <line x1="360" y1="268" x2="390" y2="268" stroke="#2e7d32" stroke-width="2"/>
-  <text x="362" y="266" fill="#37474f" font-size="9">VDD</text>
-
-  <line x1="375" y1="152" x2="375" y2="290" stroke="#1565c0" stroke-width="2"/>
-  <circle cx="375" cy="152" r="4" fill="#1565c0"/>
-  <line x1="360" y1="290" x2="375" y2="290" stroke="#1565c0" stroke-width="2"/>
-  <text x="362" y="288" fill="#37474f" font-size="9">GND</text>
-  <!-- ADDR tied to GND -->
-  <line x1="360" y1="312" x2="375" y2="312" stroke="#1565c0" stroke-width="1.5"/>
-  <text x="362" y="310" fill="#37474f" font-size="9">ADDR→GND</text>
-  <line x1="375" y1="290" x2="375" y2="312" stroke="#1565c0" stroke-width="1.5"/>
-  <circle cx="375" cy="290" r="3" fill="#1565c0"/>
+  <!-- ADS1115 left I2C pins (from data bus, drawn below) -->
+  <line x1="310" y1="225" x2="290" y2="225" stroke="#f9a825" stroke-width="2"/>
+  <text x="292" y="223" fill="#37474f" font-size="9">SDA</text>
+  <line x1="310" y1="248" x2="290" y2="248" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="5,2"/>
+  <text x="292" y="246" fill="#37474f" font-size="9">SCL</text>
 
   <!-- ADS1115 right analog pins -->
-  <line x1="555" y1="340" x2="600" y2="340" stroke="#e65100" stroke-width="2"/>
-  <text x="557" y="337" fill="#37474f" font-size="9">A0</text>
-  <text x="603" y="343" fill="#e65100" font-size="9" font-weight="bold">NTC1-RIMS</text>
+  <line x1="510" y1="240" x2="550" y2="240" stroke="#e65100" stroke-width="2"/>
+  <text x="512" y="237" fill="#37474f" font-size="9">A0</text>
+  <text x="553" y="243" fill="#e65100" font-size="9" font-weight="bold">→NTC1</text>
 
-  <line x1="555" y1="365" x2="600" y2="365" stroke="#e65100" stroke-width="2"/>
-  <text x="557" y="362" fill="#37474f" font-size="9">A1</text>
-  <text x="603" y="368" fill="#e65100" font-size="9" font-weight="bold">NTC2-MASH</text>
+  <line x1="510" y1="268" x2="550" y2="268" stroke="#e65100" stroke-width="2"/>
+  <text x="512" y="265" fill="#37474f" font-size="9">A1</text>
+  <text x="553" y="271" fill="#e65100" font-size="9" font-weight="bold">→NTC2</text>
 
-  <line x1="555" y1="390" x2="600" y2="390" stroke="#6a1b9a" stroke-width="2"/>
-  <text x="557" y="387" fill="#37474f" font-size="9">A2</text>
-  <text x="603" y="393" fill="#6a1b9a" font-size="9" font-weight="bold">FLOW-AN1</text>
+  <line x1="510" y1="296" x2="550" y2="296" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="512" y="293" fill="#37474f" font-size="9">A2</text>
+  <text x="553" y="299" fill="#6a1b9a" font-size="9" font-weight="bold">←AN1(RIMS)</text>
 
-  <line x1="555" y1="415" x2="600" y2="415" stroke="#6a1b9a" stroke-width="2"/>
-  <text x="557" y="412" fill="#37474f" font-size="9">A3</text>
-  <text x="603" y="418" fill="#9e9e9e" font-size="9">FLOW-AN2 (planned)</text>
+  <line x1="510" y1="324" x2="550" y2="324" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="512" y="321" fill="#37474f" font-size="9">A3</text>
+  <text x="553" y="327" fill="#6a1b9a" font-size="9" font-weight="bold">←AN2(Sparge)</text>
 
-  <!-- SDA/SCL arrive from data bus (bottom) — stub up to ADS1115 -->
-  <!-- These stubs are drawn when we draw data bus section -->
-  <line x1="360" y1="335" x2="310" y2="335" stroke="#f9a825" stroke-width="2"/>
-  <text x="312" y="333" fill="#37474f" font-size="9">SDA</text>
-  <line x1="360" y1="357" x2="310" y2="357" stroke="#f9a825" stroke-width="2"/>
-  <text x="312" y="355" fill="#37474f" font-size="9">SCL</text>
-
-  <!-- ── NTC1-RIMS circuit ──────────────────────────────────────────── -->
-  <text x="760" y="215" fill="#212121" font-size="10" font-weight="bold">NTC1-RIMS</text>
-  <text x="760" y="226" fill="#546e7a" font-size="8">ADS1115 A0</text>
-
-  <!-- 3.3V drop to R1 -->
-  <line x1="790" y1="78" x2="790" y2="240" stroke="#2e7d32" stroke-width="2"/>
-  <circle cx="790" cy="78" r="4" fill="#2e7d32"/>
-  <!-- R1 body -->
-  <rect x="778" y="240" width="24" height="38" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/>
-  <text x="804" y="254" fill="#37474f" font-size="8">R1</text>
-  <text x="804" y="264" fill="#546e7a" font-size="8">9.883kΩ</text>
-  <text x="804" y="274" fill="#546e7a" font-size="8">1%</text>
-  <line x1="790" y1="278" x2="790" y2="300" stroke="#e65100" stroke-width="2"/>
-  <!-- A0 junction -->
-  <circle cx="790" cy="300" r="5" fill="#e65100"/>
-  <text x="798" y="298" fill="#e65100" font-size="8" font-weight="bold">A0</text>
+  <!-- ═══ NTC1-RIMS + NTC2-MASH  x=600..780 ══════════════════════════ -->
+  <!-- NTC1 TOP -->
+  <text x="600" y="68" fill="#212121" font-size="10" font-weight="bold">NTC1-RIMS</text>
+  <text x="600" y="79" fill="#546e7a" font-size="8">ADS1115 A0</text>
+  <!-- R1 -->
+  <use href="#vcc33" x="630" y="95"/>
+  <line x1="630" y1="95"  x2="630" y2="108" stroke="#2e7d32" stroke-width="2"/>
+  <rect x="618" y="108" width="24" height="38" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/>
+  <text x="644" y="122" fill="#37474f" font-size="8">R1  9.883kΩ</text>
+  <text x="644" y="132" fill="#546e7a" font-size="8">1%</text>
+  <line x1="630" y1="146" x2="630" y2="162" stroke="#e65100" stroke-width="2"/>
+  <!-- A0 node -->
+  <circle cx="630" cy="162" r="5" fill="#e65100"/>
+  <text x="638" y="160" fill="#e65100" font-size="8" font-weight="bold">A0</text>
   <!-- C1 cap -->
-  <line x1="790" y1="300" x2="830" y2="300" stroke="#e65100" stroke-width="1.5"/>
-  <line x1="830" y1="290" x2="830" y2="310" stroke="#37474f" stroke-width="3"/>
-  <line x1="836" y1="290" x2="836" y2="310" stroke="#37474f" stroke-width="3"/>
-  <line x1="836" y1="300" x2="856" y2="300" stroke="#1565c0" stroke-width="1.5"/>
-  <line x1="856" y1="300" x2="856" y2="152" stroke="#1565c0" stroke-width="1.5"/>
-  <circle cx="856" cy="152" r="3" fill="#1565c0"/>
-  <text x="838" y="288" fill="#546e7a" font-size="8">C1 100nF</text>
-  <!-- T1 NTC -->
-  <ellipse cx="790" cy="335" rx="14" ry="14" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
-  <text x="790" y="332" text-anchor="middle" fill="#e65100" font-size="8" font-weight="bold">NTC</text>
-  <text x="790" y="342" text-anchor="middle" fill="#546e7a" font-size="8">10kΩ</text>
-  <line x1="790" y1="300" x2="790" y2="321" stroke="#e65100" stroke-width="2"/>
-  <line x1="790" y1="349" x2="790" y2="375" stroke="#1565c0" stroke-width="2"/>
-  <line x1="790" y1="375" x2="790" y2="152" stroke="#1565c0" stroke-width="1"/>
-  <circle cx="790" cy="152" r="3" fill="#1565c0"/>
-  <text x="755" y="395" fill="#546e7a" font-size="8">T1 NTC1-RIMS</text>
-  <!-- A0 to ADS1115 A0 -->
-  <line x1="600" y1="340" x2="730" y2="340" stroke="#e65100" stroke-width="2"/>
-  <line x1="730" y1="340" x2="730" y2="300" stroke="#e65100" stroke-width="2"/>
-  <line x1="730" y1="300" x2="790" y2="300" stroke="#e65100" stroke-width="2"/>
+  <line x1="630" y1="162" x2="665" y2="162" stroke="#e65100" stroke-width="1.5"/>
+  <line x1="665" y1="152" x2="665" y2="172" stroke="#37474f" stroke-width="3"/>
+  <line x1="671" y1="152" x2="671" y2="172" stroke="#37474f" stroke-width="3"/>
+  <use href="#gnd" x="671" y="175"/>
+  <text x="660" y="196" fill="#1565c0" font-size="8">GND</text>
+  <text x="673" y="150" fill="#546e7a" font-size="8">C1 100nF</text>
+  <!-- T1 NTC symbol -->
+  <ellipse cx="630" cy="196" rx="14" ry="14" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
+  <text x="630" y="193" text-anchor="middle" fill="#e65100" font-size="8" font-weight="bold">NTC</text>
+  <text x="630" y="203" text-anchor="middle" fill="#546e7a" font-size="8">10kΩ</text>
+  <line x1="630" y1="162" x2="630" y2="182" stroke="#e65100" stroke-width="2"/>
+  <line x1="630" y1="210" x2="630" y2="226" stroke="#1565c0" stroke-width="2"/>
+  <use href="#gnd" x="630" y="228"/>
+  <text x="620" y="248" fill="#1565c0" font-size="8">GND</text>
+  <text x="600" y="262" fill="#546e7a" font-size="8">T1 NTC1-RIMS</text>
+  <!-- A0 wire to ADS1115 A0 -->
+  <line x1="550" y1="240" x2="630" y2="240" stroke="#e65100" stroke-width="2"/>
+  <line x1="630" y1="240" x2="630" y2="162" stroke="#e65100" stroke-width="2"/>
 
-  <!-- ── NTC2-MASH circuit ──────────────────────────────────────────── -->
-  <text x="920" y="215" fill="#212121" font-size="10" font-weight="bold">NTC2-MASH</text>
-  <text x="920" y="226" fill="#546e7a" font-size="8">ADS1115 A1</text>
+  <!-- NTC2 BOTTOM (y offset +280) -->
+  <text x="600" y="348" fill="#212121" font-size="10" font-weight="bold">NTC2-MASH</text>
+  <text x="600" y="359" fill="#546e7a" font-size="8">ADS1115 A1</text>
+  <use href="#vcc33" x="630" y="375"/>
+  <line x1="630" y1="375" x2="630" y2="388" stroke="#2e7d32" stroke-width="2"/>
+  <rect x="618" y="388" width="24" height="38" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/>
+  <text x="644" y="402" fill="#37474f" font-size="8">R2  9.902kΩ</text>
+  <text x="644" y="412" fill="#546e7a" font-size="8">1%</text>
+  <line x1="630" y1="426" x2="630" y2="442" stroke="#e65100" stroke-width="2"/>
+  <circle cx="630" cy="442" r="5" fill="#e65100"/>
+  <text x="638" y="440" fill="#e65100" font-size="8" font-weight="bold">A1</text>
+  <line x1="630" y1="442" x2="665" y2="442" stroke="#e65100" stroke-width="1.5"/>
+  <line x1="665" y1="432" x2="665" y2="452" stroke="#37474f" stroke-width="3"/>
+  <line x1="671" y1="432" x2="671" y2="452" stroke="#37474f" stroke-width="3"/>
+  <use href="#gnd" x="671" y="455"/>
+  <text x="660" y="476" fill="#1565c0" font-size="8">GND</text>
+  <text x="673" y="430" fill="#546e7a" font-size="8">C2 100nF</text>
+  <ellipse cx="630" cy="476" rx="14" ry="14" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
+  <text x="630" y="473" text-anchor="middle" fill="#e65100" font-size="8" font-weight="bold">NTC</text>
+  <text x="630" y="483" text-anchor="middle" fill="#546e7a" font-size="8">10kΩ</text>
+  <line x1="630" y1="442" x2="630" y2="462" stroke="#e65100" stroke-width="2"/>
+  <line x1="630" y1="490" x2="630" y2="506" stroke="#1565c0" stroke-width="2"/>
+  <use href="#gnd" x="630" y="508"/>
+  <text x="620" y="528" fill="#1565c0" font-size="8">GND</text>
+  <text x="600" y="542" fill="#546e7a" font-size="8">T2 NTC2-MASH</text>
+  <line x1="550" y1="268" x2="630" y2="268" stroke="#e65100" stroke-width="2"/>
+  <line x1="630" y1="268" x2="630" y2="442" stroke="#e65100" stroke-width="2"/>
+  <circle cx="630" cy="268" r="4" fill="#e65100"/>
 
-  <line x1="950" y1="78" x2="950" y2="240" stroke="#2e7d32" stroke-width="2"/>
-  <circle cx="950" cy="78" r="4" fill="#2e7d32"/>
-  <rect x="938" y="240" width="24" height="38" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/>
-  <text x="964" y="254" fill="#37474f" font-size="8">R2</text>
-  <text x="964" y="264" fill="#546e7a" font-size="8">9.902kΩ</text>
-  <text x="964" y="274" fill="#546e7a" font-size="8">1%</text>
-  <line x1="950" y1="278" x2="950" y2="300" stroke="#e65100" stroke-width="2"/>
-  <circle cx="950" cy="300" r="5" fill="#e65100"/>
-  <text x="958" y="298" fill="#e65100" font-size="8" font-weight="bold">A1</text>
-  <line x1="950" y1="300" x2="990" y2="300" stroke="#e65100" stroke-width="1.5"/>
-  <line x1="990" y1="290" x2="990" y2="310" stroke="#37474f" stroke-width="3"/>
-  <line x1="996" y1="290" x2="996" y2="310" stroke="#37474f" stroke-width="3"/>
-  <line x1="996" y1="300" x2="1016" y2="300" stroke="#1565c0" stroke-width="1.5"/>
-  <line x1="1016" y1="300" x2="1016" y2="152" stroke="#1565c0" stroke-width="1.5"/>
-  <circle cx="1016" cy="152" r="3" fill="#1565c0"/>
-  <text x="998" y="288" fill="#546e7a" font-size="8">C2 100nF</text>
-  <ellipse cx="950" cy="335" rx="14" ry="14" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
-  <text x="950" y="332" text-anchor="middle" fill="#e65100" font-size="8" font-weight="bold">NTC</text>
-  <text x="950" y="342" text-anchor="middle" fill="#546e7a" font-size="8">10kΩ</text>
-  <line x1="950" y1="300" x2="950" y2="321" stroke="#e65100" stroke-width="2"/>
-  <line x1="950" y1="349" x2="950" y2="375" stroke="#1565c0" stroke-width="2"/>
-  <line x1="950" y1="375" x2="950" y2="152" stroke="#1565c0" stroke-width="1"/>
-  <circle cx="950" cy="152" r="3" fill="#1565c0"/>
-  <text x="915" y="395" fill="#546e7a" font-size="8">T2 NTC2-MASH</text>
-  <!-- A1 to ADS1115 A1 -->
-  <line x1="600" y1="365" x2="890" y2="365" stroke="#e65100" stroke-width="2"/>
-  <line x1="890" y1="365" x2="890" y2="300" stroke="#e65100" stroke-width="2"/>
-  <line x1="890" y1="300" x2="950" y2="300" stroke="#e65100" stroke-width="2"/>
+  <!-- ═══ DS18B20 × 2   x=710..890 ════════════════════════════════════ -->
+  <!-- DQ bus from ESP32 GPIO48: horizontal line into this section -->
+  <line x1="268" y1="276" x2="760" y2="276" stroke="#00695c" stroke-width="2.5"/>
 
-  <!-- ── DS18B20 sensors ───────────────────────────────────────────── -->
-  <!-- R_PU pull-up -->
-  <line x1="760" y1="78" x2="760" y2="430" stroke="#2e7d32" stroke-width="2"/>
-  <circle cx="760" cy="78" r="4" fill="#2e7d32"/>
-  <rect x="748" y="430" width="24" height="38" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/>
-  <text x="774" y="442" fill="#37474f" font-size="8">R_PU</text>
-  <text x="774" y="452" fill="#546e7a" font-size="8">4.7kΩ</text>
-  <line x1="760" y1="468" x2="760" y2="490" stroke="#00695c" stroke-width="2.5"/>
-  <!-- DQ junction on bus stub — connects up from data bus -->
-  <circle cx="760" cy="490" r="4" fill="#00695c"/>
+  <!-- R_PU pull-up to +3.3V on DQ line -->
+  <line x1="760" y1="276" x2="760" y2="256" stroke="#00695c" stroke-width="2"/>
+  <rect x="748" y="218" width="24" height="38" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/>
+  <text x="774" y="232" fill="#37474f" font-size="8">R_PU</text>
+  <text x="774" y="242" fill="#546e7a" font-size="8">4.7kΩ</text>
+  <line x1="760" y1="218" x2="760" y2="204" stroke="#2e7d32" stroke-width="2"/>
+  <use href="#vcc33" x="760" y="200"/>
+  <text x="748" y="200" fill="#2e7d32" font-size="7">+3.3V</text>
+  <circle cx="760" cy="276" r="4" fill="#00695c"/>
 
-  <!-- DS18B20-Boil -->
-  <rect x="640" y="510" width="160" height="75" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
-  <rect x="640" y="510" width="160" height="20" rx="4" fill="#e8f5e9" stroke="#37474f" stroke-width="1.5"/>
-  <text x="720" y="524" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">DS18B20 Boil</text>
-  <text x="720" y="547" text-anchor="middle" fill="#546e7a" font-size="8">0x7500...3528</text>
-  <!-- DQ, VDD, GND stubs -->
-  <line x1="760" y1="490" x2="760" y2="530" stroke="#00695c" stroke-width="2"/>
-  <line x1="760" y1="530" x2="800" y2="530" stroke="#00695c" stroke-width="2"/>
-  <text x="762" y="528" fill="#37474f" font-size="8">DQ</text>
-  <line x1="710" y1="510" x2="710" y2="78" stroke="#2e7d32" stroke-width="1"/>
-  <circle cx="710" cy="78" r="3" fill="#2e7d32"/>
-  <text x="712" y="508" fill="#37474f" font-size="8">VDD</text>
-  <line x1="700" y1="565" x2="700" y2="152" stroke="#1565c0" stroke-width="1"/>
-  <circle cx="700" cy="152" r="3" fill="#1565c0"/>
-  <text x="643" y="575" fill="#37474f" font-size="8">GND</text>
-  <line x1="640" y1="572" x2="700" y2="572" stroke="#1565c0" stroke-width="1"/>
+  <!-- DS18B20-Boil  TOP -->
+  <rect x="710" y="310" width="170" height="80" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
+  <rect x="710" y="310" width="170" height="20" rx="4" fill="#e8f5e9" stroke="#37474f" stroke-width="1.5"/>
+  <text x="795" y="324" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">DS18B20  Boil</text>
+  <text x="795" y="344" text-anchor="middle" fill="#546e7a" font-size="8">ROM: 0x7500...3528</text>
+  <!-- DQ stub -->
+  <line x1="760" y1="276" x2="760" y2="310" stroke="#00695c" stroke-width="2.5"/>
+  <text x="762" y="309" fill="#37474f" font-size="9">DQ</text>
+  <!-- VDD flag -->
+  <use href="#vcc33" x="730" y="310"/>
+  <text x="718" y="309" fill="#2e7d32" font-size="7">+3.3V</text>
+  <!-- GND flag -->
+  <line x1="730" y1="380" x2="730" y2="390" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="730" y="392"/>
+  <text x="720" y="412" fill="#1565c0" font-size="8">GND</text>
 
-  <!-- DS18B20-HLT -->
-  <rect x="640" y="615" width="160" height="75" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
-  <rect x="640" y="615" width="160" height="20" rx="4" fill="#e8f5e9" stroke="#37474f" stroke-width="1.5"/>
-  <text x="720" y="629" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">DS18B20 HLT</text>
-  <text x="720" y="652" text-anchor="middle" fill="#546e7a" font-size="8">0x3100...5A28</text>
-  <line x1="760" y1="490" x2="760" y2="635" stroke="#00695c" stroke-width="2"/>
-  <circle cx="760" cy="490" r="4" fill="#00695c"/>
-  <line x1="760" y1="635" x2="800" y2="635" stroke="#00695c" stroke-width="2"/>
-  <text x="762" y="633" fill="#37474f" font-size="8">DQ</text>
-  <line x1="715" y1="615" x2="715" y2="78" stroke="#2e7d32" stroke-width="1"/>
-  <circle cx="715" cy="78" r="3" fill="#2e7d32"/>
-  <text x="717" y="613" fill="#37474f" font-size="8">VDD</text>
-  <line x1="705" y1="670" x2="705" y2="152" stroke="#1565c0" stroke-width="1"/>
-  <circle cx="705" cy="152" r="3" fill="#1565c0"/>
-  <text x="643" y="680" fill="#37474f" font-size="8">GND</text>
-  <line x1="640" y1="677" x2="705" y2="677" stroke="#1565c0" stroke-width="1"/>
+  <!-- DS18B20-HLT  BOTTOM -->
+  <rect x="710" y="450" width="170" height="80" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
+  <rect x="710" y="450" width="170" height="20" rx="4" fill="#e8f5e9" stroke="#37474f" stroke-width="1.5"/>
+  <text x="795" y="464" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">DS18B20  HLT</text>
+  <text x="795" y="484" text-anchor="middle" fill="#546e7a" font-size="8">ROM: 0x3100...5A28</text>
+  <!-- DQ stub -->
+  <line x1="760" y1="276" x2="760" y2="450" stroke="#00695c" stroke-width="2.5"/>
+  <circle cx="760" cy="276" r="4" fill="#00695c"/>
+  <text x="762" y="449" fill="#37474f" font-size="9">DQ</text>
+  <!-- VDD flag -->
+  <use href="#vcc33" x="730" y="450"/>
+  <text x="718" y="449" fill="#2e7d32" font-size="7">+3.3V</text>
+  <!-- GND flag -->
+  <line x1="730" y1="520" x2="730" y2="530" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="730" y="532"/>
+  <text x="720" y="552" fill="#1565c0" font-size="8">GND</text>
 
-  <!-- ── SSR1 ───────────────────────────────────────────────────────── -->
-  <rect x="285" y="450" width="145" height="68" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
-  <rect x="285" y="450" width="145" height="20" rx="4" fill="#fce4ec" stroke="#37474f" stroke-width="1.5"/>
-  <text x="357" y="464" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">SSR1</text>
-  <text x="357" y="483" text-anchor="middle" fill="#546e7a" font-size="8">GPIO41 · RESTORE_OFF</text>
-  <!-- IN+ from ESP32 GPIO41 -->
-  <line x1="265" y1="426" x2="285" y2="456" stroke="#212121" stroke-width="2"/>
-  <text x="267" y="446" fill="#37474f" font-size="8">IN+</text>
-  <!-- IN− to GND rail -->
-  <line x1="265" y1="504" x2="285" y2="505" stroke="#1565c0" stroke-width="1.5"/>
-  <line x1="265" y1="504" x2="265" y2="152" stroke="#1565c0" stroke-width="1.5"/>
-  <circle cx="265" cy="152" r="3" fill="#1565c0"/>
-  <text x="267" y="502" fill="#37474f" font-size="8">IN−</text>
+  <!-- ═══ SM6004 ×2  +  XY-IT0V ×2    x=920..1230 ══════════════════════ -->
+  <!-- SM6004 #1 — AN1 RIMS (TOP)  y=70..200 -->
+  <rect x="920" y="70" width="170" height="140" rx="4" fill="#f5f5f5" stroke="#795548" stroke-width="2"/>
+  <rect x="920" y="70" width="170" height="22" rx="4" fill="#efebe9" stroke="#795548" stroke-width="2"/>
+  <text x="1005" y="85" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">SM6004 #1</text>
+  <text x="1005" y="97" text-anchor="middle" fill="#546e7a" font-size="8">AN1 — RIMS Flow</text>
+  <!-- 24V flag -->
+  <use href="#vcc24" x="950" y="118"/>
+  <text x="938" y="117" fill="#795548" font-size="7">+24V</text>
+  <line x1="950" y1="118" x2="920" y2="118" stroke="#795548" stroke-width="1.5"/>
+  <text x="922" y="116" fill="#37474f" font-size="8">P1-BN</text>
+  <!-- GND -->
+  <line x1="940" y1="138" x2="920" y2="138" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="940" y="140"/>
+  <text x="922" y="136" fill="#37474f" font-size="8">P3-BU</text>
+  <text x="930" y="160" fill="#1565c0" font-size="8">GND</text>
+  <!-- OUT1 (flow) → right -->
+  <line x1="1090" y1="175" x2="1130" y2="175" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="1002" y="180" fill="#37474f" font-size="8">P4-BK OUT1(Flow)</text>
+  <!-- OUT2 NC -->
+  <text x="1002" y="198" fill="#9e9e9e" font-size="8">P2-WH OUT2 — NC</text>
 
-  <!-- ── SSR2 ───────────────────────────────────────────────────────── -->
-  <rect x="285" y="540" width="155" height="84" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
-  <rect x="285" y="540" width="155" height="20" rx="4" fill="#fce4ec" stroke="#37474f" stroke-width="1.5"/>
-  <text x="362" y="554" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">SSR2  RIMS Heater</text>
-  <text x="362" y="572" text-anchor="middle" fill="#546e7a" font-size="8">GPIO42 slow_pwm 2s</text>
-  <text x="362" y="584" text-anchor="middle" fill="#546e7a" font-size="8">PID on NTC1-RIMS</text>
-  <text x="362" y="596" text-anchor="middle" fill="#546e7a" font-size="8">RESTORE_DEFAULT_OFF</text>
-  <line x1="265" y1="451" x2="285" y2="554" stroke="#212121" stroke-width="2"/>
-  <text x="267" y="542" fill="#37474f" font-size="8">IN+</text>
-  <line x1="265" y1="614" x2="285" y2="614" stroke="#1565c0" stroke-width="1.5"/>
-  <line x1="265" y1="614" x2="265" y2="152" stroke="#1565c0" stroke-width="1"/>
-  <circle cx="265" cy="152" r="3" fill="#1565c0"/>
-  <text x="267" y="612" fill="#37474f" font-size="8">IN−</text>
+  <!-- XY-IT0V #1 (top)  y=70..200 -->
+  <rect x="1140" y="70" width="175" height="140" rx="4" fill="#f5f5f5" stroke="#6a1b9a" stroke-width="1.5"/>
+  <rect x="1140" y="70" width="175" height="22" rx="4" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="1.5"/>
+  <text x="1227" y="85" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">XY-IT0V #1</text>
+  <text x="1227" y="97" text-anchor="middle" fill="#546e7a" font-size="8">4-20mA → 0–3.3V  AN1</text>
+  <!-- 24V -->
+  <use href="#vcc24" x="1165" y="118"/>
+  <text x="1153" y="117" fill="#795548" font-size="7">+24V</text>
+  <line x1="1165" y1="118" x2="1140" y2="118" stroke="#795548" stroke-width="1.5"/>
+  <text x="1142" y="116" fill="#37474f" font-size="8">VIN+</text>
+  <!-- GND -->
+  <line x1="1155" y1="138" x2="1140" y2="138" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="1155" y="140"/>
+  <text x="1142" y="136" fill="#37474f" font-size="8">VIN−/I−</text>
+  <text x="1145" y="160" fill="#1565c0" font-size="8">GND</text>
+  <!-- I+ from SM6004 OUT1 -->
+  <line x1="1130" y1="175" x2="1140" y2="175" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="1142" y="173" fill="#37474f" font-size="8">I+</text>
+  <!-- VOUT → ADS1115 A2 -->
+  <line x1="1315" y1="158" x2="1360" y2="158" stroke="#2e7d32" stroke-width="2"/>
+  <text x="1258" y="163" fill="#37474f" font-size="8">VOUT+C3(100nF)</text>
+  <text x="1258" y="175" fill="#546e7a" font-size="8">→ADS1115 A2</text>
 
-  <!-- ── SM6004 ─────────────────────────────────────────────────────── -->
-  <rect x="30" y="700" width="190" height="150" rx="4" fill="#f5f5f5" stroke="#795548" stroke-width="2"/>
-  <rect x="30" y="700" width="190" height="22" rx="4" fill="#efebe9" stroke="#795548" stroke-width="2"/>
-  <text x="125" y="715" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">SM6004</text>
-  <text x="125" y="728" text-anchor="middle" fill="#546e7a" font-size="8">IFM Flow Meter  M12 A-type</text>
-  <!-- 24V drop to P1-BN -->
-  <line x1="60" y1="126" x2="60" y2="750" stroke="#795548" stroke-width="2"/>
-  <circle cx="60" cy="126" r="4" fill="#795548"/>
-  <line x1="30" y1="750" x2="60" y2="750" stroke="#795548" stroke-width="2"/>
-  <text x="32" y="748" fill="#37474f" font-size="8">P1-BN  24V</text>
-  <!-- GND drop to P3-BU -->
-  <line x1="50" y1="152" x2="50" y2="774" stroke="#1565c0" stroke-width="2"/>
-  <circle cx="50" cy="152" r="4" fill="#1565c0"/>
-  <line x1="30" y1="774" x2="50" y2="774" stroke="#1565c0" stroke-width="2"/>
-  <text x="32" y="772" fill="#37474f" font-size="8">P3-BU  GND</text>
-  <!-- OUT2 flow signal -->
-  <line x1="220" y1="800" x2="260" y2="800" stroke="#6a1b9a" stroke-width="2"/>
-  <text x="162" y="805" fill="#37474f" font-size="8">P4-BK OUT2 Flow</text>
-  <!-- OUT1 temp signal (planned) -->
-  <line x1="220" y1="824" x2="260" y2="824" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="4,2"/>
-  <text x="162" y="829" fill="#9e9e9e" font-size="8">P2-WH OUT1 Temp</text>
+  <!-- SM6004 #2 — AN2 Sparge (BOTTOM)  y=360..500 -->
+  <rect x="920" y="360" width="170" height="140" rx="4" fill="#f5f5f5" stroke="#795548" stroke-width="2"/>
+  <rect x="920" y="360" width="170" height="22" rx="4" fill="#efebe9" stroke="#795548" stroke-width="2"/>
+  <text x="1005" y="375" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">SM6004 #2</text>
+  <text x="1005" y="387" text-anchor="middle" fill="#546e7a" font-size="8">AN2 — Sparge Flow</text>
+  <use href="#vcc24" x="950" y="408"/>
+  <text x="938" y="407" fill="#795548" font-size="7">+24V</text>
+  <line x1="950" y1="408" x2="920" y2="408" stroke="#795548" stroke-width="1.5"/>
+  <text x="922" y="406" fill="#37474f" font-size="8">P1-BN</text>
+  <line x1="940" y1="428" x2="920" y2="428" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="940" y="430"/>
+  <text x="922" y="426" fill="#37474f" font-size="8">P3-BU</text>
+  <text x="930" y="450" fill="#1565c0" font-size="8">GND</text>
+  <line x1="1090" y1="465" x2="1130" y2="465" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="1002" y="470" fill="#37474f" font-size="8">P4-BK OUT1(Flow)</text>
+  <text x="1002" y="488" fill="#9e9e9e" font-size="8">P2-WH OUT2 — NC</text>
 
-  <!-- ── Conv#1 (Flow AN1) ─────────────────────────────────────────── -->
-  <rect x="290" y="760" width="185" height="140" rx="4" fill="#f5f5f5" stroke="#6a1b9a" stroke-width="1.5"/>
-  <rect x="290" y="760" width="185" height="22" rx="4" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="1.5"/>
-  <text x="382" y="775" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">Conv.#1  XY-IT0V</text>
-  <text x="382" y="788" text-anchor="middle" fill="#546e7a" font-size="8">4-20mA → 0–3.3V  (AN1 Flow)</text>
-  <!-- 24V to VIN+ -->
-  <line x1="320" y1="126" x2="320" y2="800" stroke="#795548" stroke-width="2"/>
-  <circle cx="320" cy="126" r="4" fill="#795548"/>
-  <line x1="290" y1="800" x2="320" y2="800" stroke="#795548" stroke-width="2"/>
-  <text x="292" y="798" fill="#37474f" font-size="8">VIN+</text>
-  <!-- GND to VIN− -->
-  <line x1="305" y1="152" x2="305" y2="820" stroke="#1565c0" stroke-width="1.5"/>
-  <circle cx="305" cy="152" r="3" fill="#1565c0"/>
-  <line x1="290" y1="820" x2="305" y2="820" stroke="#1565c0" stroke-width="1.5"/>
-  <text x="292" y="818" fill="#37474f" font-size="8">VIN−</text>
-  <!-- I+ from SM6004 P4 -->
-  <line x1="260" y1="800" x2="290" y2="840" stroke="#6a1b9a" stroke-width="2"/>
-  <text x="292" y="846" fill="#37474f" font-size="8">I+</text>
-  <!-- I− to GND -->
-  <line x1="290" y1="862" x2="305" y2="862" stroke="#1565c0" stroke-width="1.5"/>
-  <line x1="305" y1="820" x2="305" y2="862" stroke="#1565c0" stroke-width="1.5"/>
-  <text x="292" y="876" fill="#37474f" font-size="8">I−  GND</text>
-  <!-- VOUT to ADS1115 A2 -->
-  <line x1="475" y1="800" x2="560" y2="800" stroke="#2e7d32" stroke-width="2"/>
-  <line x1="560" y1="800" x2="560" y2="390" stroke="#2e7d32" stroke-width="2"/>
-  <line x1="555" y1="390" x2="560" y2="390" stroke="#2e7d32" stroke-width="2"/>
-  <text x="462" y="798" fill="#37474f" font-size="8">VOUT+C3</text>
+  <!-- XY-IT0V #2 (bottom)  y=360..500 -->
+  <rect x="1140" y="360" width="175" height="140" rx="4" fill="#f5f5f5" stroke="#6a1b9a" stroke-width="1.5"/>
+  <rect x="1140" y="360" width="175" height="22" rx="4" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="1.5"/>
+  <text x="1227" y="375" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">XY-IT0V #2</text>
+  <text x="1227" y="387" text-anchor="middle" fill="#546e7a" font-size="8">4-20mA → 0–3.3V  AN2</text>
+  <use href="#vcc24" x="1165" y="408"/>
+  <text x="1153" y="407" fill="#795548" font-size="7">+24V</text>
+  <line x1="1165" y1="408" x2="1140" y2="408" stroke="#795548" stroke-width="1.5"/>
+  <text x="1142" y="406" fill="#37474f" font-size="8">VIN+</text>
+  <line x1="1155" y1="428" x2="1140" y2="428" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="1155" y="430"/>
+  <text x="1142" y="426" fill="#37474f" font-size="8">VIN−/I−</text>
+  <text x="1145" y="450" fill="#1565c0" font-size="8">GND</text>
+  <line x1="1130" y1="465" x2="1140" y2="465" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="1142" y="463" fill="#37474f" font-size="8">I+</text>
+  <line x1="1315" y1="448" x2="1360" y2="448" stroke="#2e7d32" stroke-width="2"/>
+  <text x="1258" y="453" fill="#37474f" font-size="8">VOUT+C4(100nF)</text>
+  <text x="1258" y="465" fill="#546e7a" font-size="8">→ADS1115 A3</text>
 
-  <!-- ── Conv#2 (Temp AN2, planned) ───────────────────────────────── -->
-  <rect x="290" y="930" width="185" height="120" rx="4" fill="#fafafa" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="5,3"/>
-  <rect x="290" y="930" width="185" height="22" rx="4" fill="#f5f5f5" stroke="#9e9e9e" stroke-width="1.5"/>
-  <text x="382" y="945" text-anchor="middle" fill="#9e9e9e" font-size="10" font-weight="bold">Conv.#2  XY-IT0V</text>
-  <text x="382" y="958" text-anchor="middle" fill="#9e9e9e" font-size="8">4-20mA → 0–3.3V  (AN2 Temp) — Planned</text>
-  <line x1="260" y1="824" x2="290" y2="978" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <text x="292" y="983" fill="#9e9e9e" font-size="8">I+ (planned)</text>
-  <line x1="475" y1="960" x2="565" y2="960" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <line x1="565" y1="960" x2="565" y2="415" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <line x1="555" y1="415" x2="565" y2="415" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <text x="462" y="958" fill="#9e9e9e" font-size="8">VOUT+C4</text>
+  <!-- ADS1115 A2/A3 wires from converters (long horizontal) -->
+  <!-- A2: from XY-IT0V#1 VOUT back-left to ADS1115 A2 -->
+  <line x1="1360" y1="158" x2="1380" y2="158" stroke="#6a1b9a" stroke-width="2"/>
+  <line x1="1380" y1="158" x2="1380" y2="296" stroke="#6a1b9a" stroke-width="2"/>
+  <line x1="1380" y1="296" x2="510" y2="296" stroke="#6a1b9a" stroke-width="2"/>
+  <!-- A3: from XY-IT0V#2 VOUT -->
+  <line x1="1360" y1="448" x2="1385" y2="448" stroke="#6a1b9a" stroke-width="2"/>
+  <line x1="1385" y1="448" x2="1385" y2="324" stroke="#6a1b9a" stroke-width="2"/>
+  <line x1="1385" y1="324" x2="510" y2="324" stroke="#6a1b9a" stroke-width="2"/>
 
-  <!-- ── LS1 BSS138 Level Shifter ──────────────────────────────────── -->
-  <rect x="1120" y="390" width="175" height="210" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
-  <rect x="1120" y="390" width="175" height="22" rx="4" fill="#f3e5f5" stroke="#37474f" stroke-width="1.5"/>
-  <text x="1207" y="405" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">LS1  BSS138  Bi-dir</text>
-  <text x="1207" y="418" text-anchor="middle" fill="#546e7a" font-size="8">3.3V ↔ 5V Level Shifter</text>
-  <line x1="1120" y1="422" x2="1295" y2="422" stroke="#90a4ae" stroke-width="0.8"/>
-  <line x1="1207" y1="422" x2="1207" y2="600" stroke="#90a4ae" stroke-width="0.8" stroke-dasharray="3,3"/>
+  <!-- ═══ SSR1 / SSR2   x=1410..1580  TOP/BOTTOM ════════════════════════ -->
+  <!-- SSR1 TOP -->
+  <rect x="1410" y="70" width="170" height="95" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
+  <rect x="1410" y="70" width="170" height="20" rx="4" fill="#fce4ec" stroke="#37474f" stroke-width="1.5"/>
+  <text x="1495" y="84" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">SSR1</text>
+  <text x="1495" y="104" text-anchor="middle" fill="#546e7a" font-size="8">GPIO41  RESTORE_OFF</text>
+  <text x="1495" y="116" text-anchor="middle" fill="#546e7a" font-size="8">Solid State Relay</text>
+  <!-- IN+ from ESP32 GPIO41 (long horizontal trace) -->
+  <line x1="268" y1="336" x2="1410" y2="130" stroke="#212121" stroke-width="2"/>
+  <text x="1412" y="128" fill="#37474f" font-size="8">IN+</text>
+  <!-- IN− GND flag -->
+  <line x1="1430" y1="155" x2="1430" y2="165" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="1430" y="167"/>
+  <text x="1420" y="187" fill="#1565c0" font-size="8">GND</text>
+
+  <!-- SSR2 BOTTOM -->
+  <rect x="1410" y="360" width="170" height="95" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
+  <rect x="1410" y="360" width="170" height="20" rx="4" fill="#fce4ec" stroke="#37474f" stroke-width="1.5"/>
+  <text x="1495" y="374" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">SSR2  RIMS Heater</text>
+  <text x="1495" y="394" text-anchor="middle" fill="#546e7a" font-size="8">GPIO42  slow_pwm 2s</text>
+  <text x="1495" y="406" text-anchor="middle" fill="#546e7a" font-size="8">PID on NTC1-RIMS</text>
+  <text x="1495" y="418" text-anchor="middle" fill="#546e7a" font-size="8">RESTORE_DEFAULT_OFF</text>
+  <!-- IN+ from ESP32 GPIO42 -->
+  <line x1="268" y1="361" x2="1410" y2="420" stroke="#212121" stroke-width="2"/>
+  <text x="1412" y="418" fill="#37474f" font-size="8">IN+</text>
+  <!-- IN− GND -->
+  <line x1="1430" y1="445" x2="1430" y2="455" stroke="#1565c0" stroke-width="1.5"/>
+  <use href="#gnd" x="1430" y="457"/>
+  <text x="1420" y="477" fill="#1565c0" font-size="8">GND</text>
+
+  <!-- ═══ LS1 BSS138  x=1620..1790 ══════════════════════════════════ -->
+  <rect x="1620" y="180" width="175" height="210" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
+  <rect x="1620" y="180" width="175" height="22" rx="4" fill="#f3e5f5" stroke="#37474f" stroke-width="1.5"/>
+  <text x="1707" y="195" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">LS1  BSS138</text>
+  <text x="1707" y="207" text-anchor="middle" fill="#546e7a" font-size="8">Bi-dir Level Shifter 3.3V↔5V</text>
+  <line x1="1707" y1="210" x2="1707" y2="390" stroke="#90a4ae" stroke-width="0.8" stroke-dasharray="3,3"/>
   <!-- LV side -->
-  <text x="1128" y="438" fill="#546e7a" font-size="8">LV (3.3V) side</text>
-  <text x="1128" y="458" fill="#2e7d32" font-size="9" font-weight="bold">LV</text>
-  <circle cx="1120" cy="454" r="3" fill="#2e7d32"/>
-  <text x="1128" y="478" fill="#1565c0" font-size="9" font-weight="bold">GND</text>
-  <circle cx="1120" cy="474" r="3" fill="#1565c0"/>
-  <text x="1128" y="502" fill="#f9a825" font-size="9" font-weight="bold">LV1 SDA</text>
-  <circle cx="1120" cy="498" r="3" fill="#f9a825"/>
-  <text x="1128" y="526" fill="#f9a825" font-size="9" font-weight="bold">LV2 SCL</text>
-  <circle cx="1120" cy="522" r="3" fill="#f9a825"/>
+  <text x="1628" y="222" fill="#546e7a" font-size="8">LV (3.3V)</text>
+  <use href="#vcc33" x="1650" y="235"/>  <line x1="1650" y1="235" x2="1620" y2="235" stroke="#2e7d32" stroke-width="1.5"/><text x="1622" y="233" fill="#37474f" font-size="8">LV</text>
+  <line x1="1640" y1="254" x2="1620" y2="254" stroke="#1565c0" stroke-width="1.5"/>  <use href="#gnd" x="1640" y="256"/><text x="1622" y="252" fill="#37474f" font-size="8">GND</text>
+  <text x="1630" y="276" fill="#1565c0" font-size="8">GND</text>
+  <line x1="1620" y1="292" x2="1600" y2="292" stroke="#f9a825" stroke-width="2"/>  <text x="1622" y="290" fill="#37474f" font-size="8">LV1-SDA</text>
+  <line x1="1620" y1="316" x2="1600" y2="316" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="5,2"/>  <text x="1622" y="314" fill="#37474f" font-size="8">LV2-SCL</text>
   <!-- HV side -->
-  <text x="1218" y="438" fill="#546e7a" font-size="8">HV (5V) side</text>
-  <text x="1218" y="458" fill="#c62828" font-size="9" font-weight="bold">HV</text>
-  <circle cx="1295" cy="454" r="3" fill="#c62828"/>
-  <text x="1218" y="478" fill="#1565c0" font-size="9" font-weight="bold">GND</text>
-  <circle cx="1295" cy="474" r="3" fill="#1565c0"/>
-  <text x="1218" y="502" fill="#f9a825" font-size="9" font-weight="bold">HV1 SDA</text>
-  <circle cx="1295" cy="498" r="3" fill="#f9a825"/>
-  <text x="1218" y="526" fill="#f9a825" font-size="9" font-weight="bold">HV2 SCL</text>
-  <circle cx="1295" cy="522" r="3" fill="#f9a825"/>
-  <!-- LS power drops from rails -->
-  <line x1="1150" y1="78" x2="1150" y2="454" stroke="#2e7d32" stroke-width="2"/>
-  <circle cx="1150" cy="78" r="4" fill="#2e7d32"/>
-  <line x1="1120" y1="454" x2="1150" y2="454" stroke="#2e7d32" stroke-width="2"/>
-  <line x1="1138" y1="152" x2="1138" y2="474" stroke="#1565c0" stroke-width="2"/>
-  <circle cx="1138" cy="152" r="4" fill="#1565c0"/>
-  <line x1="1120" y1="474" x2="1138" y2="474" stroke="#1565c0" stroke-width="2"/>
-  <line x1="1310" y1="102" x2="1310" y2="454" stroke="#c62828" stroke-width="2"/>
-  <circle cx="1310" cy="102" r="4" fill="#c62828"/>
-  <line x1="1295" y1="454" x2="1310" y2="454" stroke="#c62828" stroke-width="2"/>
-  <line x1="1320" y1="152" x2="1320" y2="474" stroke="#1565c0" stroke-width="2"/>
-  <circle cx="1320" cy="152" r="4" fill="#1565c0"/>
-  <line x1="1295" y1="474" x2="1320" y2="474" stroke="#1565c0" stroke-width="2"/>
+  <text x="1718" y="222" fill="#546e7a" font-size="8">HV (5V)</text>
+  <use href="#vcc5"  x="1760" y="235"/>  <line x1="1760" y1="235" x2="1795" y2="235" stroke="#c62828" stroke-width="1.5"/><text x="1780" y="233" fill="#37474f" font-size="8">HV</text>
+  <line x1="1770" y1="254" x2="1795" y2="254" stroke="#1565c0" stroke-width="1.5"/>  <use href="#gnd" x="1770" y="256"/><text x="1775" y="276" fill="#1565c0" font-size="8">GND</text>
+  <line x1="1795" y1="292" x2="1815" y2="292" stroke="#f9a825" stroke-width="2"/>  <text x="1778" y="290" fill="#37474f" font-size="8">HV1-SDA</text>
+  <line x1="1795" y1="316" x2="1815" y2="316" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="5,2"/>  <text x="1778" y="314" fill="#37474f" font-size="8">HV2-SCL</text>
 
-  <!-- ── U3 MCP4728 ─────────────────────────────────────────────────── -->
-  <rect x="1370" y="390" width="185" height="225" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="2"/>
-  <rect x="1370" y="390" width="185" height="22" rx="4" fill="#e0f2f1" stroke="#37474f" stroke-width="2"/>
-  <text x="1462" y="405" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">U3  MCP4728</text>
-  <text x="1462" y="418" text-anchor="middle" fill="#546e7a" font-size="8">12-bit DAC  I²C 0x60  (5V)</text>
-  <!-- Power drops -->
-  <line x1="1420" y1="102" x2="1420" y2="452" stroke="#c62828" stroke-width="2"/>
-  <circle cx="1420" cy="102" r="4" fill="#c62828"/>
-  <line x1="1370" y1="452" x2="1420" y2="452" stroke="#c62828" stroke-width="2"/>
-  <text x="1372" y="450" fill="#37474f" font-size="8">VDD</text>
-  <line x1="1408" y1="152" x2="1408" y2="472" stroke="#1565c0" stroke-width="2"/>
-  <circle cx="1408" cy="152" r="4" fill="#1565c0"/>
-  <line x1="1370" y1="472" x2="1408" y2="472" stroke="#1565c0" stroke-width="2"/>
-  <text x="1372" y="470" fill="#37474f" font-size="8">GND</text>
-  <!-- SDA/SCL from LS1 HV side -->
-  <line x1="1295" y1="498" x2="1370" y2="492" stroke="#f9a825" stroke-width="2"/>
-  <text x="1372" y="492" fill="#37474f" font-size="8">SDA</text>
-  <line x1="1295" y1="522" x2="1370" y2="512" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="1372" y="512" fill="#37474f" font-size="8">SCL</text>
-  <!-- VOUTA output -->
-  <line x1="1555" y1="545" x2="1620" y2="545" stroke="#00695c" stroke-width="2.5"/>
-  <text x="1460" y="550" fill="#37474f" font-size="9">VOUTA →</text>
-  <text x="1460" y="572" fill="#9e9e9e" font-size="8">VOUTB  spare</text>
-  <text x="1460" y="588" fill="#9e9e9e" font-size="8">VOUTC  spare</text>
-  <text x="1460" y="604" fill="#9e9e9e" font-size="8">VOUTD  spare</text>
+  <!-- ═══ U3 MCP4728   x=1830..2020 ════════════════════════════════ -->
+  <rect x="1830" y="180" width="185" height="230" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="2"/>
+  <rect x="1830" y="180" width="185" height="22" rx="4" fill="#e0f2f1" stroke="#37474f" stroke-width="2"/>
+  <text x="1922" y="195" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">U3  MCP4728</text>
+  <text x="1922" y="207" text-anchor="middle" fill="#546e7a" font-size="8">12-bit DAC  I²C 0x60  (5V)</text>
+  <use href="#vcc5"  x="1870" y="228"/>  <line x1="1870" y1="228" x2="1830" y2="228" stroke="#c62828" stroke-width="1.5"/><text x="1832" y="226" fill="#37474f" font-size="8">VDD</text>
+  <line x1="1858" y1="248" x2="1830" y2="248" stroke="#1565c0" stroke-width="1.5"/>  <use href="#gnd" x="1858" y="250"/><text x="1832" y="246" fill="#37474f" font-size="8">GND</text>
+  <text x="1840" y="270" fill="#1565c0" font-size="8">GND</text>
+  <!-- SDA/SCL from LS1 HV -->
+  <line x1="1815" y1="292" x2="1830" y2="285" stroke="#f9a825" stroke-width="2"/>  <text x="1832" y="284" fill="#37474f" font-size="8">SDA</text>
+  <line x1="1815" y1="316" x2="1830" y2="304" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="5,2"/>  <text x="1832" y="303" fill="#37474f" font-size="8">SCL</text>
+  <!-- VOUTA -->
+  <line x1="2015" y1="340" x2="2060" y2="340" stroke="#00695c" stroke-width="2.5"/>
+  <text x="1840" y="346" fill="#37474f" font-size="9">VOUTA →</text>
+  <text x="1840" y="370" fill="#9e9e9e" font-size="8">VOUTB–D  spare</text>
 
-  <!-- Proportional Valve -->
-  <rect x="1620" y="510" width="165" height="80" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
-  <rect x="1620" y="510" width="165" height="20" rx="4" fill="#e0f7fa" stroke="#37474f" stroke-width="1.5"/>
-  <text x="1702" y="524" text-anchor="middle" fill="#212121" font-size="10" font-weight="bold">Proportional Valve</text>
-  <text x="1702" y="545" text-anchor="middle" fill="#546e7a" font-size="8">0–5V control signal</text>
-  <circle cx="1620" cy="558" r="3" fill="#00695c"/>
-  <text x="1622" y="556" fill="#37474f" font-size="8">SIG</text>
-  <circle cx="1620" cy="576" r="3" fill="#1565c0"/>
-  <text x="1622" y="574" fill="#37474f" font-size="8">GND</text>
-  <!-- VOUTA → Valve SIG -->
-  <line x1="1620" y1="545" x2="1620" y2="558" stroke="#00695c" stroke-width="2.5"/>
-  <!-- Valve GND -->
-  <line x1="1608" y1="152" x2="1608" y2="576" stroke="#1565c0" stroke-width="1.5"/>
-  <circle cx="1608" cy="152" r="3" fill="#1565c0"/>
-  <line x1="1608" y1="576" x2="1620" y2="576" stroke="#1565c0" stroke-width="1.5"/>
+  <!-- Prop Valve -->
+  <rect x="2060" y="310" width="125" height="70" rx="4" fill="#f5f5f5" stroke="#37474f" stroke-width="1.5"/>
+  <rect x="2060" y="310" width="125" height="18" rx="4" fill="#e0f7fa" stroke="#37474f" stroke-width="1.5"/>
+  <text x="2122" y="322" text-anchor="middle" fill="#212121" font-size="9" font-weight="bold">Prop. Valve</text>
+  <text x="2122" y="340" text-anchor="middle" fill="#546e7a" font-size="8">0–5V signal</text>
+  <circle cx="2060" cy="353" r="3" fill="#00695c"/>  <text x="2063" y="351" fill="#37474f" font-size="8">SIG</text>
+  <line x1="2060" y1="367" x2="2048" y2="367" stroke="#1565c0" stroke-width="1.5"/>  <use href="#gnd" x="2048" y="369"/><text x="2038" y="389" fill="#1565c0" font-size="8">GND</text>
 
-  <!-- ── U4 MCP23017 (planned) ────────────────────────────────────── -->
-  <rect x="1120" y="650" width="200" height="190" rx="4" fill="#fafafa" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <rect x="1120" y="650" width="200" height="22" rx="4" fill="#f5f5f5" stroke="#9e9e9e" stroke-width="1.5"/>
-  <text x="1220" y="665" text-anchor="middle" fill="#9e9e9e" font-size="10" font-weight="bold">U4  MCP23017</text>
-  <text x="1220" y="678" text-anchor="middle" fill="#9e9e9e" font-size="8">I²C 0x20 — PLANNED</text>
-  <text x="1128" y="706" fill="#9e9e9e" font-size="8">VDD 3.3V</text>
-  <text x="1128" y="724" fill="#9e9e9e" font-size="8">GND</text>
-  <text x="1128" y="744" fill="#9e9e9e" font-size="8">SDA</text>
-  <text x="1128" y="764" fill="#9e9e9e" font-size="8">SCL</text>
-  <text x="1128" y="784" fill="#9e9e9e" font-size="8">ADDR→GND</text>
-  <text x="1240" y="706" fill="#9e9e9e" font-size="8">GPA0–7 (LEDs/Relays)</text>
-  <text x="1240" y="724" fill="#9e9e9e" font-size="8">GPB0–7 (Buttons/Indic.)</text>
-  <!-- Planned power drops (dashed) -->
-  <line x1="1160" y1="78" x2="1160" y2="702" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <circle cx="1160" cy="78" r="3" fill="#9e9e9e"/>
-  <line x1="1120" y1="702" x2="1160" y2="702" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <line x1="1148" y1="152" x2="1148" y2="720" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <circle cx="1148" cy="152" r="3" fill="#9e9e9e"/>
-  <line x1="1120" y1="720" x2="1148" y2="720" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <!-- ═══ U4 MCP23017  x=1620..1810  y=450  (planned) ══════════════ -->
+  <rect x="1620" y="450" width="190" height="185" rx="4" fill="#fafafa" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="1620" y="450" width="190" height="22" rx="4" fill="#f5f5f5" stroke="#9e9e9e" stroke-width="1.5"/>
+  <text x="1715" y="465" text-anchor="middle" fill="#9e9e9e" font-size="10" font-weight="bold">U4  MCP23017</text>
+  <text x="1715" y="477" text-anchor="middle" fill="#9e9e9e" font-size="8">I²C 0x20 — PLANNED</text>
+  <use href="#vcc33" x="1655" y="497"/>  <line x1="1655" y1="497" x2="1620" y2="497" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/><text x="1622" y="495" fill="#9e9e9e" font-size="8">VDD</text>
+  <use href="#gnd" x="1645" y="517"/>  <line x1="1645" y1="517" x2="1620" y2="517" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/><text x="1622" y="515" fill="#9e9e9e" font-size="8">GND</text>
+  <text x="1635" y="537" fill="#9e9e9e" font-size="8">GND</text>
+  <line x1="1620" y1="542" x2="1600" y2="542" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>  <text x="1622" y="540" fill="#9e9e9e" font-size="8">SDA</text>
+  <line x1="1620" y1="562" x2="1600" y2="562" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>  <text x="1622" y="560" fill="#9e9e9e" font-size="8">SCL</text>
+  <text x="1628" y="590" fill="#9e9e9e" font-size="8">GPA0–7 / GPB0–7</text>
+  <text x="1628" y="604" fill="#9e9e9e" font-size="8">LEDs · Relays · Buttons</text>
 
-  <!-- ──────────────────────────────────────────────────────────────────
-       DATA BUS BAND  y=1080..1160  (bottom of component area)
-       ────────────────────────────────────────────────────────────────── -->
-  <rect x="2" y="1075" width="1796" height="95" fill="#fffde7" stroke="#90a4ae" stroke-width="0.8"/>
-  <text x="10" y="1090" fill="#546e7a" font-size="9" font-weight="bold">DATA BUSES</text>
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       DATA BUS BAND  y=660..760
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <rect x="2" y="655" width="2196" height="100" fill="#fffde7" stroke="#90a4ae" stroke-width="0.8"/>
+  <text x="14" y="672" fill="#546e7a" font-size="9" font-weight="bold">DATA BUSES</text>
 
-  <!-- SDA bus  y=1100 -->
-  <text x="10" y="1104" fill="#f9a825" font-size="10" font-weight="bold">SDA</text>
-  <line x1="60" y1="1100" x2="1780" y2="1100" stroke="#f9a825" stroke-width="2.5"/>
-  <!-- SDA tap labels -->
-  <text x="62" y="1094" fill="#f9a825" font-size="8">ESP32 GPIO21</text>
-  <text x="310" y="1094" fill="#f9a825" font-size="8">ADS1115</text>
-  <text x="1100" y="1094" fill="#f9a825" font-size="8">LS1 LV1</text>
-  <text x="1280" y="1094" fill="#9e9e9e" font-size="8">MCP23017</text>
+  <!-- SDA bus -->
+  <text x="14" y="696" fill="#f9a825" font-size="10" font-weight="bold">SDA</text>
+  <line x1="60" y1="692" x2="1990" y2="692" stroke="#f9a825" stroke-width="2.5"/>
+  <!-- SDA taps labels -->
+  <text x="62"   y="686" fill="#f9a825" font-size="7">GPIO21</text>
+  <text x="310"  y="686" fill="#f9a825" font-size="7">ADS1115</text>
+  <text x="1590" y="686" fill="#f9a825" font-size="7">LS1-LV1</text>
+  <text x="1750" y="686" fill="#9e9e9e" font-size="7">MCP23017</text>
 
-  <!-- SCL bus  y=1135 -->
-  <text x="10" y="1139" fill="#f9a825" font-size="10" font-weight="bold">SCL</text>
-  <line x1="60" y1="1135" x2="1780" y2="1135" stroke="#f9a825" stroke-width="2" stroke-dasharray="8,3"/>
-  <text x="62" y="1129" fill="#f9a825" font-size="8">ESP32 GPIO47</text>
-  <text x="310" y="1129" fill="#f9a825" font-size="8">ADS1115</text>
-  <text x="1100" y="1129" fill="#f9a825" font-size="8">LS1 LV2</text>
-  <text x="1280" y="1129" fill="#9e9e9e" font-size="8">MCP23017</text>
+  <!-- SCL bus -->
+  <text x="14" y="730" fill="#f9a825" font-size="10" font-weight="bold">SCL</text>
+  <line x1="60" y1="726" x2="1990" y2="726" stroke="#f9a825" stroke-width="2" stroke-dasharray="8,3"/>
+  <text x="62"   y="720" fill="#f9a825" font-size="7">GPIO47</text>
+  <text x="310"  y="720" fill="#f9a825" font-size="7">ADS1115</text>
+  <text x="1590" y="720" fill="#f9a825" font-size="7">LS1-LV2</text>
+  <text x="1750" y="720" fill="#9e9e9e" font-size="7">MCP23017</text>
 
-  <!-- ── Vertical stubs connecting components to data buses ── -->
-  <!-- ESP32 GPIO21 → SDA bus -->
-  <line x1="80" y1="326" x2="80" y2="1100" stroke="#f9a825" stroke-width="2"/>
-  <circle cx="80" cy="1100" r="4" fill="#f9a825"/>
-  <!-- ESP32 GPIO47 → SCL bus -->
-  <line x1="100" y1="351" x2="100" y2="1135" stroke="#f9a825" stroke-width="2" stroke-dasharray="6,3"/>
-  <circle cx="100" cy="1135" r="4" fill="#f9a825"/>
-  <!-- ADS1115 SDA stub -->
-  <line x1="360" y1="335" x2="360" y2="1100" stroke="#f9a825" stroke-width="2"/>
-  <circle cx="360" cy="1100" r="4" fill="#f9a825"/>
-  <!-- ADS1115 SCL stub -->
-  <line x1="380" y1="357" x2="380" y2="1135" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <circle cx="380" cy="1135" r="4" fill="#f9a825"/>
-  <!-- LS1 LV1 SDA stub -->
-  <line x1="1120" y1="498" x2="1120" y2="1100" stroke="#f9a825" stroke-width="2"/>
-  <circle cx="1120" cy="1100" r="4" fill="#f9a825"/>
-  <!-- LS1 LV2 SCL stub -->
-  <line x1="1110" y1="522" x2="1110" y2="1135" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <circle cx="1110" cy="1135" r="4" fill="#f9a825"/>
-  <!-- MCP23017 SDA stub (planned, dashed) -->
-  <line x1="1290" y1="740" x2="1290" y2="1100" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <circle cx="1290" cy="1100" r="3" fill="#9e9e9e"/>
-  <!-- MCP23017 SCL stub (planned, dashed) -->
-  <line x1="1280" y1="760" x2="1280" y2="1135" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <circle cx="1280" cy="1135" r="3" fill="#9e9e9e"/>
+  <!-- Vertical stubs connecting components down to SDA/SCL buses -->
+  <!-- ESP32 GPIO21 → SDA -->
+  <line x1="80" y1="224" x2="80" y2="692" stroke="#f9a825" stroke-width="2"/>
+  <circle cx="80" cy="692" r="4" fill="#f9a825"/>
+  <!-- ESP32 GPIO47 → SCL -->
+  <line x1="100" y1="248" x2="100" y2="726" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <circle cx="100" cy="726" r="4" fill="#f9a825"/>
+  <!-- ADS1115 SDA -->
+  <line x1="355" y1="225" x2="355" y2="692" stroke="#f9a825" stroke-width="2"/>
+  <circle cx="355" cy="692" r="4" fill="#f9a825"/>
+  <!-- ADS1115 SCL -->
+  <line x1="375" y1="248" x2="375" y2="726" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <circle cx="375" cy="726" r="4" fill="#f9a825"/>
+  <!-- LS1 LV1-SDA -->
+  <line x1="1600" y1="292" x2="1600" y2="692" stroke="#f9a825" stroke-width="2"/>
+  <circle cx="1600" cy="692" r="4" fill="#f9a825"/>
+  <!-- LS1 LV2-SCL -->
+  <line x1="1590" y1="316" x2="1590" y2="726" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <circle cx="1590" cy="726" r="4" fill="#f9a825"/>
+  <!-- MCP23017 SDA (planned, dashed) -->
+  <line x1="1745" y1="542" x2="1745" y2="692" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <circle cx="1745" cy="692" r="3" fill="#9e9e9e"/>
+  <!-- MCP23017 SCL (planned, dashed) -->
+  <line x1="1755" y1="562" x2="1755" y2="726" stroke="#9e9e9e" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <circle cx="1755" cy="726" r="3" fill="#9e9e9e"/>
 
-  <!-- DQ 1-Wire note (separate bus, different region) -->
-  <text x="580" y="1090" fill="#00695c" font-size="9" font-weight="bold">DQ (1-Wire GPIO48)</text>
-  <line x1="700" y1="1100" x2="900" y2="1100" stroke="#00695c" stroke-width="2.5"/>
-  <!-- ESP32 DQ stub already goes to pullup/sensors area above -->
-  <!-- DQ bus tap from GPIO48 -->
-  <line x1="230" y1="381" x2="265" y2="381" stroke="#00695c" stroke-width="2"/>
-  <!-- vertical from GPIO48 to DQ region -->
-  <line x1="750" y1="490" x2="750" y2="1100" stroke="#00695c" stroke-width="2"/>
-  <circle cx="750" cy="1100" r="4" fill="#00695c"/>
-  <text x="752" y="1094" fill="#00695c" font-size="8">GPIO48</text>
-
-  <!-- ──────────────────────────────────────────────────────────────────
-       LEGEND BAND  y=1175..1700
-       ────────────────────────────────────────────────────────────────── -->
-  <rect x="2" y="1175" width="1796" height="522" fill="#eceff1" stroke="#90a4ae" stroke-width="1"/>
-  <line x1="2" y1="1175" x2="1798" y2="1175" stroke="#90a4ae" stroke-width="1.5"/>
-  <text x="900" y="1196" text-anchor="middle" fill="#212121" font-size="13" font-weight="bold">Legend / Reference</text>
-  <line x1="2" y1="1202" x2="1798" y2="1202" stroke="#90a4ae" stroke-width="0.8"/>
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       LEGEND BAND  y=770..1600
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <rect x="2" y="765" width="2196" height="832" fill="#eceff1" stroke="#90a4ae" stroke-width="1"/>
+  <line x1="2" y1="765" x2="2198" y2="765" stroke="#90a4ae" stroke-width="1.5"/>
+  <text x="1100" y="786" text-anchor="middle" fill="#212121" font-size="13" font-weight="bold">Legend / Reference</text>
+  <line x1="2" y1="794" x2="2198" y2="794" stroke="#90a4ae" stroke-width="0.8"/>
 
   <!-- Colour legend -->
-  <rect x="16" y="1210" width="330" height="475" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
-  <text x="181" y="1228" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">Wire Colours</text>
-  <line x1="16" y1="1232" x2="346" y2="1232" stroke="#e0e0e0" stroke-width="0.5"/>
+  <rect x="16" y="802" width="330" height="580" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
+  <text x="181" y="820" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">Wire Colours</text>
+  <line x1="16" y1="824" x2="346" y2="824" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="30" y1="845" x2="80" y2="845" stroke="#2e7d32" stroke-width="3"/><text x="88" y="849" fill="#212121" font-size="11">+3.3V power</text>
+  <line x1="30" y1="870" x2="80" y2="870" stroke="#c62828" stroke-width="3"/><text x="88" y="874" fill="#212121" font-size="11">+5V power</text>
+  <line x1="30" y1="895" x2="80" y2="895" stroke="#795548" stroke-width="3"/><text x="88" y="899" fill="#212121" font-size="11">+24V power</text>
+  <line x1="30" y1="920" x2="80" y2="920" stroke="#1565c0" stroke-width="3"/><text x="88" y="924" fill="#212121" font-size="11">GND (common)</text>
+  <line x1="30" y1="945" x2="80" y2="945" stroke="#f9a825" stroke-width="2.5"/><text x="88" y="949" fill="#212121" font-size="11">I²C SDA (solid amber)</text>
+  <line x1="30" y1="970" x2="80" y2="970" stroke="#f9a825" stroke-width="2" stroke-dasharray="8,3"/><text x="88" y="974" fill="#212121" font-size="11">I²C SCL (dashed amber)</text>
+  <line x1="30" y1="995" x2="80" y2="995" stroke="#212121" stroke-width="2.5"/><text x="88" y="999" fill="#212121" font-size="11">GPIO output (digital)</text>
+  <line x1="30" y1="1020" x2="80" y2="1020" stroke="#e65100" stroke-width="2.5"/><text x="88" y="1024" fill="#212121" font-size="11">NTC analog signal</text>
+  <line x1="30" y1="1045" x2="80" y2="1045" stroke="#6a1b9a" stroke-width="2.5"/><text x="88" y="1049" fill="#212121" font-size="11">4-20mA current loop</text>
+  <line x1="30" y1="1070" x2="80" y2="1070" stroke="#00695c" stroke-width="2.5"/><text x="88" y="1074" fill="#212121" font-size="11">1-Wire DQ / DAC 0–5V</text>
+  <line x1="30" y1="1095" x2="80" y2="1095" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="5,3"/><text x="88" y="1099" fill="#212121" font-size="11">Planned / not yet wired</text>
+  <use href="#vcc33" x="52" y="1120"/><text x="88" y="1128" fill="#212121" font-size="11">+3.3V flag symbol</text>
+  <use href="#gnd"   x="52" y="1145"/><text x="88" y="1162" fill="#212121" font-size="11">GND earth symbol</text>
+  <rect x="40" y="1174" width="18" height="14" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/><text x="88" y="1185" fill="#212121" font-size="11">Resistor</text>
+  <ellipse cx="52" cy="1205" rx="12" ry="12" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
+  <text x="52" y="1202" text-anchor="middle" fill="#e65100" font-size="7" font-weight="bold">NTC</text>
+  <text x="88" y="1209" fill="#212121" font-size="11">NTC thermistor symbol</text>
+  <circle cx="52" cy="1232" r="5" fill="#e65100"/><text x="88" y="1236" fill="#212121" font-size="11">Junction / node</text>
 
-  <line x1="30" y1="1252" x2="80" y2="1252" stroke="#2e7d32" stroke-width="3"/>
-  <text x="88" y="1256" fill="#212121" font-size="11">+3.3V</text>
-
-  <line x1="30" y1="1278" x2="80" y2="1278" stroke="#c62828" stroke-width="3"/>
-  <text x="88" y="1282" fill="#212121" font-size="11">+5V</text>
-
-  <line x1="30" y1="1304" x2="80" y2="1304" stroke="#795548" stroke-width="3"/>
-  <text x="88" y="1308" fill="#212121" font-size="11">+24V</text>
-
-  <line x1="30" y1="1330" x2="80" y2="1330" stroke="#1565c0" stroke-width="3"/>
-  <text x="88" y="1334" fill="#212121" font-size="11">GND (common)</text>
-
-  <line x1="30" y1="1356" x2="80" y2="1356" stroke="#f9a825" stroke-width="2.5"/>
-  <text x="88" y="1360" fill="#212121" font-size="11">I²C SDA (solid)</text>
-
-  <line x1="30" y1="1382" x2="80" y2="1382" stroke="#f9a825" stroke-width="2" stroke-dasharray="8,3"/>
-  <text x="88" y="1386" fill="#212121" font-size="11">I²C SCL (dashed)</text>
-
-  <line x1="30" y1="1408" x2="80" y2="1408" stroke="#212121" stroke-width="2.5"/>
-  <text x="88" y="1412" fill="#212121" font-size="11">GPIO output</text>
-
-  <line x1="30" y1="1434" x2="80" y2="1434" stroke="#e65100" stroke-width="2.5"/>
-  <text x="88" y="1438" fill="#212121" font-size="11">NTC analog signal</text>
-
-  <line x1="30" y1="1460" x2="80" y2="1460" stroke="#6a1b9a" stroke-width="2.5"/>
-  <text x="88" y="1464" fill="#212121" font-size="11">4-20mA current loop</text>
-
-  <line x1="30" y1="1486" x2="80" y2="1486" stroke="#00695c" stroke-width="2.5"/>
-  <text x="88" y="1490" fill="#212121" font-size="11">1-Wire DQ / DAC 0–5V</text>
-
-  <line x1="30" y1="1512" x2="80" y2="1512" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="5,3"/>
-  <text x="88" y="1516" fill="#212121" font-size="11">Planned connection</text>
-
-  <line x1="30" y1="1538" x2="80" y2="1538" stroke="#2e7d32" stroke-width="2.5" stroke-dasharray="12,5"/>
-  <text x="88" y="1542" fill="#212121" font-size="11">Power rail bus (dashed)</text>
-
-  <circle cx="52" cy="1562" r="5" fill="#e65100"/>
-  <text x="88" y="1566" fill="#212121" font-size="11">Junction / node</text>
-
-  <rect x="40" y="1578" width="18" height="14" rx="2" fill="#fff9c2" stroke="#795548" stroke-width="1.5"/>
-  <text x="88" y="1592" fill="#212121" font-size="11">Resistor</text>
-
-  <ellipse cx="52" cy="1612" rx="12" ry="12" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
-  <text x="52" y="1609" text-anchor="middle" fill="#e65100" font-size="7" font-weight="bold">NTC</text>
-  <text x="88" y="1617" fill="#212121" font-size="11">NTC thermistor</text>
-
-  <!-- I2C address table -->
-  <rect x="362" y="1210" width="310" height="310" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
-  <text x="517" y="1228" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">I²C Address Map</text>
-  <line x1="362" y1="1232" x2="672" y2="1232" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="374" y="1250" fill="#546e7a" font-size="10" font-weight="bold">Addr</text>
-  <text x="424" y="1250" fill="#546e7a" font-size="10" font-weight="bold">Device</text>
-  <text x="580" y="1250" fill="#546e7a" font-size="10" font-weight="bold">Status</text>
-  <line x1="362" y1="1254" x2="672" y2="1254" stroke="#e0e0e0" stroke-width="0.5"/>
-
-  <text x="374" y="1272" fill="#212121" font-size="10">0x48</text>
-  <text x="424" y="1272" fill="#212121" font-size="10">ADS1115 #1</text>
-  <rect x="578" y="1261" width="56" height="14" rx="3" fill="#e8f5e9"/>
-  <text x="606" y="1272" text-anchor="middle" fill="#2e7d32" font-size="10" font-weight="bold">Active</text>
-
-  <text x="374" y="1296" fill="#212121" font-size="10">0x60</text>
-  <text x="424" y="1296" fill="#212121" font-size="10">MCP4728 #1</text>
-  <rect x="578" y="1285" width="64" height="14" rx="3" fill="#fff3e0"/>
-  <text x="610" y="1296" text-anchor="middle" fill="#e65100" font-size="10" font-weight="bold">Planned</text>
-
-  <text x="374" y="1320" fill="#212121" font-size="10">0x61</text>
-  <text x="424" y="1320" fill="#212121" font-size="10">MCP4728 #2</text>
-  <rect x="578" y="1309" width="64" height="14" rx="3" fill="#fff3e0"/>
-  <text x="610" y="1320" text-anchor="middle" fill="#e65100" font-size="10" font-weight="bold">Planned</text>
-
-  <text x="374" y="1344" fill="#212121" font-size="10">0x20</text>
-  <text x="424" y="1344" fill="#212121" font-size="10">MCP23017 #1</text>
-  <rect x="578" y="1333" width="64" height="14" rx="3" fill="#fff3e0"/>
-  <text x="610" y="1344" text-anchor="middle" fill="#e65100" font-size="10" font-weight="bold">Planned</text>
-
-  <text x="374" y="1368" fill="#9e9e9e" font-size="10">0x49</text>
-  <text x="424" y="1368" fill="#9e9e9e" font-size="10">ADS1115 #2</text>
-  <rect x="578" y="1357" width="64" height="14" rx="3" fill="#f5f5f5"/>
-  <text x="610" y="1368" text-anchor="middle" fill="#9e9e9e" font-size="10">On hold</text>
-
-  <line x1="362" y1="1380" x2="672" y2="1380" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="374" y="1396" fill="#546e7a" font-size="9">SDA = GPIO21  ·  SCL = GPIO47</text>
-  <text x="374" y="1410" fill="#546e7a" font-size="9">Bus speed = 400 kHz</text>
-  <text x="374" y="1424" fill="#546e7a" font-size="9">Pull-ups: onboard on ADS1115 module</text>
-  <text x="374" y="1438" fill="#546e7a" font-size="9">MCP4728: via BSS138 shifter (5V side)</text>
-  <text x="374" y="1452" fill="#546e7a" font-size="9">MCP23017: direct 3.3V side</text>
+  <!-- I2C table -->
+  <rect x="362" y="802" width="340" height="350" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
+  <text x="532" y="820" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">I²C Address Map</text>
+  <line x1="362" y1="824" x2="702" y2="824" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="374" y="843" fill="#546e7a" font-size="10" font-weight="bold">Addr</text>
+  <text x="424" y="843" fill="#546e7a" font-size="10" font-weight="bold">Device</text>
+  <text x="590" y="843" fill="#546e7a" font-size="10" font-weight="bold">Status</text>
+  <line x1="362" y1="847" x2="702" y2="847" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="374" y="866" fill="#212121" font-size="10">0x48</text><text x="424" y="866" fill="#212121" font-size="10">ADS1115 #1</text><rect x="590" y="855" width="56" height="14" rx="3" fill="#e8f5e9"/><text x="618" y="866" text-anchor="middle" fill="#2e7d32" font-size="10" font-weight="bold">Active</text>
+  <text x="374" y="890" fill="#212121" font-size="10">0x60</text><text x="424" y="890" fill="#212121" font-size="10">MCP4728 #1</text><rect x="590" y="879" width="64" height="14" rx="3" fill="#fff3e0"/><text x="622" y="890" text-anchor="middle" fill="#e65100" font-size="10" font-weight="bold">Planned</text>
+  <text x="374" y="914" fill="#212121" font-size="10">0x61</text><text x="424" y="914" fill="#212121" font-size="10">MCP4728 #2</text><rect x="590" y="903" width="64" height="14" rx="3" fill="#fff3e0"/><text x="622" y="914" text-anchor="middle" fill="#e65100" font-size="10" font-weight="bold">Planned</text>
+  <text x="374" y="938" fill="#212121" font-size="10">0x20</text><text x="424" y="938" fill="#212121" font-size="10">MCP23017</text><rect x="590" y="927" width="64" height="14" rx="3" fill="#fff3e0"/><text x="622" y="938" text-anchor="middle" fill="#e65100" font-size="10" font-weight="bold">Planned</text>
+  <text x="374" y="962" fill="#9e9e9e" font-size="10">0x49</text><text x="424" y="962" fill="#9e9e9e" font-size="10">ADS1115 #2</text><rect x="590" y="951" width="64" height="14" rx="3" fill="#f5f5f5"/><text x="622" y="962" text-anchor="middle" fill="#9e9e9e" font-size="10">On hold</text>
+  <line x1="362" y1="972" x2="702" y2="972" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="374" y="990" fill="#546e7a" font-size="9">SDA = GPIO21  ·  SCL = GPIO47</text>
+  <text x="374" y="1006" fill="#546e7a" font-size="9">Speed = 400 kHz</text>
+  <text x="374" y="1022" fill="#546e7a" font-size="9">Pull-ups: onboard on ADS1115</text>
+  <text x="374" y="1038" fill="#546e7a" font-size="9">MCP4728: via BSS138 LS1 (5V side)</text>
+  <text x="374" y="1054" fill="#546e7a" font-size="9">MCP23017: direct 3.3V side</text>
+  <text x="374" y="1070" fill="#546e7a" font-size="9">MCP4728 #2 must be reprogrammed</text>
+  <text x="374" y="1086" fill="#546e7a" font-size="9">to 0x61 before installation</text>
 
   <!-- GPIO table -->
-  <rect x="688" y="1210" width="560" height="310" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
-  <text x="968" y="1228" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">GPIO Assignments</text>
-  <line x1="688" y1="1232" x2="1248" y2="1232" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="700" y="1250" fill="#546e7a" font-size="10" font-weight="bold">GPIO</text>
-  <text x="746" y="1250" fill="#546e7a" font-size="10" font-weight="bold">Dir</text>
-  <text x="778" y="1250" fill="#546e7a" font-size="10" font-weight="bold">Function</text>
-  <text x="920" y="1250" fill="#546e7a" font-size="10" font-weight="bold">Connected to</text>
-  <line x1="688" y1="1254" x2="1248" y2="1254" stroke="#e0e0e0" stroke-width="0.5"/>
+  <rect x="718" y="802" width="580" height="310" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
+  <text x="1008" y="820" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">GPIO Assignments</text>
+  <line x1="718" y1="824" x2="1298" y2="824" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="730" y="843" fill="#546e7a" font-size="10" font-weight="bold">GPIO</text>
+  <text x="780" y="843" fill="#546e7a" font-size="10" font-weight="bold">Dir</text>
+  <text x="816" y="843" fill="#546e7a" font-size="10" font-weight="bold">Function</text>
+  <text x="970" y="843" fill="#546e7a" font-size="10" font-weight="bold">Connected to</text>
+  <line x1="718" y1="847" x2="1298" y2="847" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="730" y="866" fill="#212121" font-size="10">21</text><text x="780" y="866" fill="#546e7a" font-size="10">↔</text><text x="816" y="866" fill="#f9a825" font-size="10" font-weight="bold">I²C SDA</text><text x="970" y="866" fill="#212121" font-size="10">ADS1115 · MCP4728 via LS1 · MCP23017</text>
+  <text x="730" y="890" fill="#212121" font-size="10">47</text><text x="780" y="890" fill="#546e7a" font-size="10">↔</text><text x="816" y="890" fill="#f9a825" font-size="10" font-weight="bold">I²C SCL</text><text x="970" y="890" fill="#212121" font-size="10">ADS1115 · MCP4728 via LS1 · MCP23017</text>
+  <text x="730" y="914" fill="#212121" font-size="10">48</text><text x="780" y="914" fill="#546e7a" font-size="10">↔</text><text x="816" y="914" fill="#00695c" font-size="10" font-weight="bold">1-Wire DQ</text><text x="970" y="914" fill="#212121" font-size="10">DS18B20-Boil · DS18B20-HLT  (R_PU 4.7kΩ→+3.3V)</text>
+  <text x="730" y="938" fill="#212121" font-size="10">41</text><text x="780" y="938" fill="#546e7a" font-size="10">→</text><text x="816" y="938" fill="#212121" font-size="10" font-weight="bold">GPIO out</text><text x="970" y="938" fill="#212121" font-size="10">SSR1 control  (RESTORE_DEFAULT_OFF)</text>
+  <text x="730" y="962" fill="#212121" font-size="10">42</text><text x="780" y="962" fill="#546e7a" font-size="10">→</text><text x="816" y="962" fill="#212121" font-size="10" font-weight="bold">slow_pwm</text><text x="970" y="962" fill="#212121" font-size="10">SSR2 RIMS  PID · period=2s · RESTORE_OFF</text>
+  <line x1="718" y1="972" x2="1298" y2="972" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="730" y="990" fill="#9e9e9e" font-size="9">RESERVED: GPIO 26–32 (Flash/PSRAM) · GPIO 19–20 (USB) · GPIO 43–44 (UART)</text>
+  <text x="730" y="1006" fill="#9e9e9e" font-size="9">STRAPPING (after-boot only): GPIO 0, 3, 45, 46</text>
 
-  <text x="700" y="1272" fill="#212121" font-size="10">21</text>
-  <text x="746" y="1272" fill="#546e7a" font-size="10">↔</text>
-  <text x="778" y="1272" fill="#f9a825" font-size="10" font-weight="bold">I²C SDA</text>
-  <text x="920" y="1272" fill="#212121" font-size="10">ADS1115 · MCP4728 via LS1 · MCP23017</text>
-
-  <text x="700" y="1296" fill="#212121" font-size="10">47</text>
-  <text x="746" y="1296" fill="#546e7a" font-size="10">↔</text>
-  <text x="778" y="1296" fill="#f9a825" font-size="10" font-weight="bold">I²C SCL</text>
-  <text x="920" y="1296" fill="#212121" font-size="10">ADS1115 · MCP4728 via LS1 · MCP23017</text>
-
-  <text x="700" y="1320" fill="#212121" font-size="10">48</text>
-  <text x="746" y="1320" fill="#546e7a" font-size="10">↔</text>
-  <text x="778" y="1320" fill="#00695c" font-size="10" font-weight="bold">1-Wire DQ</text>
-  <text x="920" y="1320" fill="#212121" font-size="10">DS18B20-Boil · DS18B20-HLT  (4.7 kΩ R_PU)</text>
-
-  <text x="700" y="1344" fill="#212121" font-size="10">41</text>
-  <text x="746" y="1344" fill="#546e7a" font-size="10">→</text>
-  <text x="778" y="1344" fill="#212121" font-size="10" font-weight="bold">GPIO out</text>
-  <text x="920" y="1344" fill="#212121" font-size="10">SSR1 control  (RESTORE_DEFAULT_OFF)</text>
-
-  <text x="700" y="1368" fill="#212121" font-size="10">42</text>
-  <text x="746" y="1368" fill="#546e7a" font-size="10">→</text>
-  <text x="778" y="1368" fill="#212121" font-size="10" font-weight="bold">slow_pwm</text>
-  <text x="920" y="1368" fill="#212121" font-size="10">SSR2 RIMS  PID · period=2s · RESTORE_OFF</text>
-
-  <line x1="688" y1="1378" x2="1248" y2="1378" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="700" y="1394" fill="#9e9e9e" font-size="9">RESERVED — DO NOT USE:</text>
-  <text x="700" y="1408" fill="#9e9e9e" font-size="9">GPIO 26–32: Flash/PSRAM   |   GPIO 19–20: USB D−/D+   |   GPIO 43–44: UART0</text>
-  <text x="700" y="1422" fill="#9e9e9e" font-size="9">STRAPPING (use after boot only): GPIO 0, 3, 45, 46</text>
-
-  <!-- Schematic notes -->
-  <rect x="1264" y="1210" width="522" height="475" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
-  <text x="1525" y="1228" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">Schematic Notes</text>
-  <line x1="1264" y1="1232" x2="1786" y2="1232" stroke="#e0e0e0" stroke-width="0.5"/>
-
-  <text x="1276" y="1252" fill="#546e7a" font-size="10" font-weight="bold">Project</text>
-  <text x="1340" y="1252" fill="#212121" font-size="10">singularity — ESP32-S3 Brewing Controller</text>
-  <text x="1276" y="1270" fill="#546e7a" font-size="10" font-weight="bold">MCU</text>
-  <text x="1340" y="1270" fill="#212121" font-size="10">ESP32-S3-N16R8  (16MB Flash · 8MB PSRAM)</text>
-  <text x="1276" y="1288" fill="#546e7a" font-size="10" font-weight="bold">Firmware</text>
-  <text x="1340" y="1288" fill="#212121" font-size="10">ESPHome v1.1.1</text>
-  <text x="1276" y="1306" fill="#546e7a" font-size="10" font-weight="bold">Power</text>
-  <text x="1340" y="1306" fill="#212121" font-size="10">3.3V (reg ← 5V) · 5V (MCP4728/LS1) · 24V (SM6004)</text>
-  <text x="1276" y="1324" fill="#546e7a" font-size="10" font-weight="bold">GND</text>
-  <text x="1340" y="1324" fill="#212121" font-size="10">Single common ground — all modules + PSUs</text>
-
-  <line x1="1264" y1="1334" x2="1786" y2="1334" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="1276" y="1352" fill="#212121" font-size="10" font-weight="bold">Design Rules</text>
-  <text x="1276" y="1370" fill="#546e7a" font-size="10">① All ADS1115 A0–A3 inputs: 100nF ceramic cap to GND</text>
-  <text x="1276" y="1388" fill="#546e7a" font-size="10">② MCP4728 on 5V via BSS138 — ADS1115/MCP23017 on 3.3V</text>
-  <text x="1276" y="1406" fill="#546e7a" font-size="10">③ DS18B20: one 4.7kΩ pull-up for the entire 1-Wire bus</text>
-  <text x="1276" y="1424" fill="#546e7a" font-size="10">④ I²C: onboard pull-ups on ADS1115 — do not stack</text>
-  <text x="1276" y="1442" fill="#546e7a" font-size="10">⑤ SM6004: 24V loop → converter → 0–3.3V → ADS1115</text>
-  <text x="1276" y="1460" fill="#546e7a" font-size="10">⑥ SSR: GPIO direct drive (3.3V → optocoupler input)</text>
-  <text x="1276" y="1478" fill="#546e7a" font-size="10">⑦ MCP4728 #2 (0x61): reprogram address before install</text>
-  <text x="1276" y="1496" fill="#546e7a" font-size="10">⑧ Schematic must be updated with every wiring change</text>
-
-  <line x1="1264" y1="1506" x2="1786" y2="1506" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="1276" y="1524" fill="#212121" font-size="10" font-weight="bold">Related Files</text>
-  <text x="1276" y="1542" fill="#546e7a" font-size="10">hardware/schematic.md  (this schematic + notes)</text>
-  <text x="1276" y="1558" fill="#546e7a" font-size="10">hardware/gpio_map.md  ·  hardware/expansion_boards.md</text>
-  <text x="1276" y="1574" fill="#546e7a" font-size="10">hardware/ntc.md  ·  hardware/ds18b20.md  ·  hardware/sm6004.md</text>
-  <text x="1276" y="1590" fill="#546e7a" font-size="10">assets/schematics/mcp4728_proportional_valve.svg  (detail)</text>
+  <!-- Notes -->
+  <rect x="1314" y="802" width="870" height="580" rx="4" fill="#ffffff" stroke="#90a4ae" stroke-width="1"/>
+  <text x="1749" y="820" text-anchor="middle" fill="#212121" font-size="11" font-weight="bold">Schematic Notes</text>
+  <line x1="1314" y1="824" x2="2184" y2="824" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="1326" y="845" fill="#546e7a" font-size="10" font-weight="bold">Project</text><text x="1400" y="845" fill="#212121" font-size="10">singularity — ESP32-S3 Brewing Controller</text>
+  <text x="1326" y="865" fill="#546e7a" font-size="10" font-weight="bold">MCU</text><text x="1400" y="865" fill="#212121" font-size="10">ESP32-S3-N16R8  (16MB Flash · 8MB PSRAM)</text>
+  <text x="1326" y="885" fill="#546e7a" font-size="10" font-weight="bold">Firmware</text><text x="1400" y="885" fill="#212121" font-size="10">ESPHome v1.1.1</text>
+  <text x="1326" y="905" fill="#546e7a" font-size="10" font-weight="bold">Power</text><text x="1400" y="905" fill="#212121" font-size="10">3.3V (reg ← 5V) · 5V (MCP4728/LS1) · 24V (SM6004 + XY-IT0V)</text>
+  <text x="1326" y="925" fill="#546e7a" font-size="10" font-weight="bold">GND</text><text x="1400" y="925" fill="#212121" font-size="10">Single common ground — all modules + PSUs</text>
+  <line x1="1314" y1="935" x2="2184" y2="935" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="1326" y="952" fill="#212121" font-size="10" font-weight="bold">Design Rules</text>
+  <text x="1326" y="972" fill="#546e7a" font-size="10">① ADS1115 A0–A3: 100nF ceramic cap to GND on each input (C1–C4)</text>
+  <text x="1326" y="990" fill="#546e7a" font-size="10">② MCP4728 on 5V via BSS138 shifter — ADS1115/MCP23017 on 3.3V only</text>
+  <text x="1326" y="1008" fill="#546e7a" font-size="10">③ DS18B20: one R_PU = 4.7kΩ to +3.3V for the entire 1-Wire bus</text>
+  <text x="1326" y="1026" fill="#546e7a" font-size="10">④ I²C: onboard pull-ups on ADS1115 — do not stack multiple pull-ups</text>
+  <text x="1326" y="1044" fill="#546e7a" font-size="10">⑤ SM6004 current loop: 24V → SM6004 → XY-IT0V → 0–3.3V → ADS1115</text>
+  <text x="1326" y="1062" fill="#546e7a" font-size="10">⑥ SM6004 OUT1 (flow) used · OUT2 not connected</text>
+  <text x="1326" y="1080" fill="#546e7a" font-size="10">⑦ SSR: GPIO direct drive (3.3V → optocoupler input, no level shift needed)</text>
+  <text x="1326" y="1098" fill="#546e7a" font-size="10">⑧ Schematic must be updated with every wiring change (steering rule)</text>
+  <line x1="1314" y1="1108" x2="2184" y2="1108" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="1326" y="1126" fill="#212121" font-size="10" font-weight="bold">AN1 / AN2 Flow Sensors</text>
+  <text x="1326" y="1146" fill="#546e7a" font-size="10">AN1 (RIMS): SM6004 #1 → XY-IT0V #1 → ADS1115 A2 → sensor.singularity_an1_rate</text>
+  <text x="1326" y="1164" fill="#546e7a" font-size="10">AN2 (Sparge): SM6004 #2 → XY-IT0V #2 → ADS1115 A3 → sensor.singularity_an2_rate</text>
+  <text x="1326" y="1182" fill="#546e7a" font-size="10">Slope: 7.57 L/min per volt  ·  Offset: number entity (flash-persisted)</text>
+  <text x="1326" y="1200" fill="#546e7a" font-size="10">Reset total: button.singularity_an1_reset_total / an2_reset_total</text>
+  <line x1="1314" y1="1210" x2="2184" y2="1210" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="1326" y="1228" fill="#212121" font-size="10" font-weight="bold">Related Files</text>
+  <text x="1326" y="1248" fill="#546e7a" font-size="10">hardware/schematic.md  ·  hardware/gpio_map.md  ·  hardware/expansion_boards.md</text>
+  <text x="1326" y="1266" fill="#546e7a" font-size="10">hardware/ntc.md  ·  hardware/ds18b20.md  ·  hardware/sm6004.md</text>
+  <text x="1326" y="1284" fill="#546e7a" font-size="10">assets/schematics/mcp4728_proportional_valve.svg  (MCP4728 detail)</text>
 
 </svg>
