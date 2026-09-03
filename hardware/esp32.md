@@ -19,7 +19,7 @@ The initial board used during development.
 | RGB LED | GPIO 38 (WS2812) |
 | Flash | 16MB |
 | PSRAM | 8MB |
-| Width | ~18mm (standard DevKit) |
+| Width | ~24.4mm (approximately 1mm narrower than Board 2) |
 
 ### Pinout Diagram
 
@@ -42,9 +42,9 @@ Tested as a replacement during development. All firmware, calibration, and HA en
 | RGB LED | On-board |
 | Flash | 16MB |
 | PSRAM | 8MB |
-| Width | **25.4mm** (wider than Board 1) |
+| Width | **25.4mm** (~1mm wider than Board 1) |
 
-> ⚠️ **Width note:** At 25.4mm this board is wider than the standard DevKit. Verify it fits your enclosure or breadboard layout before committing to it.
+> ⚠️ **Width note:** Board 2 measures 25.4mm wide — approximately 1mm wider than Board 1. If you are building an enclosure, measure your actual board before drilling.
 
 ### First Flash — Download Mode Procedure
 

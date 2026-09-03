@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.4
+# singularity_dashboard.yaml  v1.3.5
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -29,7 +29,7 @@
 #   v1.3.0 — AN1 (RIMS flow) + AN2 (Sparge flow) mushroom cards in Brewing Temperatures tab;
 #             AN1/AN2 offset + reset cards in Settings tab; About tab sensor table updated
 #   v1.3.1 — AN1/AN2 reset buttons added to Brewing Temperatures tab (below flow cards)
-#   v1.3.4 — reset switches replaced with button entities (push button, no toggle state)
+#   v1.3.5 — Hardware tab: Board 2 (active) + Board 1 (reference) with dimensions
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -465,7 +465,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.4</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.5</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
@@ -511,23 +511,36 @@ views:
             ⚠️ ESP32 is offline</div>
 
       - type: markdown
-        title: ESP32-S3-DEV-KIT-NXRX — Board Overview
+        title: ESP32-S3 — Active Board (Board 2)
         content: |
-          ![Board overview](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
+          ![Board 2](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3WROOM1%20N16R8%2044Pin%20Type-C%20ESP32-S3%20-%20Board%202.jpg)
+
+          **ESP32-S3-WROOM-1 N16R8 44-Pin Type-C** — currently active
+
+          | Component | Description |
+          |---|---|
+          | Module | ESP32-S3-WROOM-1 N16R8 |
+          | USB | USB Type-C (dual port — USB + UART) |
+          | Flash | 16MB |
+          | PSRAM | 8MB |
+          | Width | 25.4mm (~1mm wider than Board 1) |
+
+          > See [hardware/esp32.md](https://github.com/exoticatom/singularity/blob/main/hardware/esp32.md) for Board 1 specs and first-flash procedure.
+
+      - type: markdown
+        title: ESP32-S3-DEV-KIT-NXRX — Board 1 (reference)
+        content: |
+          ![Board 1](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
+
+          **ESP32-S3-DevKitC-1** — original development board
 
           | Component | Description |
           |---|---|
           | Module | ESP32-S3-WROOM series |
           | USB | USB Type-C (USB & UART combined) |
-          | Boot Button | Hold during reset → download mode |
-          | Reset Button | Resets the MCU |
-          | RGB LED | GPIO 38 (WS2812) |
-          | 3.3V Regulator | 5V → 3.3V on-board |
-
-      - type: markdown
-        title: ESP32-S3-DEV-KIT-NXRX — Pinout
-        content: |
-          ![Pinout diagram](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8.jpg)
+          | Flash | 16MB |
+          | PSRAM | 8MB |
+          | Width | ~24.4mm |
 
       - type: markdown
         title: singularity — Pin Assignments
