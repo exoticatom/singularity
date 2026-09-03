@@ -72,7 +72,7 @@ The system is split into three distinct layers, each with a clear responsibility
 |---|---|
 | **Controller** | [Waveshare ESP32-S3-WROOM-1 N16R8 44-Pin](hardware/esp32.md) (Board 2, active) + [expansion adapter board](hardware/esp32_expansion_board.md) |
 | **Temperature** | [NTC](hardware/ntc.md) 10kΩ thermistors × 2 (via [ADS1115](hardware/expansion_boards.md) ADC), [DS18B20](hardware/ds18b20.md) 1-Wire sensors × 2 |
-| **Flow** | IFM [SM6004](hardware/sm6004.md) magnetic flow meters (planned), [YF-S200](hardware/yf_s200.md) pulse sensors (planned) |
+| **Flow** | IFM [SM6004](hardware/sm6004.md) magnetic flow meters × 2 (🔬 Testing), [YF-S200](hardware/yf_s200.md) pulse sensors (planned) |
 | **Analog I/O** | [ADS1115](hardware/expansion_boards.md) 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), [MCP4728](hardware/expansion_boards.md) 12-bit DAC × 2 (planned) |
 | **GPIO expansion** | [MCP23017](hardware/expansion_boards.md) 16-bit I2C expander (planned) |
 | **Outputs** | SSR relays × 2 (RIMS heater + spare) |
@@ -214,7 +214,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | [DS18B20](hardware/ds18b20.md)-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
 | SSR1 (GPIO41) | ⏳ Wired | Not load tested |
 | SSR2 — RIMS heater (GPIO42) | ⏳ Wired | PID ready, not load tested |
-| [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing | Connected, calibrated — ADS1115 A2/A3 + [4-20mA converters](hardware/current_to_voltage.md). Max measured 13.20 L/min. ESPHome config pending. |
+| [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing | Connected, calibrated — AN1 (A2 RIMS) + AN2 (A3 Sparge). Firmware implemented v1.0.9. |
 | Relay board — pump control | 🔲 Planned | Via [MCP23017](hardware/expansion_boards.md) GPIO expander |
 | [MCP23017](hardware/expansion_boards.md) GPIO expander | 🔲 Planned | I2C 0x20 |
 | [MCP4728](hardware/expansion_boards.md) DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
@@ -226,14 +226,14 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.0.9 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.1.1 | ✅ Active | OTA updates working |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.3.0 | ✅ Active | 5 tabs, mushroom sensor cards, apexcharts graph, AN1/AN2 flow cards |
+| HA dashboard v1.3.5 | ✅ Active | 5 tabs, mushroom sensor cards, apexcharts graph, AN1/AN2 flow cards |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | ✅ Implemented | AN1 (RIMS, A2) + AN2 (Sparge, A3) — rate + total + offset + reset |
@@ -249,7 +249,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Item | Status |
 |---|---|
-| [ADS1115](hardware/expansion_boards.md) A2 + [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing — calibrated, ESPHome config pending |
+| [ADS1115](hardware/expansion_boards.md) A2/A3 + [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing — calibrated, firmware implemented |
 | [MCP4728](hardware/expansion_boards.md) × 2 — DAC for proportional valve | Planned |
 | [MCP23017](hardware/expansion_boards.md) — GPIO expander | Planned |
 | [YF-S200](hardware/yf_s200.md) pulse flow sensors | Planned |
@@ -276,9 +276,8 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | 2026-08-26 | Dashboard v1.2.0 — apexcharts-card temperature graph (4 sensors + live setpoint line) |
 | 2026-08-26 | Dashboard v1.2.1–v1.2.3 — mushroom-template-card sensor grid with per-sensor colour thresholds |
 | 2026-08-26 | SM6004 flow meters connected + calibrated — max 13.20 L/min, slope 7.57 L/V, ESPHome config pending |
-| 2026-08-26 | Firmware v1.0.9 — AN1 (RIMS flow A2) + AN2 (Sparge flow A3): rate, total, offset, reset switches |
-| 2026-09-02 | Board 2 (ESP32-S3-WROOM-1 N16R8 44-pin, 25.4mm) tested — firmware flashed via USB, HA reconnected automatically |
-| 2026-08-26 | Dashboard v1.3.0 — AN1/AN2 mushroom cards in Brewing tab; AN1/AN2 offset + reset in Settings tab |
+| 2026-09-02 | Firmware v1.0.9 — AN1 (RIMS flow A2) + AN2 (Sparge flow A3): rate, total, offset, reset buttons |
+| 2026-09-02 | Dashboard v1.3.x — AN1/AN2 flow cards, reset buttons, Board 2 hardware tab |
 
 ---
 
