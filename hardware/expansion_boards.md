@@ -162,11 +162,56 @@ The MCP4728 address is stored in internal EEPROM — **cannot be changed with re
 
 > **Note:** Some boards (Adafruit after Aug 2022) may ship at 0x64. Scan I2C bus first to confirm actual address. See main README for reprogramming procedure.
 
+### Proportional Valve Wiring — MCP4728 on 5V with I2C Level Shifter
+
+The proportional valve expects **0–5V** control signal. The MCP4728 output range equals its VDD, so powering it from 5V gives a clean 0–5V output directly.
+
+Since the ESP32 I2C runs at 3.3V logic, a **bi-directional level shifter** is required on SDA/SCL between the ESP32 and the MCP4728.
+
+#### What you need
+- BSS138-based bi-directional level shifter module (4-channel, common on AliExpress ~€1)
+- 5V supply (USB PSU or 5V rail from your enclosure PSU)
+
+#### Wiring
+
+```
+ESP32 3.3V ──→ Level shifter LV (low voltage side)
+5V PSU     ──→ Level shifter HV (high voltage side)
+GND        ──→ Level shifter GND (both sides)
+
+ESP32 GPIO21 (SDA) ──→ Level shifter LV1 ──→ HV1 ──→ MCP4728 SDA
+ESP32 GPIO47 (SCL) ──→ Level shifter LV2 ──→ HV2 ──→ MCP4728 SCL
+
+5V PSU  ──→ MCP4728 VDD
+GND     ──→ MCP4728 GND
+MCP4728 VOUT A ──→ Proportional valve signal input
+Proportional valve GND ──→ GND (common)
+```
+
+#### Important notes
+- Only the MCP4728 for the proportional valve needs 5V + level shifter
+- All other I2C devices (ADS1115, MCP23017) stay on 3.3V — do not connect them to the 5V side of the shifter
+- The level shifter must be **bi-directional** (BSS138 type) — uni-directional shifters will not work for I2C
+- MCP4728 EEPROM stores the last DAC value — output is restored automatically on power-up
+
+#### Output range after wiring
+```
+DAC code 0    → VOUT = 0.0V  → valve fully closed
+DAC code 4095 → VOUT = 5.0V  → valve fully open
+```
+
 **Port mapping:**
 
 | Logical Port | Physical | MCP4728 | Use |
 |---|---|---|---|
-| DAC_Port_0 | A | #1 (0x60) | Proportional valve (planned) |
+| DAC_Port_0 | A | #1 (0x60) | Proportional valve — 0–5V via 5V supply + level shifter |
+| DAC_Port_1 | B | #1 (0x60) | Spare |
+| DAC_Port_2 | C | #1 (0x60) | Spare |
+| DAC_Port_3 | D | #1 (0x60) | Spare |
+| DAC_Port_4 | A | #2 (0x61) | Spare |
+| DAC_Port_5 | B | #2 (0x61) | Spare |
+| DAC_Port_6 | C | #2 (0x61) | Spare |
+| DAC_Port_7 | D | #2 (0x61) | Spare |
 | DAC_Port_1 | B | #1 (0x60) | Spare |
 | DAC_Port_2 | C | #1 (0x60) | Spare |
 | DAC_Port_3 | D | #1 (0x60) | Spare |
