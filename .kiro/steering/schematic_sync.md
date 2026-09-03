@@ -6,7 +6,7 @@
 
 | File | What it covers |
 |---|---|
-| `assets/schematics/mcp4728_proportional_valve.svg` | Main schematic — power architecture, modules and connections |
+| `assets/schematics/singularity.svg` | Main schematic — power architecture, modules and connections |
 
 ## What triggers a schematic update
 
@@ -30,6 +30,6 @@
 
 1. Make the firmware/hardware change
 2. Update `assets/schematics/singularity_schematic.svg` to reflect the new connection
-3. Update `assets/schematics/mcp4728_proportional_valve.svg` if the MCP4728/valve/shifter section changed
+3. Update `assets/schematics/singularity.svg` if the MCP4728/valve/shifter section changed
 4. Update `hardware/schematic.md` component table if a new module was added or status changed
 5. Include all schematic files in the same commit as the hardware/firmware change

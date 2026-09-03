@@ -3,13 +3,13 @@
 Main electrical reference for the singularity brewing controller.
 
 > 📐 **Full schematic SVG** (open for zoom/pan):
-> [assets/schematics/mcp4728_proportional_valve.svg](../assets/schematics/mcp4728_proportional_valve.svg)
+> [assets/schematics/singularity.svg](../assets/schematics/singularity.svg)
 
 ---
 
 ## Schematic
 
-![singularity Schematic](../assets/schematics/mcp4728_proportional_valve.svg)
+![singularity Schematic](../assets/schematics/singularity.svg)
 
 ---
 
