@@ -6,8 +6,7 @@
 
 | File | What it covers |
 |---|---|
-| `assets/schematics/singularity_schematic.svg` | Main low-voltage schematic — all modules and connections |
-| `assets/schematics/mcp4728_proportional_valve.svg` | MCP4728 + level shifter + proportional valve detail |
+| `assets/schematics/mcp4728_proportional_valve.svg` | Main schematic — power architecture, modules and connections |
 
 ## What triggers a schematic update
 

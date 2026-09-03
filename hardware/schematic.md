@@ -1,15 +1,15 @@
-# singularity — Low Voltage Schematic
+# singularity — Schematic
 
-This page is the main electrical reference for the singularity brewing controller. It covers all low-voltage connections: the ESP32-S3 microcontroller and every sensor and I/O module.
+Main electrical reference for the singularity brewing controller.
 
 > 📐 **Full schematic SVG** (open for zoom/pan):
-> [assets/schematics/singularity_schematic.svg](../assets/schematics/singularity_schematic.svg)
+> [assets/schematics/mcp4728_proportional_valve.svg](../assets/schematics/mcp4728_proportional_valve.svg)
 
 ---
 
 ## Schematic
 
-![singularity Low Voltage Schematic](../assets/schematics/singularity_schematic.svg)
+![singularity Schematic](../assets/schematics/mcp4728_proportional_valve.svg)
 
 ---
 
@@ -52,7 +52,7 @@ This page is the main electrical reference for the singularity brewing controlle
 |---|---|---|---|
 | 21 | Bidirectional | I²C SDA | ADS1115, MCP4728 (via shifter), MCP23017 |
 | 47 | Bidirectional | I²C SCL | ADS1115, MCP4728 (via shifter), MCP23017 |
-| 48 | Bidirectional | 1-Wire DQ | DS18B20-Boil, DS18B20-HLT (parallel, 4.7kΩ pull-up) |
+| 48 | Bidirectional | 1-Wire DQ | DS18B20-Boil, DS18B20-HLT (parallel, 4.7kΩ pull-up to +3.3V) |
 | 41 | Output | SSR1 control | SSR1 control input |
 | 42 | Output (slow_pwm) | RIMS heater PID | SSR2 control input (2s period) |
 
@@ -80,15 +80,15 @@ Reserved — do not use:
 
 ## Key Design Notes
 
-**NTC filter capacitors:** Every ADS1115 analog input (A0–A3) requires a 100nF ceramic capacitor between the input pin and GND, placed as close to the ADS1115 pin as possible. This filters HF noise from SSRs, pump motors and mains wiring.
+**NTC filter capacitors:** Every ADS1115 analog input (A0–A3) requires a 100nF ceramic capacitor between the input pin and GND, placed as close to the ADS1115 pin as possible.
 
-**I²C pull-ups:** Most breakout modules include onboard pull-ups. Do not stack multiple pull-ups — remove pull-ups from all but one module to avoid the effective resistance dropping too low.
+**I²C pull-ups:** Most breakout modules include onboard pull-ups. Do not stack multiple pull-ups.
 
-**MCP4728 level shifter:** The MCP4728 runs on 5V to achieve 0–5V output for the proportional valve. Its I²C lines must go through a BSS138 bi-directional level shifter. The ADS1115 and MCP23017 connect directly on the 3.3V side — they must not connect to the 5V side of the shifter.
+**MCP4728 level shifter:** MCP4728 runs on 5V for 0–5V output to the proportional valve. I²C lines go through BSS138 bi-directional level shifter. ADS1115 and MCP23017 connect directly on the 3.3V side.
 
-**Common ground:** All GNDs (ESP32, ADS1115, DS18B20, 4-20mA converters, 24V PSU, MCP4728, MCP23017) must share a single common ground. Without this the 4-20mA current loop has no return path and readings will be incorrect.
+**Common ground:** All GNDs must share a single common ground. Without this the 4-20mA current loop has no return path.
 
-**DS18B20 pull-up:** A single 4.7kΩ pull-up on GPIO48 serves both DS18B20 sensors. Do not add a second pull-up — one per bus only.
+**DS18B20 pull-up:** Single 4.7kΩ pull-up to +3.3V on GPIO48 serves both DS18B20 sensors. One per bus only.
 
 ---
 
@@ -100,4 +100,3 @@ Reserved — do not use:
 - [hardware/expansion_boards.md](expansion_boards.md) — ADS1115, MCP4728, MCP23017
 - [hardware/sm6004.md](sm6004.md) — SM6004 flow meter
 - [hardware/current_to_voltage.md](current_to_voltage.md) — 4-20mA converter module
-- [assets/schematics/mcp4728_proportional_valve.svg](../assets/schematics/mcp4728_proportional_valve.svg) — detail schematic: MCP4728 + level shifter + valve
