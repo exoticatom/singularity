@@ -4,7 +4,9 @@ singularity runs on ESP32-S3 based development boards. Two boards have been test
 
 ---
 
-## Board 1 — ESP32-S3-DEV-KIT-NXRX (original)
+## Board 1 — Waveshare ESP32-S3-DEV-KIT-N16R8
+
+> 🔗 [Waveshare Wiki — ESP32-S3-DEV-KIT-N8R8](https://www.waveshare.com/wiki/ESP32-S3-DEV-KIT-N8R8) (page covers NxR8 variants including N16R8)
 
 The initial board used during development.
 
@@ -13,13 +15,14 @@ The initial board used during development.
 | Component | Description |
 |---|---|
 | Module | ESP32-S3-WROOM-1 N16R8 |
-| USB | USB Type-C (USB & UART combined) |
+| Manufacturer | Waveshare |
+| USB | USB Type-C (CH343 + CH334 — USB & UART) |
 | Boot Button | Hold during reset → download mode |
 | Reset Button | Resets the MCU |
-| RGB LED | GPIO 38 (WS2812) |
+| RGB LED | On-board |
 | Flash | 16MB |
 | PSRAM | 8MB |
-| Width | ~22.9–24.2mm (1.25 or 2.54mm narrower than Board 2 — measure to confirm) |
+| PCB size | 63.3 × 25.4mm |
 
 ### Pinout Diagram
 
@@ -42,9 +45,9 @@ Tested as a replacement during development. All firmware, calibration, and HA en
 | RGB LED | On-board |
 | Flash | 16MB |
 | PSRAM | 8MB |
-| Width | **25.4mm** (1.25 or 2.54mm wider than Board 1) |
+| Width | **25.4mm** (same PCB width as Board 1 — expansion adapter may differ) |
 
-> ⚠️ **Width note:** Board 2 measures 25.4mm. Board 1 is either 1.25mm or 2.54mm narrower (22.9 or 24.2mm — measure with calipers to confirm). If building an enclosure, measure your actual board.
+> ⚠️ **Width note:** Both boards measure 25.4mm wide (PCB only). If one feels wider, the difference is in the expansion adapter or screw terminal block, not the core board.
 
 ### First Flash — Download Mode Procedure
 

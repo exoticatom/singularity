@@ -70,7 +70,7 @@ The system is split into three distinct layers, each with a clear responsibility
 
 | Category | Components |
 |---|---|
-| **Controller** | [ESP32-S3-WROOM-1 N16R8 44-Pin](hardware/esp32.md) + [expansion adapter board](hardware/esp32_expansion_board.md) |
+| **Controller** | [Waveshare ESP32-S3-WROOM-1 N16R8 44-Pin](hardware/esp32.md) (Board 2, active) + [expansion adapter board](hardware/esp32_expansion_board.md) |
 | **Temperature** | [NTC](hardware/ntc.md) 10kΩ thermistors × 2 (via [ADS1115](hardware/expansion_boards.md) ADC), [DS18B20](hardware/ds18b20.md) 1-Wire sensors × 2 |
 | **Flow** | IFM [SM6004](hardware/sm6004.md) magnetic flow meters (planned), [YF-S200](hardware/yf_s200.md) pulse sensors (planned) |
 | **Analog I/O** | [ADS1115](hardware/expansion_boards.md) 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), [MCP4728](hardware/expansion_boards.md) 12-bit DAC × 2 (planned) |

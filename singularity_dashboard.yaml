@@ -523,24 +523,24 @@ views:
           | USB | USB Type-C (dual port — USB + UART) |
           | Flash | 16MB |
           | PSRAM | 8MB |
-          | Width | 25.4mm (1.25 or 2.54mm wider than Board 1) |
+          | Width | 25.4mm (same PCB width as Board 1) |
 
           > See [hardware/esp32.md](https://github.com/exoticatom/singularity/blob/main/hardware/esp32.md) for Board 1 specs and first-flash procedure.
 
       - type: markdown
-        title: ESP32-S3-DEV-KIT-NXRX — Board 1 (reference)
+        title: Waveshare ESP32-S3-DEV-KIT-N16R8 — Board 1 (reference)
         content: |
           ![Board 1](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
 
-          **ESP32-S3-DevKitC-1** — original development board
+          **Waveshare ESP32-S3-DEV-KIT-N16R8** — original development board
 
           | Component | Description |
           |---|---|
-          | Module | ESP32-S3-WROOM series |
-          | USB | USB Type-C (USB & UART combined) |
+          | Module | ESP32-S3-WROOM-1 N16R8 |
+          | Manufacturer | Waveshare |
           | Flash | 16MB |
           | PSRAM | 8MB |
-          | Width | ~22.9–24.2mm (1.25 or 2.54mm narrower than Board 2) |
+          | Width | 63.3 × 25.4mm |
 
       - type: markdown
         title: singularity — Pin Assignments
