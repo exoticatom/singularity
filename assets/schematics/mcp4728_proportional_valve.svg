@@ -254,7 +254,7 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ADS1115 -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <rect x="440" y="460" width="160" height="130" rx="6" fill="#0d1b2a" stroke="#4fc3f7" stroke-width="1.5"/>
+  <rect x="440" y="460" width="160" height="90" rx="6" fill="#0d1b2a" stroke="#4fc3f7" stroke-width="1.5"/>
   <text x="520" y="482" text-anchor="middle" fill="#4fc3f7" font-size="12" font-weight="bold">ADS1115</text>
   <text x="520" y="497" text-anchor="middle" fill="#4fc3f7" font-size="10">16-bit ADC  0x48</text>
 
@@ -264,14 +264,7 @@
   <text x="448" y="542" fill="#ef9a9a" font-size="11">GND</text>
   <circle cx="440" cy="538" r="3" fill="#ef9a9a"/>
 
-  <text x="448" y="564" fill="#fff9c4" font-size="11">SDA</text>
-  <circle cx="440" cy="560" r="3" fill="#fff9c4"/>
-
-  <text x="448" y="583" fill="#fff9c4" font-size="11">SCL</text>
-  <circle cx="440" cy="579" r="3" fill="#fff9c4"/>
-
   <text x="540" y="520" fill="#a5d6a7" font-size="11">A2 (FLOW1)</text>
-  <circle cx="440" cy="516" r="3" fill="#a5d6a7"/>
 
   <!-- Converter VOUT → ADS1115 A2 -->
   <line x1="380" y1="516" x2="440" y2="516" stroke="#a5d6a7" stroke-width="1.5"/>
@@ -279,12 +272,6 @@
   <!-- 3.3V from ESP32 → ADS1115 VDD -->
   <line x1="350" y1="264" x2="350" y2="516" stroke="#a5d6a7" stroke-width="1" stroke-dasharray="3,4"/>
   <text x="355" y="490" fill="#a5d6a7" font-size="10">3.3V</text>
-
-  <!-- I2C from ESP32 → ADS1115 (shared bus) -->
-  <line x1="350" y1="321" x2="370" y2="321" stroke="#fff9c4" stroke-width="1" stroke-dasharray="3,4"/>
-  <line x1="370" y1="321" x2="370" y2="560" stroke="#fff9c4" stroke-width="1" stroke-dasharray="3,4"/>
-  <line x1="370" y1="560" x2="440" y2="560" stroke="#fff9c4" stroke-width="1.5"/>
-  <line x1="370" y1="579" x2="440" y2="579" stroke="#fff9c4" stroke-width="1.5"/>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- Legend -->
@@ -303,9 +290,6 @@
 
   <line x1="665" y1="566" x2="705" y2="566" stroke="#ef9a9a" stroke-width="1.5"/>
   <text x="715" y="570" fill="#ef9a9a" font-size="11">GND (common bus)</text>
-
-  <line x1="865" y1="500" x2="905" y2="500" stroke="#fff9c4" stroke-width="1.5"/>
-  <text x="915" y="504" fill="#fff9c4" font-size="11">I2C (SDA/SCL)</text>
 
   <line x1="865" y1="522" x2="905" y2="522" stroke="#ffab91" stroke-width="1.5"/>
   <text x="915" y="526" fill="#ffab91" font-size="11">4-20mA current loop</text>
