@@ -70,7 +70,7 @@ The system is split into three distinct layers, each with a clear responsibility
 
 | Category | Components |
 |---|---|
-| **Controller** | [ESP32-S3-DEV-KIT-NXRX](hardware/esp32.md) + [expansion adapter board](hardware/esp32_expansion_board.md) |
+| **Controller** | [ESP32-S3-WROOM-1 N16R8 44-Pin](hardware/esp32.md) + [expansion adapter board](hardware/esp32_expansion_board.md) |
 | **Temperature** | [NTC](hardware/ntc.md) 10kΩ thermistors × 2 (via [ADS1115](hardware/expansion_boards.md) ADC), [DS18B20](hardware/ds18b20.md) 1-Wire sensors × 2 |
 | **Flow** | IFM [SM6004](hardware/sm6004.md) magnetic flow meters (planned), [YF-S200](hardware/yf_s200.md) pulse sensors (planned) |
 | **Analog I/O** | [ADS1115](hardware/expansion_boards.md) 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), [MCP4728](hardware/expansion_boards.md) 12-bit DAC × 2 (planned) |
@@ -205,7 +205,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Component | Status | Notes |
 |---|---|---|
-| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.0.8 |
+| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.1 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
 | [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |
 | [NTC2-MASH thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A1 |
@@ -277,6 +277,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | 2026-08-26 | Dashboard v1.2.1–v1.2.3 — mushroom-template-card sensor grid with per-sensor colour thresholds |
 | 2026-08-26 | SM6004 flow meters connected + calibrated — max 13.20 L/min, slope 7.57 L/V, ESPHome config pending |
 | 2026-08-26 | Firmware v1.0.9 — AN1 (RIMS flow A2) + AN2 (Sparge flow A3): rate, total, offset, reset switches |
+| 2026-09-02 | Board 2 (ESP32-S3-WROOM-1 N16R8 44-pin, 25.4mm) tested — firmware flashed via USB, HA reconnected automatically |
 | 2026-08-26 | Dashboard v1.3.0 — AN1/AN2 mushroom cards in Brewing tab; AN1/AN2 offset + reset in Settings tab |
 
 ---
