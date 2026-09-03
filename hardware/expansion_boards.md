@@ -164,6 +164,8 @@ The MCP4728 address is stored in internal EEPROM — **cannot be changed with re
 
 ### Proportional Valve Wiring — MCP4728 on 5V with I2C Level Shifter
 
+> 📐 **Schematic:** [assets/schematics/mcp4728_proportional_valve.svg](../assets/schematics/mcp4728_proportional_valve.svg)
+
 The proportional valve expects **0–5V** control signal. The MCP4728 output range equals its VDD, so powering it from 5V gives a clean 0–5V output directly.
 
 Since the ESP32 I2C runs at 3.3V logic, a **bi-directional level shifter** is required on SDA/SCL between the ESP32 and the MCP4728.
