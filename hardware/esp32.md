@@ -19,7 +19,7 @@ The initial board used during development.
 | RGB LED | GPIO 38 (WS2812) |
 | Flash | 16MB |
 | PSRAM | 8MB |
-| Width | ~24.4mm (approximately 1mm narrower than Board 2) |
+| Width | ~22.9–24.2mm (1.25 or 2.54mm narrower than Board 2 — measure to confirm) |
 
 ### Pinout Diagram
 
@@ -42,9 +42,9 @@ Tested as a replacement during development. All firmware, calibration, and HA en
 | RGB LED | On-board |
 | Flash | 16MB |
 | PSRAM | 8MB |
-| Width | **25.4mm** (~1mm wider than Board 1) |
+| Width | **25.4mm** (1.25 or 2.54mm wider than Board 1) |
 
-> ⚠️ **Width note:** Board 2 measures 25.4mm wide — approximately 1mm wider than Board 1. If you are building an enclosure, measure your actual board before drilling.
+> ⚠️ **Width note:** Board 2 measures 25.4mm. Board 1 is either 1.25mm or 2.54mm narrower (22.9 or 24.2mm — measure with calipers to confirm). If building an enclosure, measure your actual board.
 
 ### First Flash — Download Mode Procedure
 
