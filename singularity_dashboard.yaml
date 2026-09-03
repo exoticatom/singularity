@@ -523,7 +523,9 @@ views:
           | USB | USB Type-C (dual port — USB + UART) |
           | Flash | 16MB |
           | PSRAM | 8MB |
-          | Width | 25.4mm (same PCB width as Board 1) |
+          | Width | 25.4mm |
+          | **Pin header span** | **25.4mm** — expansion board must match |
+          | Pin count | 44 pins |
 
           > See [hardware/esp32.md](https://github.com/exoticatom/singularity/blob/main/hardware/esp32.md) for Board 1 specs and first-flash procedure.
 
@@ -541,6 +543,8 @@ views:
           | Flash | 16MB |
           | PSRAM | 8MB |
           | Width | 63.3 × 25.4mm |
+          | **Pin header span** | **21.8mm** — expansion board must match |
+          | Pin count | 44 pins |
 
       - type: markdown
         title: singularity — Pin Assignments

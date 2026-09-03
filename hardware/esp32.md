@@ -23,6 +23,10 @@ The initial board used during development.
 | Flash | 16MB |
 | PSRAM | 8MB |
 | PCB size | 63.3 × 25.4mm |
+| **Pin header span** | **21.8mm** — expansion board socket must match this width |
+| Pin count | 44 pins |
+
+> ⚠️ **Expansion board compatibility:** Board 1 requires an expansion board with a **21.8mm wide socket**. It is NOT compatible with expansion boards designed for 25.4mm boards.
 
 ### Pinout Diagram
 
@@ -45,9 +49,14 @@ Tested as a replacement during development. All firmware, calibration, and HA en
 | RGB LED | On-board |
 | Flash | 16MB |
 | PSRAM | 8MB |
-| Width | **25.4mm** (same PCB width as Board 1 — expansion adapter may differ) |
+| PCB size | 25.4mm wide |
+| **Pin header span** | **25.4mm** — expansion board socket must match this width |
+| Pin count | 44 pins |
 
-> ⚠️ **Width note:** Both boards measure 25.4mm wide (PCB only). If one feels wider, the difference is in the expansion adapter or screw terminal block, not the core board.
+| **Pin header span** | **25.4mm** — expansion board socket must match this width |
+| Pin count | 44 pins |
+
+> ⚠️ **Expansion board compatibility:** Board 2 requires an expansion board with a **25.4mm wide socket**. It is NOT compatible with expansion boards designed for 21.8mm boards (Board 1). The two boards use different expansion boards and are not interchangeable.
 
 ### First Flash — Download Mode Procedure
 
