@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.5
+# singularity_dashboard.yaml  v1.3.6
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -126,6 +126,21 @@ views:
               action: more-info
 
       # ── Flow Sensors ────────────────────────────────────────────────────────
+      # ── AN1 Diagnostic card (real-time raw voltage + rate) ──────────────────
+      - type: entities
+        title: "AN1 — RIMS Flow Diagnostic"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.singularity_an1_raw_voltage
+            name: "Raw Voltage (A2)"
+            icon: mdi:sine-wave
+          - entity: sensor.singularity_an1_rate
+            name: "Flow Rate (L/min)"
+            icon: mdi:water-pump
+          - entity: sensor.singularity_an1_total
+            name: "Total (L)"
+            icon: mdi:water
+
       - type: horizontal-stack
         cards:
           # AN1 — RIMS flow grouped with reset
