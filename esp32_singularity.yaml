@@ -684,7 +684,9 @@ sensor:
     update_interval: 1s
     filters:
       - lambda: |-
-          if (x < 0.01f) return 0.0f;
+          // Guard: reject floating input (A3 unconnected settles ~0.1V on this hardware)
+          // Calibrated zero = 0.000V, so 0.15V threshold safely rejects float noise
+          if (x < 0.15f) return 0.0f;
           float rate = (x * 7.57f) + id(an2_flow_offset).state;
           if (rate < 0.0f) rate = 0.0f;
           return rate;
