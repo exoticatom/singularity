@@ -24,7 +24,7 @@ This page documents everything configured in [Home Assistant](https://www.home-a
                            │
                 ┌──────────▼──────────┐
                 │     ESP32-S3        │
-                │  singularity v1.1.4 │
+                │  singularity v1.1.5 │
                 └─────────────────────┘
 ```
 
@@ -175,7 +175,7 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ## Dashboard
 
 **File:** `singularity_dashboard.yaml` → deployed to `/config/singularity_dashboard.yaml`
-**Version:** v1.3.7
+**Version:** v1.3.9
 **Registered in:** `/config/configuration.yaml` as `lovelace` dashboard
 
 ### Tab layout
@@ -389,6 +389,8 @@ These entities exist in the HA registry from old firmware versions and are no lo
 | v1.3.1–v1.3.5 | Flow cards grouped, reset as button entities, Board 2 in Hardware tab |
 | v1.3.6 | AN1 raw voltage diagnostic sensor added |
 | v1.3.7 | Diag tab — AN1 + AN2 raw voltage, flow rate, total, live 5min graphs |
+| v1.3.8 | Diag tab: removed graphs, entities only |
+| v1.3.9 | PID setpoint: text input box, max 78°C |
 
 ---
 

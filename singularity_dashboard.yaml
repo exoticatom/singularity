@@ -30,6 +30,9 @@
 #             AN1/AN2 offset + reset cards in Settings tab; About tab sensor table updated
 #   v1.3.1 — AN1/AN2 reset buttons added to Brewing Temperatures tab (below flow cards)
 #   v1.3.6 — AN1 raw voltage sensor + diagnostic card (now moved to Diag tab)
+#   v1.3.7 — Diag tab: AN1 + AN2 full diagnostic cards + live graphs
+#   v1.3.8 — Diag tab: removed graphs, entities only
+#   v1.3.9 — PID setpoint: reverted to standard entities card (config error fix); max 78°C
 #   v1.3.7 — Diag tab: AN1 + AN2 full diagnostic cards + live graphs; removed diag from Brewing tab
 #
 # Sensor naming convention:
@@ -466,7 +469,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.8</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.9</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
