@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.7
+# singularity_dashboard.yaml  v1.3.8
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -466,7 +466,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.7</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.8</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
@@ -615,34 +615,6 @@ views:
             name: "Reset Total"
             icon: mdi:restore
 
-      - type: custom:apexcharts-card
-        header:
-          show: true
-          title: AN1 Raw Voltage — A2
-          show_states: true
-          colorize_states: true
-        graph_span: 5m
-        update_interval: 2s
-        series:
-          - entity: sensor.singularity_an1_raw_voltage
-            name: Voltage (V)
-            color: "#ce93d8"
-            stroke_width: 2
-
-      - type: custom:apexcharts-card
-        header:
-          show: true
-          title: AN1 Flow Rate — RIMS
-          show_states: true
-          colorize_states: true
-        graph_span: 5m
-        update_interval: 2s
-        series:
-          - entity: sensor.singularity_an1_rate
-            name: L/min
-            color: "#4fc3f7"
-            stroke_width: 2
-
       # ── AN2 — Sparge Flow Diagnostic ────────────────────────────────────────
       - type: entities
         title: "AN2 — Sparge Flow  (ADS1115 A3)"
@@ -663,31 +635,3 @@ views:
           - entity: button.singularity_an2_reset_total
             name: "Reset Total"
             icon: mdi:restore
-
-      - type: custom:apexcharts-card
-        header:
-          show: true
-          title: AN2 Raw Voltage — A3
-          show_states: true
-          colorize_states: true
-        graph_span: 5m
-        update_interval: 2s
-        series:
-          - entity: sensor.singularity_an2_raw_voltage
-            name: Voltage (V)
-            color: "#ffab91"
-            stroke_width: 2
-
-      - type: custom:apexcharts-card
-        header:
-          show: true
-          title: AN2 Flow Rate — Sparge
-          show_states: true
-          colorize_states: true
-        graph_span: 5m
-        update_interval: 2s
-        series:
-          - entity: sensor.singularity_an2_rate
-            name: L/min
-            color: "#80cbc4"
-            stroke_width: 2
