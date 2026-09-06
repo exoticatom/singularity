@@ -389,6 +389,7 @@ number:
     optimistic: true
     unit_of_measurement: "°C"
     icon: "mdi:target"
+    mode: box
     on_value:
       then:
         - lambda: |-
