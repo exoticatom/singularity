@@ -37,6 +37,18 @@
 #   dashboard, it is sent to the ESP32 and saved to flash immediately.
 #   No reflash needed — ever.
 #
+# HA ENTITY ID CONVENTION:
+#   ESPHome generates entity IDs automatically from the device name and entity name:
+#   Format:  <platform>.<device_name>_<entity_name_lowercase_underscored>
+#   Example: name: "NTC1-RIMS" on device "singularity" → sensor.singularity_ntc1_rims
+#
+#   Every entity in this file has its HA entity ID noted as:  # → entity.id
+#   on the same line as the name: field.
+#
+# TEMPLATE SENSOR (defined in singularity_templates/singularity_templates.yaml):
+#   binary_sensor.esp32_fast_status  — fast offline detection (10s)
+#   reads: sensor.singularity_uptime — if not updated for >10s → offline
+#
 # Target board: ESP32-S3-N16R8 (16MB flash, 8MB PSRAM)
 # ESPHome version: 2026.8.1
 
@@ -58,6 +70,7 @@ globals:
   # PID controller internal state — updated every 2 seconds
   # pid_integral: accumulates error over time (I term)
   # pid_last_error: remembers the previous error to calculate rate of change (D term)
+  # No HA entity — internal RAM only. Used by the 2s interval PID loop.
   - id: pid_integral
     type: float
     initial_value: '0.0'
@@ -68,6 +81,7 @@ globals:
   # Flow totals — accumulated volume in litres since last reset
   # AN1 = RIMS recirculation circuit (how much wort has circulated)
   # AN2 = Sparge circuit (how many litres of sparge water transferred)
+  # No HA entity — fed into sensor.singularity_an1_total / an2_total via template sensors below.
   - id: an1_total_litres
     type: float
     initial_value: '0.0'
@@ -264,7 +278,7 @@ number:
   # See hardware/calibration.md for the step-by-step calibration process.
 
   - platform: template
-    name: "NTC1 R-Fixed"
+    name: "NTC1 R-Fixed"          # → number.singularity_ntc1_r_fixed
     id: ntc1_r_fixed
     # The actual measured resistance of the fixed 10kΩ resistor in the voltage divider.
     # Measure with a multimeter before soldering — never use the nominal value.
@@ -282,7 +296,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC1 R-Fixed: %.0f Ohm", x);
 
   - platform: template
-    name: "NTC1 V-Ref"
+    name: "NTC1 V-Ref"             # → number.singularity_ntc1_v_ref
     id: ntc1_v_ref
     # The reference voltage powering the voltage divider.
     # Should be 3.3V for ESP32. Measure with a multimeter for accuracy.
@@ -299,7 +313,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC1 V-Ref: %.2f V", x);
 
   - platform: template
-    name: "NTC1 SH-A"
+    name: "NTC1 SH-A"              # → number.singularity_ntc1_sh_a
     id: ntc1_sh_a
     # Steinhart-Hart coefficient A — calculated from 3-point calibration
     min_value: 0
@@ -314,7 +328,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-A: %.9f", x);
 
   - platform: template
-    name: "NTC1 SH-B"
+    name: "NTC1 SH-B"              # → number.singularity_ntc1_sh_b
     id: ntc1_sh_b
     # Steinhart-Hart coefficient B — calculated from 3-point calibration
     min_value: 0
@@ -329,7 +343,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-B: %.9f", x);
 
   - platform: template
-    name: "NTC1 SH-C"
+    name: "NTC1 SH-C"              # → number.singularity_ntc1_sh_c
     id: ntc1_sh_c
     # Steinhart-Hart coefficient C — calculated from 3-point calibration
     min_value: 0
@@ -344,7 +358,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC1 SH-C: %.12f", x);
 
   - platform: template
-    name: "NTC1 Offset"
+    name: "NTC1 Offset"            # → number.singularity_ntc1_offset
     id: ntc1_offset
     # Single-point fine-tune offset applied AFTER the S-H calculation.
     # If the sensor reads 0.3°C too high, set offset to -0.3.
@@ -368,7 +382,7 @@ number:
   # Same structure as NTC1. These are calibrated for the mash tun sensor.
 
   - platform: template
-    name: "NTC2 R-Fixed"
+    name: "NTC2 R-Fixed"          # → number.singularity_ntc2_r_fixed
     id: ntc2_r_fixed
     min_value: 1000
     max_value: 20000
@@ -384,7 +398,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC2 R-Fixed: %.0f Ohm", x);
 
   - platform: template
-    name: "NTC2 V-Ref"
+    name: "NTC2 V-Ref"             # → number.singularity_ntc2_v_ref
     id: ntc2_v_ref
     min_value: 1.0
     max_value: 5.0
@@ -399,7 +413,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC2 V-Ref: %.2f V", x);
 
   - platform: template
-    name: "NTC2 SH-A"
+    name: "NTC2 SH-A"              # → number.singularity_ntc2_sh_a
     id: ntc2_sh_a
     min_value: 0
     max_value: 0.01
@@ -413,7 +427,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-A: %.9f", x);
 
   - platform: template
-    name: "NTC2 SH-B"
+    name: "NTC2 SH-B"              # → number.singularity_ntc2_sh_b
     id: ntc2_sh_b
     min_value: 0
     max_value: 0.01
@@ -427,7 +441,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-B: %.9f", x);
 
   - platform: template
-    name: "NTC2 SH-C"
+    name: "NTC2 SH-C"              # → number.singularity_ntc2_sh_c
     id: ntc2_sh_c
     min_value: 0
     max_value: 0.001
@@ -441,7 +455,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — NTC2 SH-C: %.12f", x);
 
   - platform: template
-    name: "NTC2 Offset"
+    name: "NTC2 Offset"            # → number.singularity_ntc2_offset
     id: ntc2_offset
     min_value: -10
     max_value: 10
@@ -466,7 +480,7 @@ number:
   # your typical mash temperature. offset = reference − DS18B20 reading.
 
   - platform: template
-    name: "DS18B20-Boil Offset"
+    name: "DS18B20-Boil Offset"   # → number.singularity_ds18b20_boil_offset
     id: ds18b20_boil_offset
     min_value: -10
     max_value: 10
@@ -482,7 +496,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — DS18B20-Boil Offset: %.1f degC", x);
 
   - platform: template
-    name: "DS18B20-HLT Offset"
+    name: "DS18B20-HLT Offset"    # → number.singularity_ds18b20_hlt_offset
     id: ds18b20_hlt_offset
     min_value: -10
     max_value: 10
@@ -519,7 +533,7 @@ number:
   # The PID runs every 2 seconds (dt=2s) and drives GPIO42 via slow_pwm.
 
   - platform: template
-    name: "PID Setpoint"
+    name: "PID Setpoint"           # → number.singularity_pid_setpoint
     id: pid_setpoint
     # Target temperature in °C. Max 78°C — safe upper limit for mash brewing.
     min_value: 0
@@ -537,7 +551,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — PID Setpoint: %.1f degC", x);
 
   - platform: template
-    name: "PID Kp"
+    name: "PID Kp"                 # → number.singularity_pid_kp
     id: pid_kp
     # Proportional gain — larger value = stronger reaction to temperature error.
     # Too high → overshoot. Too low → slow response.
@@ -554,7 +568,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — PID Kp: %.2f", x);
 
   - platform: template
-    name: "PID Ki"
+    name: "PID Ki"                 # → number.singularity_pid_ki
     id: pid_ki
     # Integral gain — corrects persistent offset below setpoint.
     # Keep low (0.1–0.5). Set to 0 during initial tuning.
@@ -571,7 +585,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — PID Ki: %.4f", x);
 
   - platform: template
-    name: "PID Kd"
+    name: "PID Kd"                 # → number.singularity_pid_kd
     id: pid_kd
     # Derivative gain — dampens oscillations by reacting to rate of change.
     # Helps prevent overshoot. Set to 0 during initial tuning.
@@ -588,7 +602,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — PID Kd: %.2f", x);
 
   - platform: template
-    name: "PID Max Duty Cycle"
+    name: "PID Max Duty Cycle"    # → number.singularity_pid_max_duty_cycle
     id: pid_duty_cycle
     # Hard cap on heater output as a percentage (0–100%).
     # Setting to 80% protects the heating element from overheating.
@@ -617,7 +631,7 @@ number:
   # Example: SM6004 shows 8.3 L/min, HA shows 7.9 → set offset to +0.4
 
   - platform: template
-    name: "AN1 Flow Offset"
+    name: "AN1 Flow Offset"        # → number.singularity_an1_flow_offset
     id: an1_flow_offset
     min_value: -5.0
     max_value: 5.0
@@ -633,7 +647,7 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — AN1 Flow Offset: %.2f L/min", x);
 
   - platform: template
-    name: "AN2 Flow Offset"
+    name: "AN2 Flow Offset"        # → number.singularity_an2_flow_offset
     id: an2_flow_offset
     min_value: -5.0
     max_value: 5.0
@@ -662,7 +676,7 @@ sensor:
   # sensor (binary_sensor.esp32_fast_status) to detect if the ESP32 is online.
   # If this value stops updating for 10 seconds, HA shows the offline banner.
   - platform: uptime
-    name: "Uptime"
+    name: "Uptime"                 # → sensor.singularity_uptime
     id: singularity_uptime
     update_interval: 1s
 
@@ -671,7 +685,7 @@ sensor:
   # ─────────────────────────────────────────────────────────────────────────
   # Shown as an attribute of the fast-status sensor. Not recorded in HA DB.
   - platform: wifi_signal
-    name: "WiFi Signal"
+    name: "WiFi Signal"            # → sensor.singularity_wifi_signal
     id: wifi_signal_strength
     update_interval: 60s
 
@@ -694,7 +708,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A0_GND'
     gain: 6.144
-    name: "NTC1-RIMS"
+    name: "NTC1-RIMS"              # → sensor.singularity_ntc1_rims
     id: ntc1_rims
     unit_of_measurement: "°C"
     device_class: temperature
@@ -743,7 +757,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A1_GND'
     gain: 6.144
-    name: "NTC2-MASH"
+    name: "NTC2-MASH"              # → sensor.singularity_ntc2_mash
     id: ntc2_mash
     unit_of_measurement: "°C"
     device_class: temperature
@@ -781,7 +795,7 @@ sensor:
   # The offset is added after reading — adjustable from HA Settings without reflash.
   - platform: dallas_temp
     address: 0x750000105cbe3528
-    name: "DS18B20-Boil"
+    name: "DS18B20-Boil"           # → sensor.singularity_ds18b20_boil
     id: ds18b20_boil
     unit_of_measurement: "°C"
     device_class: temperature
@@ -802,7 +816,7 @@ sensor:
   # multiple devices on one pin, identified by their unique ROM address.
   - platform: dallas_temp
     address: 0x3100000c31dd5a28
-    name: "DS18B20-HLT"
+    name: "DS18B20-HLT"            # → sensor.singularity_ds18b20_hlt
     id: ds18b20_hlt
     unit_of_measurement: "°C"
     device_class: temperature
@@ -832,7 +846,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A2_GND'
     gain: 6.144
-    name: "AN1 Raw Voltage"
+    name: "AN1 Raw Voltage"        # → sensor.singularity_an1_raw_voltage
     id: an1_raw_voltage
     unit_of_measurement: "V"
     icon: "mdi:sine-wave"
@@ -849,7 +863,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A2_GND'
     gain: 6.144
-    name: "AN1 Rate"
+    name: "AN1 Rate"               # → sensor.singularity_an1_rate
     id: an1_rate
     unit_of_measurement: "L/min"
     icon: "mdi:water-pump"
@@ -876,7 +890,7 @@ sensor:
   # This is a template sensor that reads the global variable an1_total_litres.
   # The actual accumulation happens in the 1s interval loop below.
   - platform: template
-    name: "AN1 Total"
+    name: "AN1 Total"              # → sensor.singularity_an1_total
     id: an1_total
     unit_of_measurement: "L"
     icon: "mdi:water"
@@ -896,7 +910,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A3_GND'
     gain: 6.144
-    name: "AN2 Raw Voltage"
+    name: "AN2 Raw Voltage"        # → sensor.singularity_an2_raw_voltage
     id: an2_raw_voltage
     unit_of_measurement: "V"
     icon: "mdi:sine-wave"
@@ -912,7 +926,7 @@ sensor:
     ads1115_id: ads1115_0x48
     multiplexer: 'A3_GND'
     gain: 6.144
-    name: "AN2 Rate"
+    name: "AN2 Rate"               # → sensor.singularity_an2_rate
     id: an2_rate
     unit_of_measurement: "L/min"
     icon: "mdi:water-pump"
@@ -932,7 +946,7 @@ sensor:
           send_every: 1
 
   - platform: template
-    name: "AN2 Total"
+    name: "AN2 Total"              # → sensor.singularity_an2_total
     id: an2_total
     unit_of_measurement: "L"
     icon: "mdi:water"
@@ -953,7 +967,7 @@ sensor:
 #
 binary_sensor:
   - platform: status
-    name: "ESP32 Status"
+    name: "ESP32 Status"           # → binary_sensor.singularity_esp32_status
     id: esp32_status
 
 
@@ -1094,7 +1108,7 @@ switch:
   # On subsequent reboots, restores the last known state from flash.
   - platform: gpio
     pin: GPIO41
-    name: "SSR1"
+    name: "SSR1"                   # → switch.singularity_ssr1
     id: ssr1
     icon: "mdi:electric-switch"
     restore_mode: RESTORE_DEFAULT_OFF
@@ -1110,7 +1124,7 @@ switch:
   # When turned OFF: heater output forced to 0%, PID state reset.
   # Persisted to flash — if power cuts mid-brew, it resumes in the same state.
   - platform: template
-    name: "RIMS Heater"
+    name: "RIMS Heater"            # → switch.singularity_rims_heater
     id: rims_heater
     icon: "mdi:fire"
     restore_mode: RESTORE_DEFAULT_OFF
@@ -1141,7 +1155,7 @@ switch:
 button:
 
   - platform: template
-    name: "AN1 Reset Total"
+    name: "AN1 Reset Total"        # → button.singularity_an1_reset_total
     id: an1_reset
     icon: "mdi:restore"
     on_press:
@@ -1150,7 +1164,7 @@ button:
           ESP_LOGI("singularity", "AN1 total reset to 0.0 L");
 
   - platform: template
-    name: "AN2 Reset Total"
+    name: "AN2 Reset Total"        # → button.singularity_an2_reset_total
     id: an2_reset
     icon: "mdi:restore"
     on_press:
@@ -1183,7 +1197,7 @@ one_wire:
 #
 text_sensor:
   - platform: template
-    name: "Build"
+    name: "Build"                  # → sensor.singularity_build
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
