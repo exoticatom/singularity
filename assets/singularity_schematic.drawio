@@ -1,6 +1,19 @@
-<mxGraphModel>
-  <root>
-    <mxCell id="0"/>
-    <mxCell id="1" parent="0"/>
-  </root>
-</mxGraphModel>
+<mxfile host="Electron">
+  <diagram id="BX5RXgeBYn5guF71i1cU" name="Page-1">
+    <mxGraphModel dx="1152" dy="831" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="light-dark(#ffffff, #121212)" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="-hHk8zo5rfothb5CGJLW-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="620" width="750" x="270" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="-hHk8zo5rfothb5CGJLW-55" parent="1" style="text;whiteSpace=wrap;html=1;" value="&lt;li&gt;&lt;p&gt;3V3&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;3V3&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;RST&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO4 (ADC1_3, Touch4, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO5 (ADC1_4, Touch5, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO6 (ADC1_5, Touch6, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO7 (ADC1_6, Touch7, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO15 (ADC2_4, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO16 (ADC2_5, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO17 (ADC2_6, U1_TXD, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO18 (ADC2_7, U1_RXD, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO8 (ADC1_7, Touch8, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO3 (ADC1_2, Touch3, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO46&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO9 (ADC1_8, Touch9, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO10 (ADC1_9, Touch10, S2_CS, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO11 (ADC2_0, Touch11, S2_MOSI, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO12 (ADC2_1, Touch12, S2_CLK, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO13 (ADC2_2, Touch13, S2_MISO, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO14 (ADC2_3, Touch14, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;5V&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GND&lt;/p&gt;&lt;/li&gt;" vertex="1">
+          <mxGeometry height="600" width="290" x="310" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="-hHk8zo5rfothb5CGJLW-56" parent="1" style="text;whiteSpace=wrap;html=1;points=[[0,0,0,0,0],[0,0.25,0,0,0],[0,0.5,0,0,0],[0,0.75,0,0,0],[0,1,0,0,0],[0.25,0,0,0,0],[0.25,1,0,0,0],[0.5,0,0,0,0],[0.5,1,0,0,0],[0.75,0,0,0,0],[0.75,1,0,0,0],[1,0,0,0,0],[1,0.25,0,0,0],[1,0.5,0,0,0],[1,0.75,0,0,0],[1,1,0,0,0]];" value="&lt;li&gt;&lt;p&gt;GND&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO43 (U0_TXD)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO44 (U0_RXD)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO1 (ADC1_0, Touch1, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO2 (ADC1_1, Touch2, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO42 (MTMS)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO41 (MTDI)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO40 (MTDO)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO39 (MTCK)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO38 (RGB_LED)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO37&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO36&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO35&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO0 (BOOT)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO45&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO48&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO47&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO21 (RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO20 (ADC2_9, USB_D+, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GPIO19 (ADC2_8, USB_D-, RTC)&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GND&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;GND&lt;/p&gt;&lt;/li&gt;" vertex="1">
+          <mxGeometry height="620" width="220" x="810" y="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
