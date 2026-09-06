@@ -2,7 +2,7 @@
 
 > ← Back to **[README.md](README.md)**
 
-This page documents everything that was configured in [Home Assistant](https://www.home-assistant.io) for the singularity brewing controller — entities, automations, templates, dashboard, and how they all connect.
+This page documents everything configured in [Home Assistant](https://www.home-assistant.io) for the singularity brewing controller — entities, automations, templates, dashboard, and how they all connect.
 
 ---
 
@@ -24,8 +24,7 @@ This page documents everything that was configured in [Home Assistant](https://w
                            │
                 ┌──────────▼──────────┐
                 │     ESP32-S3        │
-                │  singularity v1.0.8 │
-                │  192.168.168.178    │
+                │  singularity v1.1.4 │
                 └─────────────────────┘
 ```
 
@@ -33,56 +32,66 @@ This page documents everything that was configured in [Home Assistant](https://w
 
 ## Entity Map
 
-All singularity entities in [Home Assistant](https://www.home-assistant.io) — what they do and where they come from:
+All singularity entities in [Home Assistant](https://www.home-assistant.io) — what they do and where they come from.
 
 ### Sensors (read-only, from ESP32)
 
 ```
-sensor.singularity_ntc1_rims        °C    NTC1 on ADS1115 A0 — RIMS tube temp (S-H calc on ESP32)
-sensor.singularity_ntc2_mash        °C    NTC2 on ADS1115 A1 — Mash tun temp (S-H calc on ESP32)
-sensor.singularity_ds18b20_boil     °C    DS18B20 on 1-Wire GPIO48 (offset applied on ESP32)
-sensor.singularity_ds18b20_hlt      °C    DS18B20 on 1-Wire GPIO48 (offset applied on ESP32)
-sensor.singularity_build            str   Firmware version string (e.g. "v1.0.8") — updates every 10s
-sensor.singularity_uptime           s     Seconds since last boot — updates every 1s (heartbeat)
-sensor.singularity_wifi_signal      dBm   WiFi RSSI — updates every 60s (diagnostic)
+sensor.singularity_ntc1_rims          °C     NTC1 on ADS1115 A0 — RIMS tube temp (S-H calc on ESP32)
+sensor.singularity_ntc2_mash          °C     NTC2 on ADS1115 A1 — Mash tun temp (S-H calc on ESP32)
+sensor.singularity_ds18b20_boil       °C     DS18B20 on 1-Wire GPIO48 (offset applied on ESP32)
+sensor.singularity_ds18b20_hlt        °C     DS18B20 on 1-Wire GPIO48 (offset applied on ESP32)
+sensor.singularity_an1_raw_voltage    V      ADS1115 A2 raw voltage — RIMS flow diagnostic
+sensor.singularity_an1_rate           L/min  RIMS flow rate (SM6004 #1 via XY-IT0V, ADS1115 A2)
+sensor.singularity_an1_total          L      RIMS flow session total (resets on reboot or button)
+sensor.singularity_an2_raw_voltage    V      ADS1115 A3 raw voltage — Sparge flow diagnostic
+sensor.singularity_an2_rate           L/min  Sparge flow rate (SM6004 #2 via XY-IT0V, ADS1115 A3)
+sensor.singularity_an2_total          L      Sparge flow session total (resets on reboot or button)
+sensor.singularity_build              str    Firmware version string (e.g. "v1.1.4") — updates every 10s
+sensor.singularity_uptime             s      Seconds since last boot — updates every 1s (heartbeat)
+sensor.singularity_wifi_signal        dBm    WiFi RSSI — updates every 60s (diagnostic)
 ```
 
 ### Binary Sensors
 
 ```
-binary_sensor.singularity_esp32_status      on/off   Native ESPHome connectivity (slow — ~30-60s)
-binary_sensor.singularity_esp32_fast_status  on/off   Template sensor — offline within 10s (see below)
+binary_sensor.singularity_esp32_status       on/off  Native ESPHome connectivity (slow — ~30-60s)
+binary_sensor.esp32_fast_status              on/off  Template sensor — offline within 10s (see below)
 ```
 
 ### Number Entities (read/write, persisted on ESP32 flash)
 
 ```
 NTC1-RIMS Calibration:
-  number.singularity_ntc1_r_fixed      Ω     Fixed resistor value (default: 9883)
-  number.singularity_ntc1_v_ref        V     Reference voltage (default: 3.3)
-  number.singularity_ntc1_sh_a               S-H coefficient A (default: 1.207e-3)
-  number.singularity_ntc1_sh_b               S-H coefficient B (default: 2.183e-4)
-  number.singularity_ntc1_sh_c               S-H coefficient C (default: 1.764e-7)
-  number.singularity_ntc1_offset       °C    Single-point offset (default: 0.0)
+  number.singularity_ntc1_r_fixed       Ω     Fixed resistor value (default: 9883)
+  number.singularity_ntc1_v_ref         V     Reference voltage (default: 3.3)
+  number.singularity_ntc1_sh_a                S-H coefficient A (default: 1.207e-3)
+  number.singularity_ntc1_sh_b                S-H coefficient B (default: 2.183e-4)
+  number.singularity_ntc1_sh_c                S-H coefficient C (default: 1.764e-7)
+  number.singularity_ntc1_offset        °C    Single-point offset (default: 0.0)
 
 NTC2-MASH Calibration:
-  number.singularity_ntc2_r_fixed      Ω     Fixed resistor value (default: 9902)
-  number.singularity_ntc2_v_ref        V     Reference voltage (default: 3.3)
-  number.singularity_ntc2_sh_a               S-H coefficient A (default: 1.210e-3)
-  number.singularity_ntc2_sh_b               S-H coefficient B (default: 2.173e-4)
-  number.singularity_ntc2_sh_c               S-H coefficient C (default: 1.848e-7)
-  number.singularity_ntc2_offset       °C    Single-point offset (default: 0.0)
+  number.singularity_ntc2_r_fixed       Ω     Fixed resistor value (default: 9902)
+  number.singularity_ntc2_v_ref         V     Reference voltage (default: 3.3)
+  number.singularity_ntc2_sh_a                S-H coefficient A (default: 1.210e-3)
+  number.singularity_ntc2_sh_b                S-H coefficient B (default: 2.173e-4)
+  number.singularity_ntc2_sh_c                S-H coefficient C (default: 1.848e-7)
+  number.singularity_ntc2_offset        °C    Single-point offset (default: 0.0)
 
 DS18B20 Offsets:
   number.singularity_ds18b20_boil_offset  °C  Offset for Boil sensor (default: 0.0)
   number.singularity_ds18b20_hlt_offset   °C  Offset for HLT sensor (default: 0.0)
 
 PID Control:
-  number.singularity_pid_setpoint      °C    Target temperature (default: 66.0, range 0-80)
-  number.singularity_pid_kp                  Proportional gain (default: 10.0)
-  number.singularity_pid_ki                  Integral gain (default: 0.2)
-  number.singularity_pid_kd                  Derivative gain (default: 5.0)
-  number.singularity_pid_max_duty_cycle  %   Heater output cap (default: 100)
+  number.singularity_pid_setpoint       °C    Target temperature (default: 66.0, range 0-80)
+  number.singularity_pid_kp                   Proportional gain (default: 10.0)
+  number.singularity_pid_ki                   Integral gain (default: 0.2)
+  number.singularity_pid_kd                   Derivative gain (default: 5.0)
+  number.singularity_pid_max_duty_cycle  %    Heater output cap (default: 100)
+
+Flow Calibration:
+  number.singularity_an1_flow_offset    L/min  AN1 RIMS flow offset (default: 0.0)
+  number.singularity_an2_flow_offset    L/min  AN2 Sparge flow offset (default: 0.0)
 ```
 
 ### Switches (read/write, persisted on ESP32 flash)
@@ -90,6 +99,13 @@ PID Control:
 ```
 switch.singularity_rims_heater    ON/OFF   Enables PID control loop → SSR2 (GPIO42)
 switch.singularity_ssr1           ON/OFF   SSR1 direct control (GPIO41)
+```
+
+### Buttons
+
+```
+button.singularity_an1_reset_total   Press to zero AN1 running total (session reset)
+button.singularity_an2_reset_total   Press to zero AN2 running total (session reset)
 ```
 
 ### Automation
@@ -158,32 +174,30 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 
 ## Dashboard
 
-**File:** `singularity_dashboard.yaml` → deployed to `/config/singularity_dashboard.yaml`  
-**Version:** v1.2.0  
+**File:** `singularity_dashboard.yaml` → deployed to `/config/singularity_dashboard.yaml`
+**Version:** v1.3.7
 **Registered in:** `/config/configuration.yaml` as `lovelace` dashboard
 
 ### Tab layout
 
 ```
-┌─────────────────────┬──────┬──────────┬───────┬──────────┐
-│  🌡️ Brewing Temps   │  📋  │  ⚙️       │  ℹ️   │  🔌      │
-│     (main)          │ Log  │ Settings │ About │ Hardware │
-└─────────────────────┴──────┴──────────┴───────┴──────────┘
+┌──────────────┬─────┬──────────┬───────┬──────────┬──────┐
+│  🌡️ Brewing  │ 📋  │  ⚙️      │  ℹ️   │  🔌      │  📈  │
+│    Temps     │ Log │ Settings │ About │ Hardware │ Diag │
+└──────────────┴─────┴──────────┴───────┴──────────┴──────┘
 ```
 
 ### Tab 1 — Brewing Temperatures
 
 ```
 ┌────────────────────────────────────────────┐
-│  🟢 singularity.local — Online             │  ← conditional (ESP32 online)
-│  🔴 singularity.local — Offline ⚠️         │  ← conditional (ESP32 offline)
+│  🟢 singularity.local — Online             │  ← conditional banner
 ├──────────────────┬─────────────────────────┤
-│ 🌡️ NTC1-RIMS     │ 🌡️ NTC2-MASH            │  ← mushroom cards, colour by temp
-│  67.3 °C (green) │  65.8 °C (green)        │    <50 blue, 50-69 green
-├──────────────────┼─────────────────────────┤    69-75 orange, >75 red
-│ 🌡️ DS18B20-Boil  │ 🌡️ DS18B20-HLT          │  ← boil: <92 blue, <99 orange, ≥99 red
-│  98.2 °C (orange)│  72.4 °C (orange)       │    HLT:  <50 blue, <70 green
-├────────────────────────────────────────────┤    70-85 orange, >85 red
+│ 🌡️ NTC1-RIMS     │ 🌡️ NTC2-MASH            │  mushroom cards, colour by temp
+│ 🌡️ DS18B20-Boil  │ 🌡️ DS18B20-HLT          │
+├──────────────────┬─────────────────────────┤
+│  AN1 RIMS Flow   │  AN2 Sparge Flow        │  rate + total + reset button
+├────────────────────────────────────────────┤
 │  RIMS Heater [toggle]  Target Temp [slider]│
 ├────────────────────────────────────────────┤
 │  📈 apexcharts — 4 sensors + setpoint line │
@@ -195,14 +209,8 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 
 ```
 ┌────────────────────────────────────────────┐
-│  ⚠️ ESP32 is offline  (conditional)        │
-├────────────────────────────────────────────┤
 │  Activity Log (logbook 24h)                │
-│  • ESP32 connect/disconnect events         │
-│  • Firmware version changes               │
-├────────────────────────────────────────────┤
 │  SSR / RIMS Activity (history-graph 24h)   │
-│  • SSR1 state  • RIMS Heater state         │
 └────────────────────────────────────────────┘
 ```
 
@@ -210,28 +218,13 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 
 ```
 ┌────────────────────────────────────────────┐
-│  ⚠️ ESP32 is offline — settings not        │
-│  readable until reconnect (conditional)    │
-├────────────────────────────────────────────┤
-│  How calibration works                     │
-├────────────────────────────────────────────┤
 │  DS18B20 Offsets                           │
-│  • DS18B20-Boil Offset (default: 0.0°C)   │
-│  • DS18B20-HLT Offset  (default: 0.0°C)   │
-├────────────────────────────────────────────┤
-│  NTC1-RIMS — Steinhart-Hart Calibration    │
-│  • R-Fixed  • V-Ref  • A  • B  • C        │
-│  • Offset                                  │
-├────────────────────────────────────────────┤
-│  NTC2-MASH — Steinhart-Hart Calibration    │
-│  • R-Fixed  • V-Ref  • A  • B  • C        │
-│  • Offset                                  │
-├────────────────────────────────────────────┤
-│  RIMS Heater — PID Control                 │
-│  • [toggle]  RIMS Heater                   │
-│  • Setpoint  Kp  Ki  Kd  Max Duty         │
-├────────────────────────────────────────────┤
-│  How calibration works (offline behaviour) │
+│  NTC1-RIMS Steinhart-Hart Calibration      │
+│  NTC2-MASH Steinhart-Hart Calibration      │
+│  RIMS Heater PID Control                   │
+│  AN1 RIMS Flow Calibration (offset+reset)  │
+│  AN2 Sparge Flow Calibration (offset+reset)│
+│  How calibration works                     │
 └────────────────────────────────────────────┘
 ```
 
@@ -239,14 +232,9 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 
 ```
 ┌────────────────────────────────────────────┐
-│  ⚠️ ESP32 is offline  (conditional)        │
-├────────────────────────────────────────────┤
-│  System Versions                           │
-│  🔧 ESP32 Firmware  │  v1.0.8  │  ● Live  │
-│  📊 Dashboard       │  v1.2.3  │  ● Live  │
-├────────────────────────────────────────────┤
-│  About singularity                         │
-│  Sensor map, GPIO assignments              │
+│  System Versions (live firmware + dashboard│
+│  version from ESP32 build sensor)          │
+│  Sensor map, GPIO assignments table        │
 └────────────────────────────────────────────┘
 ```
 
@@ -254,16 +242,27 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 
 ```
 ┌────────────────────────────────────────────┐
-│  ⚠️ ESP32 is offline  (conditional)        │
-├────────────────────────────────────────────┤
-│  ESP32-S3-DEV-KIT-NXRX — Board Overview   │
-│  [board image]                             │
-├────────────────────────────────────────────┤
-│  ESP32-S3 Pinout                           │
-│  [pinout image]                            │
-├────────────────────────────────────────────┤
+│  Board 2 (active) + Board 1 (reference)    │
 │  Pin Assignments table                     │
 │  I2C Device Map table                      │
+└────────────────────────────────────────────┘
+```
+
+### Tab 6 — Diag
+
+```
+┌────────────────────────────────────────────┐
+│  AN1 RIMS Flow (ADS1115 A2)                │
+│  • Raw Voltage  • Rate  • Total            │
+│  • Offset  • Reset button                  │
+│  📈 Raw voltage graph (5min)               │
+│  📈 Flow rate graph (5min)                 │
+├────────────────────────────────────────────┤
+│  AN2 Sparge Flow (ADS1115 A3)              │
+│  • Raw Voltage  • Rate  • Total            │
+│  • Offset  • Reset button                  │
+│  📈 Raw voltage graph (5min)               │
+│  📈 Flow rate graph (5min)                 │
 └────────────────────────────────────────────┘
 ```
 
@@ -298,7 +297,6 @@ template: !include_dir_merge_list singularity_templates/
 
 # Recorder exclude — uptime is the 1s heartbeat for fast-status detection,
 # but there is no value storing 86,400 rows/day in the DB.
-# Connect/disconnect events are still logged via binary_sensor state changes.
 recorder:
   exclude:
     entities:
@@ -310,7 +308,7 @@ recorder:
 
 ## Reconnect Automation
 
-When the ESP32 reconnects after any outage, HA automatically re-sends all 14 calibration values. This keeps ESP32 flash in sync with whatever was last set in the dashboard.
+When the ESP32 reconnects after any outage, HA automatically re-sends all 14 calibration values.
 
 ```
 trigger: binary_sensor.singularity_esp32_status → ON
@@ -323,7 +321,7 @@ trigger: binary_sensor.singularity_esp32_status → ON
             DS18B20: Boil offset, HLT offset
 ```
 
-> **Note:** Values are already on ESP32 flash and applied immediately on boot. The automation is a safety net — if someone changed a value in HA while the ESP32 was offline, this ensures it gets applied. PID parameters (Setpoint, Kp, Ki, Kd, Max Duty) are not re-pushed — they also persist on ESP32 flash independently.
+> **Note:** PID parameters (Setpoint, Kp, Ki, Kd, Max Duty) and flow offsets are not re-pushed — they persist independently on ESP32 flash.
 
 ---
 
@@ -350,29 +348,47 @@ ESP32 on_value lambda
 
 ---
 
+## Orphaned Entities (safe to delete from HA)
+
+These entities exist in the HA registry from old firmware versions and are no longer used:
+
+| Entity | Reason |
+|---|---|
+| `input_number.singularity_ntc1_*` / `ntc2_*` | Replaced by `number.*` entities on ESP32 flash |
+| `input_number.singularity_offset_*` | Replaced by `number.*` entities |
+| `input_text.singularity_ssr1_name` / `ssr2_name` | Old UI helpers, never used |
+| `number.singularity_rims_direct_duty_cycle` | Old DIRECT mode removed v1.0.5 |
+| `number.singularity_rims_pid_switch_threshold` | Old DIRECT mode removed v1.0.5 |
+| `switch.singularity_an1_reset_total` / `an2_reset_total` | Replaced by `button.*` entities |
+| `switch.singularity_ssr2` / `ssr2_rims_heater` / `ssr1_spare` | Old SSR names |
+| `sensor.singularity_ntc1_rims_raw` / `ntc2_mash_raw` | Old RAW sensors removed |
+| `sensor.singularity_ds18b20_boil_raw` / `hlt_raw` | Old RAW sensors removed |
+| `sensor.singularity_debug_0x49_a0_raw` | Old ADS1115 #2 debug sensor |
+| `sensor.singularity_firmware_version` | Renamed to `sensor.singularity_build` |
+| `sensor.singularity_hlt_temperature` / `ds18b20_kettle` | Old sensor names |
+| `sensor.singularity_version` / `newest_version` / `cpu_percent` / `memory_percent` | Old project entities |
+| `binary_sensor.singularity_running` / `project_singularity_running` | Old project entities |
+| `switch.singularity` / `switch.project_singularity` | Old project switch |
+| `update.singularity_firmware` / `singularity_update` / `project_singularity_update` | Old update entities |
+
+---
+
 ## Dashboard Version History
 
 | Version | Change |
 |---|---|
 | v1.0.0 | Initial dashboard |
-| v1.0.3 | PID parameters card in Settings tab |
-| v1.0.4 | RIMS dual-mode control cards |
 | v1.0.5 | RIMS simplified to single PID card |
-| v1.0.6 | RIMS mode select + setpoint on main tab |
 | v1.0.7 | RIMS toggle switch, setpoint 0-80°C |
-| v1.0.8 | Fix stale entity IDs (select→switch, ssr2→rims_heater) |
-| v1.0.9 | Remove stale HA Templates row |
+| v1.0.8 | Fix stale entity IDs (ssr2→rims_heater) |
 | v1.1.0 | Offline warning banner on Settings tab |
 | v1.1.1 | Default values on Settings entities |
-| v1.1.3 | Default values in entity names |
-| v1.1.5 | Long coefficients as secondary_info |
-| v1.1.6 | Calibration sections in hardware docs + links |
-| v1.1.7 | Offline ⚠️ banner on Log, About, Hardware tabs |
-| v1.1.8 | ⚠️ added to main tab offline banner |
-| v1.2.0 | Replace history-graph with apexcharts-card — 4 sensors, live setpoint line, colour coded |
-| v1.2.1 | Mushroom template cards for sensors — colour thresholds per sensor type |
-| v1.2.2 | DS18B20-Boil thresholds: blue <92°C, orange <99°C, red ≥99°C |
-| v1.2.3 | Fix mushroom icon_color whitespace (collapsed to single-line templates) |
+| v1.2.0 | apexcharts-card — 4 sensors, live setpoint line |
+| v1.2.1–v1.2.4 | Mushroom template cards, colour thresholds per sensor |
+| v1.3.0 | AN1/AN2 flow mushroom cards + reset buttons in Brewing tab |
+| v1.3.1–v1.3.5 | Flow cards grouped, reset as button entities, Board 2 in Hardware tab |
+| v1.3.6 | AN1 raw voltage diagnostic sensor added |
+| v1.3.7 | Diag tab — AN1 + AN2 raw voltage, flow rate, total, live 5min graphs |
 
 ---
 
@@ -386,11 +402,11 @@ ESP32 on_value lambda
 │  Show online/offline status │  Run Steinhart-Hart calculation │
 │  Store calibration in UI    │  Store calibration in flash     │
 │  Control RIMS heater toggle │  Run PID loop every 2s          │
-│  Show PID setpoint input    │  Drive SSR2 via slow_pwm        │
+│  Show flow rates + totals   │  Drive SSR2 via slow_pwm        │
 │  Log connect/disconnect     │  Apply DS18B20 offsets          │
-│  Re-send calibration on     │  Publish uptime heartbeat (1s)  │
-│    reconnect                │  Publish WiFi RSSI (60s)        │
-│  Run fast-status template   │  Works standalone after flash   │
+│  Re-send calibration on     │  Calculate flow from voltage    │
+│    reconnect                │  Accumulate flow totals         │
+│  Run fast-status template   │  Publish uptime heartbeat (1s)  │
 └─────────────────────────────┴─────────────────────────────────┘
 ```
 

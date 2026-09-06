@@ -1,9 +1,11 @@
 # singularity — Vitamin B Brewing Controller
 
+> **Last updated: 2026-09-02** — Firmware v1.1.4 · Dashboard v1.3.7
+
 [![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
 [![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
-[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.1.1-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.3.5-orange)](singularity_dashboard.yaml)
+[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.1.4-green)](esp32_singularity.yaml)
+[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.3.7-orange)](singularity_dashboard.yaml)
 [![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
 [![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
 [![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
@@ -153,11 +155,12 @@ Five tabs, auto-deployed on every push to `main`:
 
 | Tab | Description |
 |---|---|
-| **Brewing Temperatures** | Online/offline banner, corrected sensor readings, SSR controls, history graph |
+| **Brewing Temperatures** | Online/offline banner, corrected sensor readings, AN1/AN2 flow cards with reset, history graph |
 | **Log** | ESP32 connectivity events, SSR activity graph (24h) |
-| **Settings** | NTC S-H calibration on ESP32 (R, V-ref, A, B, C, Offset), DS18B20 offsets |
+| **Settings** | NTC S-H calibration, DS18B20 offsets, PID params, AN1/AN2 flow offsets + reset |
 | **About** | System versions (ESP32 firmware, dashboard) |
 | **Hardware** | ESP32 pinout, pin assignment table, I2C device map |
+| **Diag** | AN1 + AN2 raw voltage, flow rate, total — live graphs (5min rolling) |
 
 ---
 
@@ -205,7 +208,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Component | Status | Notes |
 |---|---|---|
-| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.1 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
+| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.4 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
 | [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |
 | [NTC2-MASH thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A1 |
@@ -226,14 +229,14 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.1.1 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.1.4 | ✅ Active | OTA updates working |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.3.5 | ✅ Active | 5 tabs, mushroom sensor cards, apexcharts graph, AN1/AN2 flow cards |
+| HA dashboard v1.3.7 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | ✅ Implemented | AN1 (RIMS, A2) + AN2 (Sparge, A3) — rate + total + offset + reset |
@@ -277,7 +280,12 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | 2026-08-26 | Dashboard v1.2.1–v1.2.3 — mushroom-template-card sensor grid with per-sensor colour thresholds |
 | 2026-08-26 | SM6004 flow meters connected + calibrated — max 13.20 L/min, slope 7.57 L/V, ESPHome config pending |
 | 2026-09-02 | Firmware v1.0.9 — AN1 (RIMS flow A2) + AN2 (Sparge flow A3): rate, total, offset, reset buttons |
-| 2026-09-02 | Dashboard v1.3.x — AN1/AN2 flow cards, reset buttons, Board 2 hardware tab |
+| 2026-09-02 | Firmware v1.1.0 — reset switches replaced with button entities |
+| 2026-09-02 | Firmware v1.1.1 — target board updated to ESP32-S3-N16R8, variant esp32s3 |
+| 2026-09-02 | Firmware v1.1.2 — AN1 raw voltage sensor + ADS1115 noise fix (continuous_mode off, median filter) |
+| 2026-09-02 | Firmware v1.1.3 — AN2 floating input guard threshold raised to 0.15V |
+| 2026-09-02 | Firmware v1.1.4 — AN2 raw voltage sensor added; all channel mapping confirmed A0-A3 |
+| 2026-09-02 | Dashboard v1.3.7 — Diag tab with AN1 + AN2 raw voltage, rate, total, live graphs |
 
 ---
 
