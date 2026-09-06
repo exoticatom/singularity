@@ -1,71 +1,73 @@
-# esp32_singularity.yaml
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  esp32_singularity.yaml                                                      ║
+# ║  singularity Brewing Controller — ESP32-S3-N16R8                             ║
+# ║  Firmware v1.1.5                                                              ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
 #
-# Project: singularity
-# Purpose: ESPHome base node configuration for the ESP32-S3-DevKitC-1 brewing
-#          controller. Defines the I2C bus, ADS1115 ADC, two NTC thermistors
-#          (NTC1-RIMS and NTC2-MASH) with full Steinhart-Hart calculation on
-#          the ESP32, a Dallas 1-Wire bus with two DS18B20 digital temperature
-#          sensors with offset correction, and SSR relay outputs.
+# WHAT THIS FILE IS:
+#   This is the ESPHome firmware configuration for the singularity brewing
+#   controller. ESPHome reads this YAML file and compiles it into C++ firmware
+#   that runs directly on the ESP32 microcontroller.
 #
-# Sensors:
-#   NTC1-RIMS    — ADS1115 #1 (0x48) A0 — S-H calc on ESP32, all params persisted to flash
-#   NTC2-MASH    — ADS1115 #1 (0x48) A1 — S-H calc on ESP32, all params persisted to flash
-#   DS18B20-Boil — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
-#   DS18B20-HLT  — 1-Wire GPIO 48 — offset applied on ESP32, persisted to flash
+#   You do NOT need to write C++ — ESPHome handles it. You just describe what
+#   hardware is connected and what you want it to do.
 #
-# Outputs:
-#   SSR1 — GPIO 41 — relay output (RESTORE_DEFAULT_OFF)
-#   SSR2 — GPIO 42 — RIMS heater, driven exclusively by rims_heater_pwm (slow_pwm 2s)
+# WHAT THE ESP32 DOES:
+#   • Reads 4 temperature sensors (2× NTC thermistors, 2× DS18B20 digital)
+#   • Reads 2 flow meters (SM6004 via 4-20mA converter → ADS1115 ADC)
+#   • Runs a PID control loop to heat wort via a RIMS heating element (SSR)
+#   • Publishes all readings to Home Assistant over WiFi
+#   • Stores calibration and settings in flash memory — survives power cuts
 #
-# RIMS Heater Control — single-mode PID on GPIO 42:
-#   switch.rims_heater ON  — PID running on ntc1_rims, output to rims_heater_pwm
-#   switch.rims_heater OFF — output forced to 0%, PID state reset
-#   Persisted to flash — restores last state on reboot.
+# HARDWARE CONNECTED:
+#   GPIO 21 (SDA) + GPIO 47 (SCL) → I2C bus → ADS1115 ADC chip
+#   GPIO 48                        → 1-Wire bus → 2× DS18B20 temperature sensors
+#   GPIO 41                        → SSR1 relay output (spare)
+#   GPIO 42                        → SSR2 relay output (RIMS heater, PWM)
 #
-# Design principle: After any restart (planned or mid-brew) the ESP32 restores
-#   all calibration parameters and SSR states from flash and continues operating
-#   without requiring HA to be available. HA is the UI to change parameters only.
+# ADS1115 CHANNEL MAP (16-bit ADC, address 0x48):
+#   A0 → NTC1-RIMS  (temperature of wort coming out of RIMS tube)
+#   A1 → NTC2-MASH  (temperature of wort in the mash tun)
+#   A2 → AN1        (RIMS recirculation flow rate — SM6004 #1)
+#   A3 → AN2        (Sparge flow rate — SM6004 #2)
 #
-# All calibration parameters use restore_value: true — persisted to flash.
-# On first boot: initial_value (factory defaults) are used.
-# On subsequent boots: last saved flash values are used automatically.
-# On_boot logs all active parameter values to the ESPHome log for verification.
+# HOW SETTINGS WORK:
+#   All calibration values (NTC coefficients, offsets, PID tuning) are stored
+#   as "number" entities in Home Assistant. When you change a value in the HA
+#   dashboard, it is sent to the ESP32 and saved to flash immediately.
+#   No reflash needed — ever.
 #
-# Note: DS18B20 ROM addresses are specific to this hardware installation.
-#       Re-run ROM discovery if a sensor is replaced.
-#
-# GPIO assignments (see hardware/gpio_map.md):
-#   I2C  SDA → GPIO 21 | SCL → GPIO 47
-#   1-Wire Data (DQ) → GPIO 48  (4.7 kΩ pull-up to 3.3V required)
-#   SSR1 → GPIO 41 | SSR2 → GPIO 42
-#
-# Polling: NTC 1s, DS18B20 1s, build version 10s
-# Filter:  NTC → S-H lambda + EMA α=0.25 (baked in)
-#          DS18B20 → offset lambda + EMA α=0.25 (baked in)
-#
-# Target board: ESP32-S3-N16R8 (16MB flash, 8MB PSRAM) on screw-terminal expansion board
+# Target board: ESP32-S3-N16R8 (16MB flash, 8MB PSRAM)
 # ESPHome version: 2026.8.1
 
 ---
 
-# ── RIMS Heater Control — PID runtime state ───────────────────────────────────
-# These globals hold the running PID state between control loop ticks.
-# They are NOT persisted to flash (no restore_value) — reset to 0 on every boot.
-# pid_integral and pid_last_error reset to 0 when switching into PID mode.
+# ══════════════════════════════════════════════════════════════════════════════
+# GLOBALS — Variables that live in RAM while the ESP32 is running
+# ══════════════════════════════════════════════════════════════════════════════
 #
-# ── Flow totals — AN1 (RIMS) and AN2 (Sparge) ────────────────────────────────
-# an1_total_litres and an2_total_litres accumulate L over time.
-# Integrated every 1s: total += rate_Lmin / 60.0
-# Reset to 0.0 via switch.singularity_an1_reset / switch.singularity_an2_reset.
-# NOT persisted to flash — reset to 0 on every reboot (intentional: totals are
-# per-brew session, not permanent).
+# These are like "global variables" in programming — values stored in RAM that
+# all parts of the firmware can read and write.
+#
+# IMPORTANT: These are NOT saved to flash. They reset to 0 every time the
+# ESP32 reboots. This is intentional for flow totals (they are per-brew-session)
+# and for PID state (a clean start after every reboot is safer).
+#
 globals:
+
+  # PID controller internal state — updated every 2 seconds
+  # pid_integral: accumulates error over time (I term)
+  # pid_last_error: remembers the previous error to calculate rate of change (D term)
   - id: pid_integral
     type: float
     initial_value: '0.0'
   - id: pid_last_error
     type: float
     initial_value: '0.0'
+
+  # Flow totals — accumulated volume in litres since last reset
+  # AN1 = RIMS recirculation circuit (how much wort has circulated)
+  # AN2 = Sparge circuit (how many litres of sparge water transferred)
   - id: an1_total_litres
     type: float
     initial_value: '0.0'
@@ -73,6 +75,15 @@ globals:
     type: float
     initial_value: '0.0'
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ESPHOME — Basic device identity
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# This section defines who this device is. The "name" becomes the hostname
+# on your network (singularity.local) and the prefix for all entity IDs in HA
+# (e.g. sensor.singularity_ntc1_rims).
+#
 esphome:
   name: singularity
   friendly_name: singularity
@@ -80,6 +91,11 @@ esphome:
   project:
     name: "exoticatom.singularity"
     version: "1.1.5"
+
+  # on_boot: runs once after the ESP32 finishes booting
+  # priority: -100 means it runs after all hardware is initialised
+  # We use it to print all current flash values to the log so you can verify
+  # what settings are active without opening HA
   on_boot:
     priority: -100
     then:
@@ -98,35 +114,76 @@ esphome:
           ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f  MaxDuty=%.0f%%",
             id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
             id(pid_kd).state, id(pid_duty_cycle).state);
-          ESP_LOGI("singularity", "RIMS: Heater=%s",
-            id(rims_heater).state ? "ON" : "OFF");
+          ESP_LOGI("singularity", "RIMS Heater: %s", id(rims_heater).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "AN1 Flow Offset: %.2f L/min", id(an1_flow_offset).state);
           ESP_LOGI("singularity", "AN2 Flow Offset: %.2f L/min", id(an2_flow_offset).state);
           ESP_LOGI("singularity", "=============================================");
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ESP32 BOARD — Which chip and framework to use
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# board: esp32-s3-devkitc-1 is the standard identifier for ESP32-S3 boards
+# framework: arduino — use the Arduino framework (simpler, well supported)
+# variant: esp32s3 — tells ESPHome this is the S3 variant (needed for 16MB flash)
+#
 esp32:
   board: esp32-s3-devkitc-1
   framework:
     type: arduino
   variant: esp32s3
 
-# ── Logging ────────────────────────────────────────────────────────────────────
-# INFO level — hardware bring-up complete, sensors verified.
+
+# ══════════════════════════════════════════════════════════════════════════════
+# LOGGER — Controls what gets printed to the serial console
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# INFO level shows important events (boot, safety triggers, PID output).
+# Use DEBUG for troubleshooting — much more verbose.
+# Connect USB and run "esphome logs esp32_singularity.yaml" to see the output.
+#
 logger:
   level: INFO
 
-# ── API & OTA ──────────────────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# API — Connection to Home Assistant
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# The ESPHome native API lets HA talk directly to the ESP32 over WiFi.
+# The encryption key prevents anyone else on the network from connecting.
+# reboot_timeout: if HA hasn't connected for 3 minutes, reboot the ESP32.
+# This prevents the ESP32 from getting stuck in a disconnected state.
+#
 api:
   encryption:
     key: !secret singularity_api_encryption_key
   reboot_timeout: 3min
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OTA — Over-The-Air firmware updates
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# OTA lets you flash new firmware over WiFi — no USB cable needed after the
+# first flash. Run "esphome run esp32_singularity.yaml" and choose "Wirelessly".
+#
 ota:
   - platform: esphome
     password: !secret singularity_ota_password
 
-# ── Wi-Fi ──────────────────────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# WI-FI — Network connection
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Credentials are stored in secrets.yaml — never hardcoded here.
+# ap (access point): if WiFi fails, the ESP32 creates its own hotspot named
+# "singularity-fallback" so you can still connect and fix things.
+# fast_connect: skip scanning for the network — connect directly (faster).
+#
 wifi:
   ssid: !secret singularity_wifi_ssid
   password: !secret singularity_wifi_password
@@ -135,37 +192,87 @@ wifi:
     password: !secret singularity_ap_password
   fast_connect: true
 
+# captive_portal: when connected to the fallback hotspot, a browser popup
+# appears automatically to help you configure WiFi settings.
 captive_portal:
 
-# ── I2C Bus ────────────────────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# I2C BUS — Communication protocol for the ADS1115 ADC chip
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# I2C is a 2-wire communication protocol. Multiple chips can share the same
+# two wires (SDA = data, SCL = clock). Each chip has a unique address (0x48).
+# scan: true — at boot, the ESP32 scans and logs all I2C devices found.
+# This is useful to verify wiring — you should see 0x48 in the boot log.
+#
 i2c:
   sda: GPIO21
   scl: GPIO47
   scan: true
   id: bus_a
 
-# ── ADS1115 — 16-bit ADC (I2C address 0x48) ───────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ADS1115 — 16-bit Analog-to-Digital Converter
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# The ESP32 has a built-in ADC but it's noisy and inaccurate (~12-bit).
+# The ADS1115 is a dedicated 16-bit ADC chip on the I2C bus — much more
+# accurate. It has 4 input channels (A0–A3).
+#
+# address: 0x48 — the chip's I2C address (set by the ADDR pin → GND)
+# continuous_mode: false — single-shot mode. The chip takes one reading when
+# asked, then goes idle. This reduces noise compared to continuous sampling.
+#
 ads1115:
   - address: 0x48
     i2c_id: bus_a
     id: ads1115_0x48
     continuous_mode: false
 
-# ── Calibration Parameters ────────────────────────────────────────────────────
-# All values persist to ESP32 flash (restore_value: true).
-# Initial values are factory defaults — used only on very first boot.
-# After any reboot the last saved values are restored automatically.
-# HA Settings tab writes new values → saved to flash → used immediately.
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NUMBER ENTITIES — Adjustable parameters stored on flash
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Each "number" entity creates a value in Home Assistant that you can adjust
+# from the Settings tab. When you change a value, it is:
+#   1. Sent to the ESP32 via the API
+#   2. Saved to flash (restore_value: true) — survives reboots forever
+#   3. Used immediately by the firmware (no reflash needed)
+#
+# "optimistic: true" means HA doesn't wait for the ESP32 to confirm —
+# it updates the UI immediately. This makes the dashboard feel responsive.
+#
 number:
-  # --- NTC1-RIMS ---
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # NTC1-RIMS CALIBRATION PARAMETERS
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # NTC thermistors change resistance with temperature. To convert resistance
+  # to °C we use the Steinhart-Hart equation:
+  #   1/T = A + B·ln(R) + C·(ln(R))³
+  # where T is temperature in Kelvin, R is the thermistor resistance in Ohms.
+  #
+  # R is calculated from the measured voltage using a voltage divider:
+  #   R = R_fixed × V / (V_ref − V)
+  #
+  # These 5 parameters (R_fixed, V_ref, A, B, C) are specific to YOUR physical
+  # thermistor and were determined by the calibration procedure.
+  # See hardware/calibration.md for the step-by-step calibration process.
+
   - platform: template
     name: "NTC1 R-Fixed"
     id: ntc1_r_fixed
+    # The actual measured resistance of the fixed 10kΩ resistor in the voltage divider.
+    # Measure with a multimeter before soldering — never use the nominal value.
     min_value: 1000
     max_value: 20000
     step: 1
     restore_value: true
-    initial_value: 9883
+    initial_value: 9883       # measured value for this installation
     optimistic: true
     unit_of_measurement: "Ω"
     icon: "mdi:resistor"
@@ -177,6 +284,8 @@ number:
   - platform: template
     name: "NTC1 V-Ref"
     id: ntc1_v_ref
+    # The reference voltage powering the voltage divider.
+    # Should be 3.3V for ESP32. Measure with a multimeter for accuracy.
     min_value: 1.0
     max_value: 5.0
     step: 0.01
@@ -192,6 +301,7 @@ number:
   - platform: template
     name: "NTC1 SH-A"
     id: ntc1_sh_a
+    # Steinhart-Hart coefficient A — calculated from 3-point calibration
     min_value: 0
     max_value: 0.01
     step: 0.000000001
@@ -206,6 +316,7 @@ number:
   - platform: template
     name: "NTC1 SH-B"
     id: ntc1_sh_b
+    # Steinhart-Hart coefficient B — calculated from 3-point calibration
     min_value: 0
     max_value: 0.01
     step: 0.000000001
@@ -220,6 +331,7 @@ number:
   - platform: template
     name: "NTC1 SH-C"
     id: ntc1_sh_c
+    # Steinhart-Hart coefficient C — calculated from 3-point calibration
     min_value: 0
     max_value: 0.001
     step: 0.000000001
@@ -234,6 +346,9 @@ number:
   - platform: template
     name: "NTC1 Offset"
     id: ntc1_offset
+    # Single-point fine-tune offset applied AFTER the S-H calculation.
+    # If the sensor reads 0.3°C too high, set offset to -0.3.
+    # Useful for small adjustments without full recalibration.
     min_value: -10
     max_value: 10
     step: 0.1
@@ -247,7 +362,11 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — NTC1 Offset: %.1f degC", x);
 
-  # --- NTC2-MASH ---
+  # ─────────────────────────────────────────────────────────────────────────
+  # NTC2-MASH CALIBRATION PARAMETERS
+  # ─────────────────────────────────────────────────────────────────────────
+  # Same structure as NTC1. These are calibrated for the mash tun sensor.
+
   - platform: template
     name: "NTC2 R-Fixed"
     id: ntc2_r_fixed
@@ -337,7 +456,15 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — NTC2 Offset: %.1f degC", x);
 
-  # --- DS18B20-Boil offset ---
+  # ─────────────────────────────────────────────────────────────────────────
+  # DS18B20 OFFSET CORRECTION
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # DS18B20 sensors are factory-calibrated (±0.5°C accuracy).
+  # A simple single-point offset is usually enough to correct any small error.
+  # Procedure: compare DS18B20 reading against a reference thermometer at
+  # your typical mash temperature. offset = reference − DS18B20 reading.
+
   - platform: template
     name: "DS18B20-Boil Offset"
     id: ds18b20_boil_offset
@@ -354,7 +481,6 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — DS18B20-Boil Offset: %.1f degC", x);
 
-  # --- DS18B20-HLT offset ---
   - platform: template
     name: "DS18B20-HLT Offset"
     id: ds18b20_hlt_offset
@@ -371,16 +497,31 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — DS18B20-HLT Offset: %.1f degC", x);
 
-  # ── PID Control Parameters ────────────────────────────────────────────────
-  # RIMS heater PID control — single mode, always closed-loop.
-  # High Kp (e.g. 5-10) with Ki=0/Kd=0 gives full-power heat-up behaviour:
-  # when far below setpoint the output saturates at max_duty automatically.
-  # All values persist to flash — controller resumes with last known state
-  # after any reboot, even without HA available.
+  # ─────────────────────────────────────────────────────────────────────────
+  # PID CONTROL PARAMETERS
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # PID (Proportional-Integral-Derivative) is a control algorithm that drives
+  # the heater to reach and hold a target temperature.
+  #
+  # HOW IT WORKS (simplified):
+  #   error = target_temp - current_temp
+  #   output = Kp × error               ← proportional: reacts to current error
+  #           + Ki × (sum of past errors) ← integral: fixes steady-state offset
+  #           + Kd × (rate of error change) ← derivative: dampens oscillations
+  #
+  # TUNING GUIDE:
+  #   Start: Kp=10, Ki=0, Kd=0, MaxDuty=100%
+  #   → If temperature overshoots setpoint:  reduce Kp
+  #   → If temperature never quite reaches setpoint: increase Ki
+  #   → If temperature oscillates around setpoint: increase Kd
+  #
+  # The PID runs every 2 seconds (dt=2s) and drives GPIO42 via slow_pwm.
 
   - platform: template
     name: "PID Setpoint"
     id: pid_setpoint
+    # Target temperature in °C. Max 78°C — safe upper limit for mash brewing.
     min_value: 0
     max_value: 78
     step: 0.5
@@ -389,7 +530,7 @@ number:
     optimistic: true
     unit_of_measurement: "°C"
     icon: "mdi:target"
-    mode: box
+    mode: box        # renders as a text input box in HA instead of a slider
     on_value:
       then:
         - lambda: |-
@@ -398,6 +539,8 @@ number:
   - platform: template
     name: "PID Kp"
     id: pid_kp
+    # Proportional gain — larger value = stronger reaction to temperature error.
+    # Too high → overshoot. Too low → slow response.
     min_value: 0
     max_value: 100
     step: 0.01
@@ -413,6 +556,8 @@ number:
   - platform: template
     name: "PID Ki"
     id: pid_ki
+    # Integral gain — corrects persistent offset below setpoint.
+    # Keep low (0.1–0.5). Set to 0 during initial tuning.
     min_value: 0
     max_value: 10
     step: 0.001
@@ -428,6 +573,8 @@ number:
   - platform: template
     name: "PID Kd"
     id: pid_kd
+    # Derivative gain — dampens oscillations by reacting to rate of change.
+    # Helps prevent overshoot. Set to 0 during initial tuning.
     min_value: 0
     max_value: 100
     step: 0.01
@@ -443,6 +590,9 @@ number:
   - platform: template
     name: "PID Max Duty Cycle"
     id: pid_duty_cycle
+    # Hard cap on heater output as a percentage (0–100%).
+    # Setting to 80% protects the heating element from overheating.
+    # At 100% the PID has full control.
     min_value: 0
     max_value: 100
     step: 1
@@ -456,12 +606,15 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — PID Max Duty Cycle: %.0f%%", x);
 
-  # ── Flow Offsets — AN1 (RIMS, A2) and AN2 (Sparge, A3) ──────────────────────
-  # Fine-tune offset applied after voltage→L/min conversion.
-  # Use when ADS1115 reading differs slightly from SM6004 display at steady flow.
-  # Procedure: run pump at steady flow, compare SM6004 display vs HA reading,
-  #            set offset = SM6004 display − HA reading.
-  # Persisted to flash — survives reboot.
+  # ─────────────────────────────────────────────────────────────────────────
+  # FLOW SENSOR OFFSETS — AN1 (RIMS) and AN2 (Sparge)
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # After the 4-20mA converter is calibrated with ZERO and SPAN pots,
+  # there may still be a small difference between what the SM6004 display
+  # shows and what the ADS1115 reads (due to input impedance loading).
+  # Set offset = SM6004_display_reading − ESP32_HA_reading at steady flow.
+  # Example: SM6004 shows 8.3 L/min, HA shows 7.9 → set offset to +0.4
 
   - platform: template
     name: "AN1 Flow Offset"
@@ -496,28 +649,47 @@ number:
             ESP_LOGI("singularity", "FLASH SAVED — AN2 Flow Offset: %.2f L/min", x);
 
 
-# ── RIMS Heater Switch ────────────────────────────────────────────────────────
-# Simple ON/OFF switch controlling the PID loop.
-#   OFF — output forced to 0%, PID state reset
-#   ON  — incremental PID running on ntc1_rims, output to rims_heater_pwm
-# Persisted to flash — restores last state on reboot.
+# ══════════════════════════════════════════════════════════════════════════════
+# SENSORS — Everything the ESP32 reads and publishes to HA
+# ══════════════════════════════════════════════════════════════════════════════
 
-# ── Sensors ───────────────────────────────────────────────────────────────────
 sensor:
-  # --- Uptime heartbeat (1s) — used by HA fast-status template ---
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # UPTIME — counts seconds since last boot
+  # ─────────────────────────────────────────────────────────────────────────
+  # This is not displayed on the dashboard but is used by the HA template
+  # sensor (binary_sensor.esp32_fast_status) to detect if the ESP32 is online.
+  # If this value stops updating for 10 seconds, HA shows the offline banner.
   - platform: uptime
     name: "Uptime"
     id: singularity_uptime
     update_interval: 1s
 
-  # --- WiFi signal (60s diagnostic) ---
+  # ─────────────────────────────────────────────────────────────────────────
+  # WiFi SIGNAL STRENGTH — diagnostic only
+  # ─────────────────────────────────────────────────────────────────────────
+  # Shown as an attribute of the fast-status sensor. Not recorded in HA DB.
   - platform: wifi_signal
     name: "WiFi Signal"
     id: wifi_signal_strength
     update_interval: 60s
 
-  # --- NTC1-RIMS ---
-  # Full Steinhart-Hart on ESP32. Returns NAN if disconnected or out of range.
+  # ─────────────────────────────────────────────────────────────────────────
+  # NTC1-RIMS — RIMS tube outlet temperature (ADS1115 A0)
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # How it works:
+  #   1. ADS1115 reads the voltage at the midpoint of the voltage divider
+  #   2. Lambda filter converts voltage → resistance → °C using Steinhart-Hart
+  #   3. EMA (Exponential Moving Average) smooths out noise
+  #
+  # The lambda filter returns NAN (Not A Number) if the sensor is disconnected
+  # or reading something impossible. NAN causes the PID to shut off the heater
+  # automatically — this is a safety feature.
+  #
+  # gain: 6.144 means the ADS1115 measures in the ±6.144V range
+  # multiplexer: A0_GND means channel A0 referenced to ground (single-ended)
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A0_GND'
@@ -530,30 +702,43 @@ sensor:
     update_interval: 1s
     filters:
       - lambda: |-
-          float v = x;
-          float v_ref = id(ntc1_v_ref).state;
-          float r_fixed = id(ntc1_r_fixed).state;
-          float a = id(ntc1_sh_a).state;
-          float b = id(ntc1_sh_b).state;
-          float c = id(ntc1_sh_c).state;
-          float offset = id(ntc1_offset).state;
-          // Guard: reject voltages outside plausible NTC divider range
-          // Floating inputs on this hardware settle at ~0.58V; valid NTC range starts ~0.9V (5°C)
-          // Threshold 0.7V gives safe margin — rejects floating, accepts all brewing temps
+          float v = x;                           // voltage from ADS1115
+          float v_ref = id(ntc1_v_ref).state;    // reference voltage (3.3V)
+          float r_fixed = id(ntc1_r_fixed).state; // fixed resistor value
+          float a = id(ntc1_sh_a).state;          // S-H coefficient A
+          float b = id(ntc1_sh_b).state;          // S-H coefficient B
+          float c = id(ntc1_sh_c).state;          // S-H coefficient C
+          float offset = id(ntc1_offset).state;   // fine-tune offset
+
+          // Safety: reject voltages that can't be a real NTC reading
+          // Floating (disconnected) inputs settle around 0.58V on this hardware
+          // Valid NTC range starts ~0.9V (at 5°C). 0.7V gives safe margin.
           if (v < 0.7f || v >= v_ref) return NAN;
+
+          // Calculate thermistor resistance from voltage divider formula
           float r = r_fixed * v / (v_ref - v);
           if (r <= 0) return NAN;
+
+          // Steinhart-Hart equation: converts resistance to temperature in Kelvin
           float lnr = log(r);
           float inv_t = a + b * lnr + c * pow(lnr, 3);
-          float temp = (1.0f / inv_t) - 273.15f + offset;
-          // Reject physically impossible temperatures for a brewing NTC
+          float temp = (1.0f / inv_t) - 273.15f + offset;  // Kelvin → Celsius + offset
+
+          // Safety: reject temperatures outside the physical brewing range
           if (temp < 0 || temp > 100) return NAN;
           return temp;
+
+      # EMA filter: smooths readings — α=0.25 means each new reading
+      # contributes 25% to the output, previous output contributes 75%.
+      # Lower α = smoother but slower response to real temperature changes.
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
 
-  # --- NTC2-MASH ---
+  # ─────────────────────────────────────────────────────────────────────────
+  # NTC2-MASH — Mash tun temperature (ADS1115 A1)
+  # ─────────────────────────────────────────────────────────────────────────
+  # Identical circuit and calculation to NTC1, different calibration values.
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A1_GND'
@@ -573,23 +758,27 @@ sensor:
           float b = id(ntc2_sh_b).state;
           float c = id(ntc2_sh_c).state;
           float offset = id(ntc2_offset).state;
-          // Guard: reject voltages outside plausible NTC divider range
-          // Floating inputs on this hardware settle at ~0.58V; valid NTC range starts ~0.9V (5°C)
-          // Threshold 0.7V gives safe margin — rejects floating, accepts all brewing temps
           if (v < 0.7f || v >= v_ref) return NAN;
           float r = r_fixed * v / (v_ref - v);
           if (r <= 0) return NAN;
           float lnr = log(r);
           float inv_t = a + b * lnr + c * pow(lnr, 3);
           float temp = (1.0f / inv_t) - 273.15f + offset;
-          // Reject physically impossible temperatures for a brewing NTC
           if (temp < 0 || temp > 100) return NAN;
           return temp;
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
 
-  # --- DS18B20-Boil (offset applied on ESP32, persisted to flash) ---
+  # ─────────────────────────────────────────────────────────────────────────
+  # DS18B20-Boil — Boil kettle temperature (1-Wire GPIO48)
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # DS18B20 is a digital temperature sensor — it outputs °C directly over
+  # the 1-Wire protocol. No voltage conversion needed.
+  # address: the unique 64-bit ROM code of this specific sensor.
+  #          If you replace the sensor, run ROM discovery to find the new address.
+  # The offset is added after reading — adjustable from HA Settings without reflash.
   - platform: dallas_temp
     address: 0x750000105cbe3528
     name: "DS18B20-Boil"
@@ -606,7 +795,11 @@ sensor:
           alpha: 0.25
           send_every: 1
 
-  # --- DS18B20-HLT (offset applied on ESP32, persisted to flash) ---
+  # ─────────────────────────────────────────────────────────────────────────
+  # DS18B20-HLT — Hot Liquor Tank temperature (1-Wire GPIO48)
+  # ─────────────────────────────────────────────────────────────────────────
+  # Both DS18B20 sensors share the same wire (GPIO48) — 1-Wire supports
+  # multiple devices on one pin, identified by their unique ROM address.
   - platform: dallas_temp
     address: 0x3100000c31dd5a28
     name: "DS18B20-HLT"
@@ -623,24 +816,18 @@ sensor:
           alpha: 0.25
           send_every: 1
 
-  # ── Flow Sensors — AN1 (RIMS, ADS1115 A2) and AN2 (Sparge, ADS1115 A3) ─────
+  # ─────────────────────────────────────────────────────────────────────────
+  # AN1 — RIMS FLOW SENSOR (SM6004 #1 → XY-IT0V converter → ADS1115 A2)
+  # ─────────────────────────────────────────────────────────────────────────
   #
-  # Conversion: voltage → L/min using calibrated slope + offset
-  #   slope  = 7.57 L/min per volt  (calibrated: 13.20 L/min at 1.743V)
-  #   offset = number entity an1_flow_offset / an2_flow_offset (default 0.0)
+  # The SM6004 flow meter outputs a 4-20mA current signal proportional to flow.
+  # The XY-IT0V module converts this to 0-3.3V for the ADS1115 to read.
+  # Calibration: 0V = 0 L/min, 1.743V = 13.20 L/min → slope = 7.57 L/min per volt
   #
-  # Node-RED variables (via HA entities):
-  #   AN1 rate  → sensor.singularity_an1_rate   (L/min, used for RIMS interlock)
-  #   AN1 total → sensor.singularity_an1_total   (L,     session accumulator)
-  #   AN2 rate  → sensor.singularity_an2_rate   (L/min, secondary display)
-  #   AN2 total → sensor.singularity_an2_total   (L,     sparge volume — primary)
-  #
-  # Totals reset via switch.singularity_an1_reset / switch.singularity_an2_reset.
-  # Totals are NOT flash-persisted — reset to 0 on reboot (per-brew session).
+  # Raw voltage sensor: shows the ADS1115 voltage before any conversion.
+  # Useful for diagnosing noise issues or recalibrating the slope.
+  # Median filter: takes 5 readings and returns the middle value — rejects spikes.
 
-  # --- AN1 — RIMS flow rate (ADS1115 A2) ---
-  # --- AN1 — Raw voltage (diagnostic, no filter) ---
-  # Shows the raw ADS1115 A2 voltage before slope conversion.
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A2_GND'
@@ -653,11 +840,11 @@ sensor:
     update_interval: 1s
     filters:
       - median:
-          window_size: 5
+          window_size: 5    # take 5 readings, return the middle one (rejects noise spikes)
           send_every: 1
           send_first_at: 1
 
-  # --- AN1 — RIMS flow rate (ADS1115 A2) ---
+  # AN1 flow rate — converts voltage to L/min using calibrated slope
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A2_GND'
@@ -674,17 +861,20 @@ sensor:
           send_every: 1
           send_first_at: 1
       - lambda: |-
-          // Voltage → L/min: slope 7.57 (calibrated) + offset from flash
-          // Guard: reject negative voltages (floating input / no flow)
+          // Reject near-zero voltages (noise at standstill, disconnected input)
           if (x < 0.01f) return 0.0f;
+          // Convert voltage to L/min: slope × voltage + offset
+          // slope = 7.57 L/min per volt (calibrated with SM6004 at 13.20 L/min)
           float rate = (x * 7.57f) + id(an1_flow_offset).state;
-          if (rate < 0.0f) rate = 0.0f;
+          if (rate < 0.0f) rate = 0.0f;  // clamp to zero — never negative
           return rate;
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
 
-  # --- AN1 — RIMS flow total (accumulated on ESP32, session only) ---
+  # AN1 total — running litre count since last reset
+  # This is a template sensor that reads the global variable an1_total_litres.
+  # The actual accumulation happens in the 1s interval loop below.
   - platform: template
     name: "AN1 Total"
     id: an1_total
@@ -695,7 +885,13 @@ sensor:
       return id(an1_total_litres);
     update_interval: 1s
 
-  # --- AN2 — Sparge flow raw voltage (ADS1115 A3) ---
+  # ─────────────────────────────────────────────────────────────────────────
+  # AN2 — SPARGE FLOW SENSOR (SM6004 #2 → XY-IT0V converter → ADS1115 A3)
+  # ─────────────────────────────────────────────────────────────────────────
+  # Same setup as AN1 but for the sparge water circuit.
+  # AN2 is not yet physically connected — the 0.15V guard prevents the
+  # floating ADS1115 input from being counted as real flow.
+
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A3_GND'
@@ -712,7 +908,6 @@ sensor:
           send_every: 1
           send_first_at: 1
 
-  # --- AN2 — Sparge flow rate (ADS1115 A3) ---
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A3_GND'
@@ -725,8 +920,9 @@ sensor:
     update_interval: 1s
     filters:
       - lambda: |-
-          // Guard: reject floating input (A3 unconnected settles ~0.1V on this hardware)
-          // Calibrated zero = 0.000V, so 0.15V threshold safely rejects float noise
+          // AN2 (A3) is not yet connected. Unconnected ADS1115 inputs float to
+          // ~0.1V on this hardware, which × slope would give ~0.8 L/min false reading.
+          // 0.15V threshold safely rejects float noise while accepting real flow signal.
           if (x < 0.15f) return 0.0f;
           float rate = (x * 7.57f) + id(an2_flow_offset).state;
           if (rate < 0.0f) rate = 0.0f;
@@ -735,7 +931,6 @@ sensor:
           alpha: 0.25
           send_every: 1
 
-  # --- AN2 — Sparge flow total (accumulated on ESP32, session only) ---
   - platform: template
     name: "AN2 Total"
     id: an2_total
@@ -746,108 +941,157 @@ sensor:
       return id(an2_total_litres);
     update_interval: 1s
 
-# ── Connectivity Status ────────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BINARY SENSOR — ESP32 connectivity status (native ESPHome)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# This is the built-in ESPHome connectivity sensor. It takes 30-60 seconds
+# to detect a disconnection. We use it to trigger the reconnect automation in HA.
+# For faster offline detection (10s), we use the template sensor in
+# singularity_templates/singularity_templates.yaml instead.
+#
 binary_sensor:
   - platform: status
     name: "ESP32 Status"
     id: esp32_status
 
-# ── PWM Output for RIMS Heater ────────────────────────────────────────────────
-# GPIO42 owned exclusively by rims_heater_pwm. No gpio switch on this pin.
-# Duty is written by the interval control loop below — never directly.
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OUTPUT — PWM signal for the RIMS heater SSR
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# slow_pwm: Pulse Width Modulation with a 2-second period.
+# SSRs (Solid State Relays) cannot switch at high frequency like motor PWM —
+# they need a slow cycle time that matches the AC power cycle.
+# A 2s period means: at 50% duty the heater is ON for 1s, OFF for 1s.
+# The PID loop writes the duty cycle (0.0 = off, 1.0 = full power) every 2s.
+# GPIO42 is owned exclusively by this output — no other code should touch it.
+#
 output:
   - platform: slow_pwm
     pin: GPIO42
     id: rims_heater_pwm
     period: 2s
 
-# ── RIMS Heater Control Loop ──────────────────────────────────────────────────
-# Runs every 2s (matches slow_pwm period).
-#
-# OFF — force output 0%.
-# PID — incremental PID (position form, dt=2s).
-#         error      = setpoint − ntc1_rims
-#         integral  += error * dt  (anti-windup clamp)
-#         derivative = (error − last_error) / dt
-#         output     = Kp*error + Ki*integral + Kd*derivative
-#         clamped to [0, pid_duty_cycle] → written to slow_pwm
-#
-# Tuning tip: start with Kp=5, Ki=0, Kd=0, max_duty=100%.
-# Large error → output saturates at max_duty (full-power heat-up).
-# Output reduces naturally as temp approaches setpoint.
-# Add small Ki only if you see steady-state offset at setpoint.
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INTERVAL — Code that runs on a timer
+# ══════════════════════════════════════════════════════════════════════════════
+
 interval:
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # RIMS PID CONTROL LOOP — runs every 2 seconds
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # This is the heart of the brewing controller. Every 2 seconds it:
+  #   1. Checks if the heater switch is ON
+  #   2. Reads NTC1-RIMS temperature
+  #   3. Runs safety checks (sensor disconnect, over-temperature)
+  #   4. Calculates PID output
+  #   5. Writes duty cycle to the SSR via slow_pwm
+  #
   - interval: 2s
     then:
       - lambda: |-
-          const float dt = 2.0f;
+          const float dt = 2.0f;  // time step in seconds (matches interval)
 
+          // If the heater switch is OFF, force output to 0% and stop here
           if (!id(rims_heater).state) {
             id(rims_heater_pwm).set_level(0.0f);
             return;
           }
 
           float temp = id(ntc1_rims).state;
-          // Safety: sensor NAN → shut off heater (open-circuit / disconnected)
+
+          // SAFETY CHECK 1: sensor disconnected or failed
+          // NAN means the sensor returned an invalid reading (disconnected,
+          // shorted, or outside 0-100°C range). Shut heater off immediately.
           if (std::isnan(temp)) {
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims NAN, heater OFF");
             return;
           }
-          // Safety: runaway guard — shorted NTC reads falsely low, driving full power
-          // Hard cutoff above any realistic mash temperature
+
+          // SAFETY CHECK 2: over-temperature hard limit
+          // If temperature exceeds 90°C, something is wrong (pump failure,
+          // shorted sensor reading falsely low, etc). Shut off immediately.
           if (temp > 90.0f) {
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — temp %.1f°C > 90°C hard limit, heater OFF", temp);
             return;
           }
 
-          // PID
-          float setpoint = id(pid_setpoint).state;
-          float kp       = id(pid_kp).state;
-          float ki       = id(pid_ki).state;
-          float kd       = id(pid_kd).state;
-          float max_duty = id(pid_duty_cycle).state / 100.0f;
+          // PID CALCULATION
+          float setpoint  = id(pid_setpoint).state;
+          float kp        = id(pid_kp).state;
+          float ki        = id(pid_ki).state;
+          float kd        = id(pid_kd).state;
+          float max_duty  = id(pid_duty_cycle).state / 100.0f;  // convert % to 0.0–1.0
 
+          // Error: how far we are from the target temperature
           float error = setpoint - temp;
+
+          // Integral: accumulates error over time
           id(pid_integral) += error * dt;
 
-          // Anti-windup: clamp integral contribution within output range
+          // Anti-windup: prevent integral from growing without limit
+          // If Ki is 0, set a large clamp to avoid divide-by-zero
           float max_i = (ki > 0.0f) ? (max_duty / ki) : 1000.0f;
           if (id(pid_integral) >  max_i) id(pid_integral) =  max_i;
           if (id(pid_integral) < -max_i) id(pid_integral) = -max_i;
 
+          // Derivative: rate of change of error
           float derivative   = (error - id(pid_last_error)) / dt;
-          id(pid_last_error) = error;
+          id(pid_last_error) = error;  // remember for next cycle
 
+          // Final output: sum of P + I + D terms, clamped to [0, max_duty]
           float output = kp * error + ki * id(pid_integral) + kd * derivative;
-          if (output < 0.0f)     output = 0.0f;
-          if (output > max_duty) output = max_duty;
+          if (output < 0.0f)     output = 0.0f;       // never negative
+          if (output > max_duty) output = max_duty;    // never above max
 
           id(rims_heater_pwm).set_level(output);
+
+          // Log every cycle so you can watch PID behaviour in ESPHome logs
           ESP_LOGI("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
                    temp, error, id(pid_integral), derivative, output * 100.0f);
 
-  # ── Flow Total Integration — AN1 and AN2 ─────────────────────────────────────
-  # Runs every 1s. Adds rate (L/min) / 60 to running total (L).
-  # Only accumulates when rate > 0.05 L/min to avoid counting noise at standstill.
+  # ─────────────────────────────────────────────────────────────────────────
+  # FLOW TOTAL ACCUMULATOR — runs every 1 second
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # Integrates flow rate into a running total:
+  #   total += rate (L/min) / 60 (converts L/min to L/s) × 1s = rate/60
+  #
+  # The 0.05 L/min threshold prevents counting tiny noise readings as flow
+  # when the pump is not running.
+  #
   - interval: 1s
     then:
       - lambda: |-
           float r1 = id(an1_rate).state;
           if (!std::isnan(r1) && r1 > 0.05f) {
-            id(an1_total_litres) += r1 / 60.0f;
+            id(an1_total_litres) += r1 / 60.0f;  // L/min ÷ 60 = L per second
           }
           float r2 = id(an2_rate).state;
           if (!std::isnan(r2) && r2 > 0.05f) {
             id(an2_total_litres) += r2 / 60.0f;
           }
 
-# ── SSR Relay Outputs ─────────────────────────────────────────────────────────
-# RESTORE_DEFAULT_OFF: first boot = OFF, subsequent reboots = restore last state
-# SSR2 (RIMS heater, GPIO42) is driven exclusively via rims_heater_pwm (slow_pwm).
-# Enable/disable via switch.rims_heater in HA — interval loop does the rest.
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SWITCHES — ON/OFF controls exposed to HA
+# ══════════════════════════════════════════════════════════════════════════════
+
 switch:
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # SSR1 — Spare relay output (GPIO41)
+  # ─────────────────────────────────────────────────────────────────────────
+  # Direct GPIO switch — when ON, GPIO41 goes HIGH (3.3V), triggering the SSR.
+  # RESTORE_DEFAULT_OFF: always starts OFF on first boot.
+  # On subsequent reboots, restores the last known state from flash.
   - platform: gpio
     pin: GPIO41
     name: "SSR1"
@@ -855,7 +1099,16 @@ switch:
     icon: "mdi:electric-switch"
     restore_mode: RESTORE_DEFAULT_OFF
 
-  # RIMS heater PID on/off — toggling this resets PID state for clean start
+  # ─────────────────────────────────────────────────────────────────────────
+  # RIMS HEATER — Enables/disables the PID control loop
+  # ─────────────────────────────────────────────────────────────────────────
+  # This is a template switch (no physical GPIO) — it controls whether the
+  # PID interval loop runs or not. The actual heater output is on GPIO42
+  # via the slow_pwm output (rims_heater_pwm).
+  #
+  # When turned ON: PID state is reset (clean start) and loop begins running.
+  # When turned OFF: heater output forced to 0%, PID state reset.
+  # Persisted to flash — if power cuts mid-brew, it resumes in the same state.
   - platform: template
     name: "RIMS Heater"
     id: rims_heater
@@ -865,28 +1118,35 @@ switch:
     on_turn_on:
       then:
         - lambda: |-
-            id(pid_integral)   = 0.0f;
-            id(pid_last_error) = 0.0f;
+            id(pid_integral)   = 0.0f;  // reset integral — clean PID start
+            id(pid_last_error) = 0.0f;  // reset derivative memory
             ESP_LOGI("singularity", "RIMS PID ON — state reset, starting control loop");
     on_turn_off:
       then:
         - lambda: |-
-            id(rims_heater_pwm).set_level(0.0f);
+            id(rims_heater_pwm).set_level(0.0f);  // immediately cut heater power
             id(pid_integral)   = 0.0f;
             id(pid_last_error) = 0.0f;
             ESP_LOGI("singularity", "RIMS PID OFF — heater output 0%%");
 
-# ── Flow Total Reset Buttons — AN1 and AN2 ───────────────────────────────────
-# button entities fire once on press — no on/off state, renders as a push button in HA.
-# Use from HA dashboard or Node-RED at the start of each brew session.
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BUTTONS — One-shot actions exposed to HA
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Unlike switches, buttons have no state — pressing them fires once and that's it.
+# They appear in HA as a button you can press, not a toggle.
+# Use these at the start of each brew session to zero the flow totals.
+#
 button:
+
   - platform: template
     name: "AN1 Reset Total"
     id: an1_reset
     icon: "mdi:restore"
     on_press:
       - lambda: |-
-          id(an1_total_litres) = 0.0f;
+          id(an1_total_litres) = 0.0f;  // zero the RIMS flow total
           ESP_LOGI("singularity", "AN1 total reset to 0.0 L");
 
   - platform: template
@@ -895,15 +1155,32 @@ button:
     icon: "mdi:restore"
     on_press:
       - lambda: |-
-          id(an2_total_litres) = 0.0f;
+          id(an2_total_litres) = 0.0f;  // zero the Sparge flow total
           ESP_LOGI("singularity", "AN2 total reset to 0.0 L");
 
-# ── Dallas (1-Wire) Bus ────────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 1-WIRE BUS — Digital temperature sensors (DS18B20)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# 1-Wire is a protocol that allows multiple sensors on a single wire.
+# GPIO48 carries the data line. A 4.7kΩ pull-up resistor to 3.3V is required.
+# Both DS18B20 sensors (Boil + HLT) share this single wire.
+#
 one_wire:
   - platform: gpio
     pin: GPIO48
 
-# ── Build Version ─────────────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BUILD VERSION — Firmware version string published to HA
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# This text sensor publishes the firmware version to HA every 10 seconds.
+# It appears on the About tab of the dashboard and is used to verify which
+# version is running on the physical device.
+# Update this string every time firmware changes are flashed.
+#
 text_sensor:
   - platform: template
     name: "Build"
