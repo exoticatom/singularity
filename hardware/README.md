@@ -35,6 +35,35 @@ The I2C bus (SDA = GPIO 21, SCL = GPIO 47) requires pull-up resistors to 3.3V. M
 
 The SM6004 and proportional valve operate at 24V DC. The ESP32 and all sensors operate at 3.3V. Keep 24V wiring separated from the low-voltage signal wiring. Use dedicated 4-20mA converter modules for signal level translation.
 
+### GND — Common Ground Point
+
+**All low-voltage GNDs must connect to a single common point:**
+
+- ESP32 GND
+- ADS1115 GND
+- DS18B20 GND
+- NTC voltage divider GND
+- 4-20mA converter module GND
+- 5V DC-DC converter GND
+- SM6004 GND (via converter module)
+
+Connecting GNDs to different points creates **ground loops** — small voltage differences between GND points that appear as noise on analog signals (NTC, flow sensors). This causes unstable readings and can make the ADS1115 produce random spikes.
+
+> **Rule:** One GND wire from each module, all meeting at a single star point on the main terminal block.
+
+### ⚠️ CRITICAL — Never Connect Mains GND to Low-Voltage GND
+
+**The mains earth/ground (PE — Protective Earth) must NEVER be connected to the low-voltage signal GND (ESP32, sensors, ADS1115).**
+
+| Ground type | What it is | Connect to |
+|---|---|---|
+| Mains PE (earth) | Safety earth — connected to enclosure, mains plug earth pin | Enclosure only |
+| Low-voltage GND | 0V reference for ESP32, sensors, 24V PSU return | All low-voltage modules |
+
+Connecting mains PE to signal GND introduces **50/60Hz mains interference** directly into the sensor readings and can permanently damage the ESP32 and ADS1115. It also creates a shock hazard.
+
+The 24V PSU GND (DC negative) is the low-voltage system ground — it is NOT the same as mains PE, even if the PSU shares the same mains plug.
+
 ### Connector Recommendation
 
 Use screw terminals or JST connectors for all sensor connections. Label all wires at both ends. Twisted pair cable for runs longer than 30cm.
