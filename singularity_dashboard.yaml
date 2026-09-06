@@ -190,11 +190,9 @@ views:
           - entity: switch.singularity_rims_heater
             name: RIMS Heater
             icon: mdi:fire
-      - type: number
-        entity: number.singularity_pid_setpoint
-        name: Target Temperature (°C)
-        icon: mdi:target
-        mode: box
+          - entity: number.singularity_pid_setpoint
+            name: Target Temperature (°C)
+            icon: mdi:target
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: custom:apexcharts-card
