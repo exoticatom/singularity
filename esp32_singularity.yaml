@@ -79,7 +79,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.3"
+    version: "1.1.4"
   on_boot:
     priority: -100
     then:
@@ -640,7 +640,6 @@ sensor:
   # --- AN1 — RIMS flow rate (ADS1115 A2) ---
   # --- AN1 — Raw voltage (diagnostic, no filter) ---
   # Shows the raw ADS1115 A2 voltage before slope conversion.
-  # Use this to diagnose floating input / calibration issues.
   - platform: ads1115
     ads1115_id: ads1115_0x48
     multiplexer: 'A2_GND'
@@ -694,6 +693,23 @@ sensor:
     lambda: |-
       return id(an1_total_litres);
     update_interval: 1s
+
+  # --- AN2 — Sparge flow raw voltage (ADS1115 A3) ---
+  - platform: ads1115
+    ads1115_id: ads1115_0x48
+    multiplexer: 'A3_GND'
+    gain: 6.144
+    name: "AN2 Raw Voltage"
+    id: an2_raw_voltage
+    unit_of_measurement: "V"
+    icon: "mdi:sine-wave"
+    state_class: measurement
+    update_interval: 1s
+    filters:
+      - median:
+          window_size: 5
+          send_every: 1
+          send_first_at: 1
 
   # --- AN2 — Sparge flow rate (ADS1115 A3) ---
   - platform: ads1115
@@ -893,5 +909,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.3"};
+      return {"v1.1.4"};
     update_interval: 10s
