@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.8
+# singularity_dashboard.yaml  v1.3.9
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -190,9 +190,11 @@ views:
           - entity: switch.singularity_rims_heater
             name: RIMS Heater
             icon: mdi:fire
-          - entity: number.singularity_pid_setpoint
-            name: Target Temperature (°C)
-            icon: mdi:target
+      - type: number
+        entity: number.singularity_pid_setpoint
+        name: Target Temperature (°C)
+        icon: mdi:target
+        mode: box
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: custom:apexcharts-card

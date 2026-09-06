@@ -79,7 +79,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.4"
+    version: "1.1.5"
   on_boot:
     priority: -100
     then:
@@ -382,7 +382,7 @@ number:
     name: "PID Setpoint"
     id: pid_setpoint
     min_value: 0
-    max_value: 80
+    max_value: 78
     step: 0.5
     restore_value: true
     initial_value: 66.0
@@ -909,5 +909,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.4"};
+      return {"v1.1.5"};
     update_interval: 10s
