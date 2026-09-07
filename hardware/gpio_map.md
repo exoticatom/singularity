@@ -81,8 +81,8 @@ Used by: [DS18B20](ds18b20.md) digital temperature sensor(s)
 | NTC2-MASH | Analog | ADS1115 A1 | — | Via ADS1115 channel 1 |
 | DS18B20-Boil | 1-Wire | GPIO 48 | `0x750000105cbe3528` | Boil kettle — this installation |
 | DS18B20-HLT | 1-Wire | GPIO 48 | `0x3100000c31dd5a28` | Hot Liquor Tank — this installation |
-| SSR1 | GPIO out | GPIO 41 | — | Spare SSR relay — RESTORE_DEFAULT_OFF |
-| SSR2 | slow_pwm output | GPIO 42 | — | RIMS heating element — RESTORE_DEFAULT_OFF |
+| SSR1 | GPIO out | GPIO 41 | — | Spare SSR relay — RESTORE_DEFAULT_OFF + 10kΩ gate pulldown to GND |
+| SSR2 | slow_pwm output | GPIO 42 | — | RIMS heating element — RESTORE_DEFAULT_OFF + 10kΩ gate pulldown to GND |
 
 > **Note:** DS18B20 ROM addresses are unique per physical sensor. The addresses
 > above are specific to this hardware installation. If a sensor is replaced,
@@ -111,6 +111,7 @@ Used by: [DS18B20](ds18b20.md) digital temperature sensor(s)
 | 2026-08-25 | singularity | Verified: all secrets aligned to `singularity_` prefix convention |
 | 2026-08-26 | singularity | Added schematics, planned expansions, sensor polling and EMA filter docs |
 | 2026-09-07 | singularity | Added 3.3V voltage ceiling CRITICAL constraint; raw voltage EMA filtering emphasized |
+| 2026-09-07 | singularity | Documented 10kΩ SSR gate pulldowns on GPIO 41/42 (hold heater OFF during boot); independent hardware high-limit cutoff noted |
 
 ---
 
@@ -290,6 +291,52 @@ DS18B20:
 - 4.7 kΩ pull-up resistor between GPIO 48 and 3.3V is mandatory
 - For cable runs over 1 m, reduce pull-up to 2.2 kΩ
 - In parasitic power mode (VDD floating) limit cable length to 30 cm
+
+---
+
+### SSR Gate Circuit (GPIO 41 / 42) — pulldown required
+
+Used for: SSR1 spare (GPIO 41), SSR2 RIMS heater (GPIO 42)
+
+The ESP32-S3 GPIOs are **high-impedance (floating) during reset, boot, and the
+brief window before firmware configures them as outputs.** A floating gate on a
+DC-input SSR can latch the mains-switching element ON — energising the RIMS
+heating element with no firmware control. A **10 kΩ pulldown resistor** from each
+SSR control line to GND holds the gate LOW (SSR off) through the entire boot
+sequence, so the element cannot fire until firmware explicitly drives it.
+
+```
+ESP32 GPIO 41 ──┬──────────────► SSR1 control (+)
+                │
+              10kΩ  ← pulldown: holds gate LOW during boot / reset
+                │
+               GND
+
+ESP32 GPIO 42 ──┬──────────────► SSR2 control (+)  [RIMS heater]
+                │
+              10kΩ  ← pulldown: holds gate LOW during boot / reset
+                │
+               GND
+```
+
+**Key rules:**
+- 10 kΩ pulldown on **both** GPIO 41 and GPIO 42, as close to the ESP32 pin as possible.
+- SSR control (−) ties to the common GND rail (ESP32 / PSU / SSR grounds bonded).
+- This is a hardware guard independent of firmware `RESTORE_DEFAULT_OFF` — it
+  protects the window *before* firmware runs, which software cannot cover.
+- Neither GPIO 41 nor GPIO 42 is a strapping pin, so the pulldown does not affect
+  boot mode (unlike GPIO 0/45/46 — never pull those).
+
+> **⚠️ Independent hardware high-limit cutoff (required before first load test):**
+> All thermal protection today lives in one place — the ESP32 firmware (NAN guard,
+> 90°C guard, staleness watchdog, flow interlock). That is a single point of
+> failure: a firmware hang, a crashed MCU with the SSR latched, or a GPIO stuck
+> HIGH defeats *every* software guard at once. Fit a **thermal cutoff that is
+> independent of the ESP32** — a self-resetting klixon / high-limit thermostat or
+> a one-shot thermal fuse — clamped to the RIMS element body and wired **in series
+> with the SSR mains-switching load** (not the control side). It must open the
+> heater circuit on its own at a hard over-temp (e.g. ~95–100°C at the element)
+> with no code in the path. Tracked in [README Project Status](../README.md#project-status).
 
 ---
 

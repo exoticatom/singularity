@@ -249,12 +249,18 @@ The interlock runs **on the ESP32**, inside the same 2s PID loop that drives the
 | Entity | Default | Purpose |
 |---|---|---|
 | `switch.singularity_flow_interlock_enable` | **OFF** | Arms the interlock. Ships dormant. |
-| `number.singularity_pid_min_flow` | 2.0 L/min | Minimum RIMS flow (`an1_rate`) required to heat. |
+| `number.singularity_pid_min_flow` | 2.0 L/min | Minimum RIMS flow required to heat. |
 
-**Behaviour when enabled:** each 2s cycle, if `an1_rate` is NAN or below `pid_min_flow`, the heater output is forced to 0% for that cycle. It resumes automatically once flow returns — fail-safe, no relay chatter.
+**Behaviour when enabled:** each 2s cycle, if the RIMS flow is NAN or below `pid_min_flow`, the heater output is forced to 0% for that cycle. It resumes automatically once flow returns — fail-safe, no relay chatter. The trip reads a **fast, unfiltered safety voltage** (`an1_flow_safety_v`, internal) rather than the display-smoothed `an1_rate`, so it reacts to a sudden flow loss within ~2s instead of the ~4-5s the median+EMA display filter would add.
 
 **Commissioning procedure:**
 1. Leave the interlock **OFF** until the AN1 flow meter is calibrated (see [SM6004 ZERO/SPAN](#sm6004--4-20ma-converter--zerospan-calibration)) and `sensor.singularity_an1_rate` is verified against the SM6004 display at steady flow.
 2. Set `number.singularity_pid_min_flow` to a safe floor for your pump (2.0 L/min default; raise toward the dashboard's 3 L/min red-alarm line if your element demands more).
 3. Turn `switch.singularity_flow_interlock_enable` **ON** — this must be done **before the first RIMS element load test**.
 4. Confirm in the ESPHome log that heating is blocked at zero flow (`RIMS SAFETY — flow ... < ... min, heater OFF`) and resumes once the pump runs.
+
+> **⚠️ Hardware backstop — required before any load test:** the flow interlock, the
+> 90°C guard and the staleness watchdog all run in ESP32 firmware — one MCU is the
+> single point of failure. Fit an **independent hardware high-limit cutoff** (thermal
+> fuse / klixon in series with the SSR heater load, no code in the path) on the RIMS
+> element before the first load test. See [gpio_map.md → SSR Gate Circuit](gpio_map.md#ssr-gate-circuit-gpio-41--42--pulldown-required) and [README Project Status](../README.md#project-status).

@@ -24,7 +24,7 @@ This page documents everything configured in [Home Assistant](https://www.home-a
                            │
                 ┌──────────▼──────────┐
                 │     ESP32-S3        │
-                │  singularity v1.1.6 │
+                │  singularity v1.1.7 │
                 └─────────────────────┘
 ```
 
@@ -448,6 +448,7 @@ These entities exist in the HA registry from old firmware versions and are no lo
 │  Re-send calibration on     │  Accumulate flow totals         │
 │    reconnect                │  Publish uptime heartbeat (1s)  │
 │  Run fast-status template   │  Enforce flow + over-temp guards│
+│                             │  Detect frozen/stale sensor     │
 │                             │  Operates independently of HA   │
 └─────────────────────────────┴─────────────────────────────────┘
 ```

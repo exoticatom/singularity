@@ -1,7 +1,7 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  esp32_singularity.yaml                                                      ║
 # ║  singularity Brewing Controller — ESP32-S3-N16R8                             ║
-# ║  Firmware v1.1.6                                                              ║
+# ║  Firmware v1.1.7                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 #
 # WHAT THIS FILE IS:
@@ -89,6 +89,19 @@ globals:
     type: float
     initial_value: '0.0'
 
+  # Sensor-staleness watchdog — millis() timestamp of the last ntc1_rims update.
+  # Stamped by the ntc1_rims on_value trigger every time the ADS1115 delivers a
+  # fresh reading. If I2C wedges, the sensor keeps its LAST value forever (it does
+  # not go NAN), which would defeat the NAN + 90°C guards. The PID loop compares
+  # (millis() - this) against a timeout to catch a frozen sensor. restore_value
+  # false — a boot timestamp is meaningless. Initial 0 is safe: millis() is also
+  # near 0 at boot, so the difference stays under the timeout until the first 1s
+  # ADS1115 read stamps it.
+  - id: ntc1_last_update_ms
+    type: uint32_t
+    restore_value: false
+    initial_value: '0'
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ESPHOME — Basic device identity
@@ -104,7 +117,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.6"
+    version: "1.1.7"
 
   # on_boot: runs once after the ESP32 finishes booting
   # priority: -100 means it runs after all hardware is initialised
@@ -774,6 +787,11 @@ sensor:
       - exponential_moving_average:
           alpha: 0.25
           send_every: 1
+    # Staleness watchdog: stamp the time of every fresh reading. The PID loop
+    # uses this to detect a frozen sensor (I2C wedged) that keeps its last value
+    # instead of going NAN. See SAFETY CHECK 0 in the 2s PID loop.
+    on_value:
+      - lambda: 'id(ntc1_last_update_ms) = millis();'
 
   # ─────────────────────────────────────────────────────────────────────────
   # NTC2-MASH — Mash tun temperature (ADS1115 A1)
@@ -914,6 +932,29 @@ sensor:
           alpha: 0.25
           send_every: 1
 
+  # AN1 flow SAFETY voltage — fast, near-raw read of A2 for the flow interlock.
+  # internal: true → not exposed to HA; this is a control signal, not a display.
+  # WHY separate from an1_rate: an1_rate carries median(5)+EMA(0.25) for a stable
+  # display, which adds ~4-5s of lag — too slow to catch a sudden flow loss before
+  # a RIMS element scorches. This sensor uses only a median(3) spike-reject and NO
+  # EMA, so the interlock sees a real flow drop within ~2s. The median(3) is
+  # deliberate: it blocks a lone HIGH noise spike from falsely permitting heat
+  # (the dangerous direction); a lone LOW spike only trips the heater OFF for one
+  # cycle, which is fail-safe. EMA is intentionally omitted here — it would
+  # reintroduce the lag this sensor exists to avoid.
+  - platform: ads1115
+    ads1115_id: ads1115_0x48
+    multiplexer: 'A2_GND'
+    gain: 6.144
+    id: an1_flow_safety_v
+    internal: true
+    update_interval: 1s
+    filters:
+      - median:
+          window_size: 3
+          send_every: 1
+          send_first_at: 1
+
   # AN1 total — running litre count since last reset
   # This is a template sensor that reads the global variable an1_total_litres.
   # The actual accumulation happens in the 1s interval loop below.
@@ -1051,6 +1092,19 @@ interval:
             return;
           }
 
+          // SAFETY CHECK 0: sensor staleness — ADS1115 / I2C stopped updating.
+          // If I2C wedges, ntc1_rims keeps its LAST value forever (it does not go
+          // NAN), so the NAN and 90°C guards below would trust a frozen number and
+          // keep heating blind. Catch it here: if no fresh ntc1_rims reading has
+          // arrived for >8s (sensor updates every 1s), shut the heater off.
+          // Unsigned subtraction is millis()-wrap safe.
+          uint32_t stale_ms = millis() - id(ntc1_last_update_ms);
+          if (stale_ms > 8000) {
+            id(rims_heater_pwm).set_level(0.0f);
+            ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims stale %ums, heater OFF", stale_ms);
+            return;
+          }
+
           float temp = id(ntc1_rims).state;
 
           // SAFETY CHECK 1: sensor disconnected or failed
@@ -1079,7 +1133,11 @@ interval:
           // heating. Only enforced when the interlock is explicitly enabled —
           // keep it OFF until the AN1 flow meter is commissioned (default OFF).
           if (id(flow_interlock_enable).state) {
-            float flow = id(an1_rate).state;
+            // Use the fast, near-raw safety voltage (an1_flow_safety_v), NOT the
+            // display-smoothed an1_rate — median(5)+EMA on an1_rate adds ~4-5s of
+            // lag, too slow to catch a sudden flow loss before the element scorches.
+            float sv = id(an1_flow_safety_v).state;
+            float flow = std::isnan(sv) ? NAN : (sv * 7.57f) + id(an1_flow_offset).state;
             if (std::isnan(flow) || flow < id(pid_min_flow).state) {
               id(rims_heater_pwm).set_level(0.0f);
               ESP_LOGW("singularity", "RIMS SAFETY — flow %.2f L/min < %.2f min, heater OFF",
@@ -1267,5 +1325,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.6"};
+      return {"v1.1.7"};
     update_interval: 10s

@@ -1,10 +1,10 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-07** — Firmware v1.1.6 · Dashboard v1.4.0 · Copilot Rules updated
+> **Last updated: 2026-09-07** — Firmware v1.1.7 · Dashboard v1.4.0 · Copilot Rules updated
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)
-- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.6
+- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.7
 - 📊 [Dashboard](singularity_dashboard.yaml) — v1.4.0
 - 📋 [Project Status](#project-status)
 - 🧪 [Calibration Guide](hardware/calibration.md)
@@ -232,15 +232,16 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 |---|---|---|
 | [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" touchscreen | ✅ Active | Tested, connected to singularity dashboard as default |
 | [Raspberry Pi 4](hardware/display_kiosk.md) 2GB — kiosk | ✅ Active | Chromium kiosk mode, cloned image ready |
-| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.6 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
+| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.7 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
 | [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |
 | [NTC2-MASH thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A1 |
 | [ADS1115](hardware/expansion_boards.md) #2 (0x49) | 🔬 On hold | Floating input issue — see note below |
 | [DS18B20](hardware/ds18b20.md)-Boil | ✅ Tested | ROM `0x750000105cbe3528` confirmed |
 | [DS18B20](hardware/ds18b20.md)-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
-| SSR1 (GPIO41) | ⏳ Wired | Not load tested |
-| SSR2 — RIMS heater (GPIO42) | ⏳ Wired | PID ready, not load tested |
+| SSR1 (GPIO41) | ⏳ Wired | Not load tested — add 10kΩ gate pulldown to GND (holds OFF during boot) |
+| SSR2 — RIMS heater (GPIO42) | ⏳ Wired | PID ready, not load tested — add 10kΩ gate pulldown to GND (holds OFF during boot) |
+| Independent hardware high-limit cutoff | 🔲 Required | ⚠️ **Fit before first RIMS load test.** Thermal fuse / klixon in series with the SSR heater load, independent of the ESP32 — closes the single-point-of-failure where all thermal protection lives in firmware. See [gpio_map.md → SSR Gate Circuit](hardware/gpio_map.md#ssr-gate-circuit-gpio-41--42--pulldown-required) |
 | [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing | Connected, calibrated — AN1 (A2 RIMS) + AN2 (A3 Sparge). Firmware implemented v1.0.9. |
 | Relay board — pump control | 🔲 Planned | Via [MCP23017](hardware/expansion_boards.md) GPIO expander |
 | [MCP23017](hardware/expansion_boards.md) GPIO expander | 🔲 Planned | I2C 0x20 |
@@ -253,13 +254,14 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.1.6 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.1.7 | ✅ Active | OTA updates working |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
-| RIMS flow interlock (dry-fire guard) | ✅ Implemented | Heater off if RIMS flow < min (default 2 L/min). Dormant by default — enable `switch.singularity_flow_interlock_enable` after AN1 commissioning, before first load test |
+| Sensor-staleness watchdog | ✅ Implemented | Heater off if `ntc1_rims` stops updating >8s (I2C wedge / frozen value defeats NAN + 90°C guards) |
+| RIMS flow interlock (dry-fire guard) | ✅ Implemented | Heater off if RIMS flow < min (default 2 L/min). Uses a fast unfiltered safety-voltage read (`an1_flow_safety_v`), not the smoothed `an1_rate`. Dormant by default — enable `switch.singularity_flow_interlock_enable` after AN1 commissioning, before first load test |
 | HA-outage autonomy (`reboot_timeout: 0s`) | ✅ Implemented | ESP32 no longer reboots when HA is unreachable — brew continues uninterrupted (WiFi self-heal unchanged) |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
 | HA dashboard v1.4.0 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
@@ -290,6 +292,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Date | Change |
 |---|---|
+| 2026-09-07 | Firmware v1.1.7 — re-audit fixes: sensor-staleness watchdog (SAFETY CHECK 0 — heater off if `ntc1_rims` frozen >8s); flow interlock now trips on a fast unfiltered `an1_flow_safety_v` read instead of the smoothed `an1_rate` (~4-5s faster). Docs: 10kΩ SSR gate pulldowns (GPIO 41/42); independent hardware high-limit cutoff tracked as required before first load test |
 | 2026-09-07 | Dashboard v1.4.0 — Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
 | 2026-09-07 | Firmware v1.1.6 — safety audit fixes: RIMS flow interlock (dry-fire guard, `pid_min_flow` default 2 L/min + `flow_interlock_enable` switch, dormant by default); `api reboot_timeout` 3min→0s (HA-outage autonomy); AN2 rate median filter (parity with AN1); dashboard entity-ID fix (`esp32_fast_status`→`singularity_esp32_fast_status`) |
 | 2026-08-25 | Initial setup: ESPHome config, dashboard, CI/CD pipeline |
