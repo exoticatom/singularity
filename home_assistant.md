@@ -179,7 +179,7 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ## Dashboard
 
 **File:** `singularity_dashboard.yaml` → deployed to `/config/singularity_dashboard.yaml`
-**Version:** v1.3.9
+**Version:** v1.4.0
 **Registered in:** `/config/configuration.yaml` as `lovelace` dashboard
 
 ### Tab layout
@@ -226,6 +226,7 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 │  NTC1-RIMS Steinhart-Hart Calibration      │
 │  NTC2-MASH Steinhart-Hart Calibration      │
 │  RIMS Heater PID Control                   │
+│  RIMS Flow Interlock — Safety              │
 │  AN1 RIMS Flow Calibration (offset+reset)  │
 │  AN2 Sparge Flow Calibration (offset+reset)│
 │  How calibration works                     │
@@ -427,6 +428,7 @@ These entities exist in the HA registry from old firmware versions and are no lo
 | v1.3.7 | Diag tab — AN1 + AN2 raw voltage, flow rate, total, live 5min graphs |
 | v1.3.8 | Diag tab: removed graphs, entities only |
 | v1.3.9 | PID setpoint: text input box, max 78°C |
+| v1.4.0 | Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
 
 ---
 

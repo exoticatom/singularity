@@ -1,11 +1,11 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-07** — Firmware v1.1.6 · Dashboard v1.3.9 · Copilot Rules updated
+> **Last updated: 2026-09-07** — Firmware v1.1.6 · Dashboard v1.4.0 · Copilot Rules updated
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)
 - ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.6
-- 📊 [Dashboard](singularity_dashboard.yaml) — v1.3.9
+- 📊 [Dashboard](singularity_dashboard.yaml) — v1.4.0
 - 📋 [Project Status](#project-status)
 - 🧪 [Calibration Guide](hardware/calibration.md)
 - 🏠 [Home Assistant Integration](home_assistant.md)
@@ -262,7 +262,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | RIMS flow interlock (dry-fire guard) | ✅ Implemented | Heater off if RIMS flow < min (default 2 L/min). Dormant by default — enable `switch.singularity_flow_interlock_enable` after AN1 commissioning, before first load test |
 | HA-outage autonomy (`reboot_timeout: 0s`) | ✅ Implemented | ESP32 no longer reboots when HA is unreachable — brew continues uninterrupted (WiFi self-heal unchanged) |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.3.9 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
+| HA dashboard v1.4.0 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | ✅ Implemented | AN1 (RIMS, A2) + AN2 (Sparge, A3) — rate + total + offset + reset |
@@ -290,6 +290,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Date | Change |
 |---|---|
+| 2026-09-07 | Dashboard v1.4.0 — Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
 | 2026-09-07 | Firmware v1.1.6 — safety audit fixes: RIMS flow interlock (dry-fire guard, `pid_min_flow` default 2 L/min + `flow_interlock_enable` switch, dormant by default); `api reboot_timeout` 3min→0s (HA-outage autonomy); AN2 rate median filter (parity with AN1); dashboard entity-ID fix (`esp32_fast_status`→`singularity_esp32_fast_status`) |
 | 2026-08-25 | Initial setup: ESPHome config, dashboard, CI/CD pipeline |
 | 2026-08-25 | CI/CD: Tailscale + rsync to HAOS — all steps green |

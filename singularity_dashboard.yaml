@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.3.9
+# singularity_dashboard.yaml  v1.4.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -34,6 +34,7 @@
 #   v1.3.8 — Diag tab: removed graphs, entities only
 #   v1.3.9 — PID setpoint: reverted to standard entities card (config error fix); max 78°C
 #   v1.3.7 — Diag tab: AN1 + AN2 full diagnostic cards + live graphs; removed diag from Brewing tab
+#   v1.4.0 — Settings tab: RIMS Flow Interlock safety card (flow_interlock_enable + pid_min_flow)
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -390,6 +391,20 @@ views:
             name: "Max Duty Cycle (default: 100%)"
             icon: mdi:percent
 
+      # RIMS flow interlock — dry-fire / scorch protection
+      - type: entities
+        title: RIMS Flow Interlock — Safety
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "Dry-fire guard: blocks heating when RIMS flow (an1_rate) drops below the minimum. Keep OFF until the AN1 flow meter is commissioned, then arm before the first load test."
+          - entity: switch.singularity_flow_interlock_enable
+            name: "Flow Interlock (default: OFF)"
+            icon: mdi:water-check
+          - entity: number.singularity_pid_min_flow
+            name: "Min Flow (default: 2.0 L/min)"
+            icon: mdi:water-alert
+
       # ── Flow Sensor Calibration — AN1 (RIMS) and AN2 (Sparge) ──────────────────
       - type: entities
         title: AN1 — RIMS Flow Calibration
@@ -469,7 +484,7 @@ views:
             </tr>
             <tr style="background:#1a1a2e;">
               <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.3.9</td>
+              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.4.0</td>
               <td style="padding:8px; color:#81c784;">● Deployed</td>
             </tr>
           </table>
