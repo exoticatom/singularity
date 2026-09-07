@@ -400,16 +400,17 @@ These entities exist in the HA registry from old firmware versions and are no lo
 ┌─────────────────────────────┬─────────────────────────────────┐
 │  Home Assistant             │  ESP32                          │
 ├─────────────────────────────┼─────────────────────────────────┤
-│  Display temperatures       │  Read ADS1115 voltages          │
-│  Show online/offline status │  Run Steinhart-Hart calculation │
+│  Display temperatures °C    │  Read ADS1115 raw voltages      │
+│  Display flow rates L/min   │  Run Steinhart-Hart calculation │
+│  Show online/offline status │  Convert flow voltage → L/min   │
 │  Store calibration in UI    │  Store calibration in flash     │
 │  Control RIMS heater toggle │  Run PID loop every 2s          │
 │  Show flow rates + totals   │  Drive SSR2 via slow_pwm        │
 │  Log connect/disconnect     │  Apply DS18B20 offsets          │
-│  Re-send calibration on     │  Calculate flow from voltage    │
-│    reconnect                │  Accumulate flow totals         │
-│  Run fast-status template   │  Publish uptime heartbeat (1s)  │
+│  Re-send calibration on     │  Accumulate flow totals         │
+│    reconnect                │  Publish uptime heartbeat (1s)  │
+│  Run fast-status template   │  Operates independently of HA   │
 └─────────────────────────────┴─────────────────────────────────┘
 ```
 
-> **Design rule:** HA is display and configuration only. The ESP32 runs the brew even if HA is offline.
+> **Design rule:** HA is display and configuration only. The ESP32 calculates all temperatures and flow rates and runs the brew autonomously — even if HA is offline, rebooting, or unreachable.

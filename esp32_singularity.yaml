@@ -857,6 +857,8 @@ sensor:
           window_size: 5    # take 5 readings, return the middle one (rejects noise spikes)
           send_every: 1
           send_first_at: 1
+      - exponential_moving_average:
+          alpha: 0.25       # EMA smoothing — diagnostic signal quality
 
   # AN1 flow rate — converts voltage to L/min using calibrated slope
   - platform: ads1115
@@ -921,6 +923,8 @@ sensor:
           window_size: 5
           send_every: 1
           send_first_at: 1
+      - exponential_moving_average:
+          alpha: 0.25       # EMA smoothing — diagnostic signal quality
 
   - platform: ads1115
     ads1115_id: ads1115_0x48

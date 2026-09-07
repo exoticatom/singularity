@@ -68,7 +68,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.esp32_fast_status
+            entity: binary_sensor.singularity_esp32_fast_status
             state: "on"
         card:
           type: markdown
@@ -80,7 +80,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.esp32_fast_status
+            entity: binary_sensor.singularity_esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -256,7 +256,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.esp32_fast_status
+            entity: binary_sensor.singularity_esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -290,7 +290,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.esp32_fast_status
+            entity: binary_sensor.singularity_esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -445,7 +445,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.esp32_fast_status
+            entity: binary_sensor.singularity_esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -506,7 +506,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.esp32_fast_status
+            entity: binary_sensor.singularity_esp32_fast_status
             state: "off"
         card:
           type: markdown
@@ -589,7 +589,7 @@ views:
       - type: conditional
         conditions:
           - condition: state
-            entity: binary_sensor.esp32_fast_status
+            entity: binary_sensor.singularity_esp32_fast_status
             state: "off"
         card:
           type: markdown
