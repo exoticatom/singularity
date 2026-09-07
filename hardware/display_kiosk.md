@@ -93,7 +93,7 @@ Flash **Raspberry Pi OS Lite (64-bit)** using Raspberry Pi Imager with these set
 | Username | `<your-username>` (local admin) |
 | Hostname | `singularity-kiosk-wifi` |
 | SSH | Enabled (Services tab) |
-| WLAN Country | CH (Switzerland) |
+| WLAN Country | Your country code |
 
 > Do not set a password in the Imager — configure SSH key authentication instead (see step 5).
 
@@ -125,7 +125,7 @@ sudo raspi-config
 | Menu | Setting |
 |---|---|
 | System Options (S5) → Boot / Auto Login | **Console Autologin** |
-| Localisation Options (L4) → WLAN Country | **CH** (Switzerland) |
+| Localisation Options (L4) → WLAN Country | **Your country code** |
 | Interface Options (I2) → SSH | **Enabled** |
 | Advanced Options (A6) → Wayland/X11 | **X11** (required for Openbox) |
 
@@ -214,9 +214,11 @@ fi
 
 ---
 
-### 7. Memory Watchdog & Cron
+### 7. Memory Watchdog & Cron *(optional — not needed on Pi 4 with 2GB RAM)*
 
-Chromium leaks memory over long sessions. The watchdog recycles it before the Pi runs out.
+> On a Pi 4 with 2GB RAM, Chromium runs comfortably without a watchdog. This step was originally designed for the Pi 3 B+ (1GB RAM). Skip it unless you observe memory pressure.
+
+Chromium leaks memory over long sessions on low-RAM devices. The watchdog recycles it before the Pi runs out.
 
 **Create the watchdog script:**
 
@@ -266,7 +268,9 @@ tail -f ~/memory_log.txt
 
 ---
 
-### 8. Swap File (2GB Safety Net)
+### 8. Swap File *(optional — not needed on Pi 4 with 2GB RAM)*
+
+> Pi 4 with 2GB RAM has sufficient memory for the kiosk workload. A swap file is only useful as a safety net on Pi 3 B+ (1GB RAM) or if you observe the Pi running out of memory in practice. Skip this step on Pi 4.
 
 ```bash
 sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
@@ -300,50 +304,12 @@ homeassistant:
   auth_providers:
     - type: trusted_networks
       trusted_networks:
-        - 192.168.168.151/32  # Kiosk Pi static IP
+        - <your-pi-ip>/32  # Kiosk Pi static IP
       allow_bypass_login: true
     - type: homeassistant
 ```
 
-> Assign the kiosk Pi a **static IP** (192.168.168.151) in your router's DHCP reservations to match this config. The `homeassistant` provider is kept as fallback for all other logins.
-
----
-
-## SD Card Management
-
-The kiosk image is cloned from the working setup. To backup or restore:
-
-**Backup SD card to image (macOS):**
-```bash
-diskutil list                          # find device, e.g. /dev/disk4
-diskutil unmountDisk /dev/disk4
-sudo dd if=/dev/rdisk4 of=~/Desktop/kiosk_backup.img bs=4m status=progress
-```
-
-**Restore image to SD card:**
-```bash
-diskutil list                          # find target device
-diskutil unmountDisk /dev/disk4
-sudo dd if=~/Desktop/kiosk_backup.img of=/dev/rdisk4 bs=4m status=progress
-diskutil eject /dev/disk4
-```
-
-**Clone directly card-to-card** (requires USB card reader for second card):
-```bash
-sudo dd if=/dev/rdisk4 of=/dev/rdisk5 bs=4m status=progress
-```
-
-**GUI option:** [Apple Pi Baker](https://www.tweaking4all.com/hardware/raspberry-pi/applepi-baker-v2/) — free Mac app, backup and restore with a single button.
-
-### After cloning — checklist
-
-| Item | Command |
-|---|---|
-| Change hostname | `sudo hostnamectl set-hostname singularity-kiosk-wifi` |
-| Regenerate SSH keys | `sudo rm /etc/ssh/ssh_host_* && sudo dpkg-reconfigure openssh-server` |
-| Verify display resolution | Check `/boot/firmware/config.txt` for HDMI timings |
-| Verify touch USB device | Confirm touch works after boot |
-| First boot | Run `sudo raspi-config` → Advanced → Expand Filesystem |
+> Assign the kiosk Pi a **static IP** in your router's DHCP reservations and use that IP as `<your-pi-ip>` above. The `homeassistant` provider is kept as fallback for all other logins.
 
 ---
 
