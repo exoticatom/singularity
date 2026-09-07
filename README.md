@@ -10,6 +10,7 @@
 [![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
 [![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
 [![Installation](https://img.shields.io/badge/📦%20Installation-Guide-blue)](installation.md)
+[![Kiosk Display](https://img.shields.io/badge/🖥️%20Kiosk%20Display-Setup-lightgrey)](hardware/display_kiosk.md)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
@@ -31,13 +32,28 @@ singularity is an [ESP32-S3](hardware/esp32.md) based brewing controller integra
 
 Configuration is managed as code, version-controlled in Git, and automatically deployed to [Home Assistant](home_assistant.md) via GitHub Actions over a Tailscale VPN tunnel.
 
-### Architecture
+### Physical Setup
 
-The system is split into three distinct layers, each with a clear responsibility:
+The system lives in two physical units:
+
+```
+┌─────────────────────────────────┐     ┌──────────────────────────────────┐
+│        Electrical Box           │     │         Display Unit (optional)  │
+│                                 │     │                                  │
+│  ESP32-S3  ADS1115  Sensors     │     │  Joy-IT RB-LCD10-2  10.1" IPS   │
+│  SSR relays  Flow meters        │     │  Raspberry Pi 4 (2GB)           │
+│  Level shifter  DAC  Breadboard │     │  Chromium kiosk → HA dashboard  │
+└─────────────────────────────────┘     └──────────────────────────────────┘
+                    ↕ WiFi / Home Assistant network
+```
+
+> 🖥️ **Optional kiosk display:** The [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" IPS touchscreen connects to a dedicated Raspberry Pi 4 running Chromium in kiosk mode, showing the singularity dashboard full-screen. This is the primary interface during brewing — no keyboard or mouse needed. See **[hardware/display_kiosk.md](hardware/display_kiosk.md)** for the full setup guide.
+
+### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     Node-RED                            │
+│                     Node-RED (planned)                  │
 │  Process automation — mash schedules, PID, sequences    │
 │  Reads sensors from HA, sends commands to ESP32         │
 └────────────────────────┬────────────────────────────────┘
@@ -47,6 +63,8 @@ The system is split into three distinct layers, each with a clear responsibility
 │  Dashboard — display, settings, calibration, logs       │
 │  DS18B20 offset correction via ESP32 number entities    │
 │  Fast connectivity template (10s offline detection)     │
+│                                                         │
+│  ← viewed on Joy-IT touchscreen via Pi 4 kiosk (optional)│
 └────────────────────────┬────────────────────────────────┘
                          │ ESPHome native API
 ┌────────────────────────▼────────────────────────────────┐
@@ -73,6 +91,7 @@ The system is split into three distinct layers, each with a clear responsibility
 | Category | Components |
 |---|---|
 | **Controller** | [Waveshare ESP32-S3-WROOM-1 N16R8 44-Pin](hardware/esp32.md) (Board 2, active) + [expansion adapter board](hardware/esp32_expansion_board.md) |
+| **Display & Kiosk** *(optional)* | [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" IPS touchscreen + [Raspberry Pi 4](hardware/display_kiosk.md) 2GB running Chromium kiosk → singularity dashboard |
 | **Temperature** | [NTC](hardware/ntc.md) 10kΩ thermistors × 2 (via [ADS1115](hardware/expansion_boards.md) ADC), [DS18B20](hardware/ds18b20.md) 1-Wire sensors × 2 |
 | **Flow** | IFM [SM6004](hardware/sm6004.md) magnetic flow meters × 2 (🔬 Testing), [YF-S200](hardware/yf_s200.md) pulse sensors (planned) |
 | **Analog I/O** | [ADS1115](hardware/expansion_boards.md) 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), [MCP4728](hardware/expansion_boards.md) 12-bit DAC × 2 (planned) |
@@ -98,6 +117,9 @@ singularity/
 ├── assets/                       # Hardware reference images and datasheets
 ├── hardware/                     # Hardware documentation
 │   ├── README.md                 # Hardware index
+│   ├── display_kiosk.md          # Joy-IT RB-LCD10-2 display + Pi 4 kiosk setup
+│   ├── scripts/
+│   │   └── kiosk.sh              # Chromium kiosk launch script (deploy to Pi ~/kiosk.sh)
 │   ├── esp32.md                  # ESP32-S3 board overview and pinout
 │   ├── esp32_expansion_board.md  # Expansion adapter board
 │   ├── gpio_map.md               # GPIO pin rules and bus assignments
@@ -208,6 +230,8 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Component | Status | Notes |
 |---|---|---|
+| [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" touchscreen | ✅ Active | Tested, connected to singularity dashboard as default |
+| [Raspberry Pi 4](hardware/display_kiosk.md) 2GB — kiosk | ✅ Active | Chromium kiosk mode, cloned image ready |
 | [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.5 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
 | [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |

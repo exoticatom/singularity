@@ -13,6 +13,41 @@ NTC (Negative Temperature Coefficient) thermistors measure temperature via resis
 
 ### Sensor Used in This Installation
 
+---
+
+#### VitaminB Sensor — S+S Regeltechnik HTF50 NTC10K ✅ Active
+
+<img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/NTC_Sensor_VitaminB.jpg" width="50%"/>
+
+**HTF50 NTC10K 5m PVC** — Kabeltemperaturfühler (cable temperature sensor) by S+S Regeltechnik GmbH, Made in Germany
+
+| Parameter | Value |
+|---|---|
+| Manufacturer | S+S Regeltechnik GmbH, Nürnberg, Germany |
+| Model | HTF50 NTC10K 5m PVC |
+| Article number | 1101-6031-5251-110 |
+| Internal ref | HTF50-NTC10K-5M -3 |
+| Order number | 300-00-888 |
+| Sensor type | NTC 10kΩ |
+| Cable material | PVC |
+| Cable length | 5m |
+| Temperature range | -35°C / +105°C |
+| Max power dissipation | P max < 2mW |
+| Protection class | IP65 |
+| Certification | CE |
+| Manufactured | KW03/2021 |
+| Country of origin | Germany |
+
+**Where to order:**
+- 🔗 [Distrelec Switzerland — distrelec.ch](https://www.distrelec.ch) — purchased here
+- 🔗 [S+S Regeltechnik — www.spluss.de](https://www.spluss.de) — manufacturer
+
+> The 5m PVC cable makes this sensor well-suited for installations where the sensing point is further from the controller. IP65 rating provides protection against dust and water jets. Max temperature of 105°C is sufficient for brewing applications (wort never exceeds 100°C). Recalibrate A, B, C Steinhart-Hart coefficients for this specific sensor unit.
+
+---
+
+#### Alternative Order Option — Kabelfühler Ø5mm
+
 <img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/NTC_Sensor.jpg" width="50%"/>
 
 **Kabelfühler — Durchmesser Ø5mm** — Made in Germany

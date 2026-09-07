@@ -11,6 +11,7 @@ This folder contains all hardware-related documentation for the singularity brew
 | 🔧 [ESP32-S3 Boards](esp32.md) | Board overview, pinout diagrams, wiring summary (Board 1 Waveshare + Board 2 44-pin, active) |
 | 🔌 [ESP32-S3 Expansion Board](esp32_expansion_board.md) | Screw terminal breakout adapter for all 44 pins |
 | 📌 [GPIO Map](gpio_map.md) | ESP32-S3 pin rules, bus assignments, reserved pins, sensor pin map |
+| 🖥️ [Display & Kiosk](display_kiosk.md) | Joy-IT RB-LCD10-2 10.1" touchscreen + Raspberry Pi 4 kiosk setup |
 | 🌡️ [NTC Thermistors](ntc.md) | Wiring, voltage divider circuit, Steinhart-Hart calibration |
 | 🌡️ [DS18B20](ds18b20.md) | 1-Wire digital temperature sensor — wiring and ROM address discovery |
 | 🔲 [Expansion Boards](expansion_boards.md) | I2C boards (ADS1115, MCP4728, MCP23017), pull-up rules, address map |
@@ -67,3 +68,21 @@ The 24V PSU GND (DC negative) is the low-voltage system ground — it is NOT the
 ### Connector Recommendation
 
 Use screw terminals or JST connectors for all sensor connections. Label all wires at both ends. Twisted pair cable for runs longer than 30cm.
+
+---
+
+## Display & Kiosk
+
+The brewing controller uses a dedicated touchscreen display running in kiosk mode:
+
+| Component | Details |
+|---|---|
+| Display | Joy-IT RB-LCD10-2 — 10.1" IPS, 1280×800, HDMI + USB touch, 12V DC |
+| Computer | Raspberry Pi 4 (2GB) — Raspberry Pi OS Lite, Chromium kiosk mode |
+| Hostname | `singularity-kiosk-wifi` |
+| Default page | singularity Home Assistant dashboard |
+
+The Pi 4 and display are physically separate from the main electrical box — connected to the same network via WiFi.
+
+📖 Full setup guide → **[display_kiosk.md](display_kiosk.md)**
+📄 Kiosk script → **[scripts/kiosk.sh](scripts/kiosk.sh)**

@@ -90,6 +90,21 @@ If you have **different sensors**, discover the addresses and update `esp32_sing
 
 Open the singularity dashboard → **Settings tab** and enter calibration values for your sensors. See [hardware/calibration.md](hardware/calibration.md) for full procedures.
 
+### Step 8 — Set up the kiosk display (optional)
+
+If you are using the Joy-IT RB-LCD10-2 touchscreen with a dedicated Raspberry Pi 4 kiosk:
+
+1. Flash **Raspberry Pi OS Lite (64-bit)** with hostname `singularity-kiosk-wifi`
+2. Follow the 9-step setup guide → **[hardware/display_kiosk.md](hardware/display_kiosk.md)**
+3. Deploy the kiosk script to the Pi:
+   ```bash
+   scp hardware/scripts/kiosk.sh <your-username>@singularity-kiosk-wifi.local:~/kiosk.sh
+   ssh <your-username>@singularity-kiosk-wifi.local "chmod +x ~/kiosk.sh"
+   ```
+4. Add the trusted network auto-login to HA `configuration.yaml` (see [step 9 in the kiosk guide](hardware/display_kiosk.md#9-home-assistant--auto-login-trusted-network))
+
+📄 Kiosk script → [`hardware/scripts/kiosk.sh`](hardware/scripts/kiosk.sh)
+
 ---
 
 ## 🛠️ Developer Setup
