@@ -2,15 +2,15 @@
 
 > **Last updated: 2026-09-02** — Firmware v1.1.5 · Dashboard v1.3.9
 
-[![GPIO Map](https://img.shields.io/badge/📌%20GPIO%20Map-View-blue)](hardware/gpio_map.md)
-[![Hardware Docs](https://img.shields.io/badge/🔧%20Hardware%20Docs-View-blue)](hardware/README.md)
-[![ESPHome Config](https://img.shields.io/badge/⚡%20ESPHome-v1.1.5-green)](esp32_singularity.yaml)
-[![Dashboard](https://img.shields.io/badge/📊%20Dashboard-v1.3.9-orange)](singularity_dashboard.yaml)
-[![Project Status](https://img.shields.io/badge/📋%20Project%20Status-View-brightgreen)](#project-status)
-[![Calibration Guide](https://img.shields.io/badge/🧪%20Calibration-Guide-blueviolet)](hardware/calibration.md)
-[![Home Assistant](https://img.shields.io/badge/🏠%20Home%20Assistant-Integration-teal)](home_assistant.md)
-[![Installation](https://img.shields.io/badge/📦%20Installation-Guide-blue)](installation.md)
-[![Kiosk Display](https://img.shields.io/badge/🖥️%20Kiosk%20Display-Setup-lightgrey)](hardware/display_kiosk.md)
+- 📌 [GPIO Map](hardware/gpio_map.md)
+- 🔧 [Hardware Docs](hardware/README.md)
+- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.5
+- 📊 [Dashboard](singularity_dashboard.yaml) — v1.3.9
+- 📋 [Project Status](#project-status)
+- 🧪 [Calibration Guide](hardware/calibration.md)
+- 🏠 [Home Assistant Integration](home_assistant.md)
+- 📦 [Installation Guide](installation.md)
+- 🖥️ [Kiosk Display Setup](hardware/display_kiosk.md)
 
 > Built for **Vitamin B** — award-winning Belgian-style homebrews since 2012. 🍺
 
