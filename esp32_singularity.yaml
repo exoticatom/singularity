@@ -46,7 +46,7 @@
 #   on the same line as the name: field.
 #
 # TEMPLATE SENSOR (defined in singularity_templates/singularity_templates.yaml):
-#   binary_sensor.esp32_fast_status  — fast offline detection (10s)
+#   binary_sensor.singularity_esp32_fast_status  — fast offline detection (10s)
 #   reads: sensor.singularity_uptime — if not updated for >10s → offline
 #
 # Target board: ESP32-S3-N16R8 (16MB flash, 8MB PSRAM)
@@ -858,7 +858,7 @@ sensor:
           send_every: 1
           send_first_at: 1
       - exponential_moving_average:
-          alpha: 0.25       # EMA smoothing — diagnostic signal quality
+          alpha: 0.25       # REQUIRED per architecture rules: all analog inputs including diagnostics must use EMA α=0.25
 
   # AN1 flow rate — converts voltage to L/min using calibrated slope
   - platform: ads1115
@@ -924,7 +924,7 @@ sensor:
           send_every: 1
           send_first_at: 1
       - exponential_moving_average:
-          alpha: 0.25       # EMA smoothing — diagnostic signal quality
+          alpha: 0.25       # REQUIRED per architecture rules: all analog inputs including diagnostics must use EMA α=0.25
 
   - platform: ads1115
     ads1115_id: ads1115_0x48
