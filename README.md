@@ -1,6 +1,6 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-02** — Firmware v1.1.5 · Dashboard v1.3.9
+> **Last updated: 2026-09-07** — Firmware v1.1.5 · Dashboard v1.3.9 · Copilot Rules updated
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)

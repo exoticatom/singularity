@@ -1,9 +1,15 @@
 # gpio_map.md
 # GPIO Map — ESP32-S3-WROOM-1
 
-**Project:** singularity | **Last updated:** 2026-08-26
+**Project:** singularity | **Last updated:** 2026-09-07
 
 Single source of truth for all hardware pin assignments. Every GPIO used in firmware or configuration must be recorded here first.
+
+---
+
+## ⚠️ CRITICAL CONSTRAINT
+
+**Voltage Ceiling: 3.3V logic only.** The ESP32-S3 is a 3.3V device. All analog modules (4-20mA converters, sensors, external circuits) must be hardware-calibrated to output 0–3.3V. Applying 5V to any GPIO or analog input **will permanently damage the pin and may destroy the entire module.**
 
 ---
 
@@ -104,6 +110,7 @@ Used by: [DS18B20](ds18b20.md) digital temperature sensor(s)
 | 2026-08-25 | singularity | Secrets reference section added; all keys documented |
 | 2026-08-25 | singularity | Verified: all secrets aligned to `singularity_` prefix convention |
 | 2026-08-26 | singularity | Added schematics, planned expansions, sensor polling and EMA filter docs |
+| 2026-09-07 | singularity | Added 3.3V voltage ceiling CRITICAL constraint; raw voltage EMA filtering emphasized |
 
 ---
 
@@ -239,6 +246,7 @@ ADS1115 (0x48)
 | Update interval | 1s | All temperature sensors read every second |
 | NTC filter chain | Lambda → sliding average (5) → EMA α=0.25 | Three-stage filter |
 | DS18B20 filter | EMA α=0.25 | Single-stage filter |
+| AN1/AN2 raw voltage filter | EMA α=0.25 | Applied to **all** analog diagnostic sensors, not just calculated values |
 | Build version | 60s | Version string published every minute |
 
 **Exponential Moving Average (EMA) — α=0.25:**

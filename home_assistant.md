@@ -56,7 +56,7 @@ sensor.singularity_wifi_signal        dBm    WiFi RSSI — updates every 60s (di
 
 ```
 binary_sensor.singularity_esp32_status       on/off  Native ESPHome connectivity (slow — ~30-60s)
-binary_sensor.esp32_fast_status              on/off  Template sensor — offline within 10s (see below)
+binary_sensor.singularity_esp32_fast_status  on/off  Template sensor — offline within 10s (see below)
 ```
 
 ### Number Entities (read/write, persisted on ESP32 flash)
@@ -169,6 +169,8 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
         wifi_signal: "{{ states('sensor.singularity_wifi_signal') | default('unknown') }} dBm"
         offline_seconds: "{{ (now() - states.sensor.singularity_uptime.last_updated).total_seconds() | int }}"
 ```
+
+> **Entity ID Rule:** Always reference `binary_sensor.singularity_esp32_fast_status` in automations and dashboards — never the bare form. HA auto-generates entity IDs with the `singularity_` prefix; this prevents collision with other projects.
 
 ---
 
@@ -321,7 +323,7 @@ trigger: binary_sensor.singularity_esp32_status → ON
             DS18B20: Boil offset, HLT offset
 ```
 
-> **Note:** PID parameters (Setpoint, Kp, Ki, Kd, Max Duty) and flow offsets are not re-pushed — they persist independently on ESP32 flash.
+> **Note — PID Flash Persistence:** PID parameters (Setpoint, Kp, Ki, Kd, Max Duty) and flow offsets are **not** re-pushed on reconnect because they persist independently on ESP32 flash. This is intentional — the ESP32 resumes a brew with the exact tuning from before the HA outage. Re-pushing would be redundant and could interrupt active PID control.
 
 ---
 
@@ -348,9 +350,41 @@ ESP32 on_value lambda
 
 ---
 
+## Dynamic Sensor Mapping (Planned)
+
+**Architecture Rule:** Do not hardcode sensor roles to physical pins in the firmware. Define generic ports (e.g., `adc_port_a0` on the ADS1115) and map them dynamically via Home Assistant `input_select` helpers.
+
+**Why:** Swapping a failed sensor or repurposing a pin should not require firmware reflash. Instead, HA provides dropdown menus to reassign which physical channel feeds which calculated value.
+
+**Example (future):**
+```
+input_select.singularity_ntc1_role
+  Options: "RIMS Temperature", "Mash Temperature", "Disabled"
+  Default: "RIMS Temperature"
+  
+input_select.singularity_ntc1_adc_channel
+  Options: "ADS1115 #1 A0", "ADS1115 #1 A1", "ADS1115 #1 A2", "ADS1115 #1 A3"
+  Default: "ADS1115 #1 A0"
+```
+
+HA publishes these selections to the ESP32 as `number` entities; the firmware applies them to configure the ADC read pipeline without reflash.
+
+**Status:** Planned — implement when sensor replacement or reallocation becomes necessary.
+
+---
+
 ## Orphaned Entities (safe to delete from HA)
 
-These entities exist in the HA registry from old firmware versions and are no longer used:
+These entities exist in the HA registry from old firmware versions and are no longer used.
+
+### Cleanup Instructions
+
+1. **One-time cleanup:** Go to **Settings → Devices & Services → Entities** and search for each entity below
+2. **Delete:** Click each entity and select **Delete** — confirm the deletion
+3. **Verify:** After deletion, refresh the page to confirm the entity is gone from the registry
+4. **Automation check:** If an automation references a deleted entity, HA will show a warning; remove the automation or fix the reference
+
+### Orphaned Entity List
 
 | Entity | Reason |
 |---|---|

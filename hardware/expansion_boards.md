@@ -1,5 +1,7 @@
 # Expansion Boards
 
+**⚠️ VOLTAGE CONSTRAINT:** All analog input signals to ADS1115 and I2C signal lines must be strictly 0–3.3V. The ESP32 is a 3.3V-only device. Applying 5V to any analog or I2C pin will cause permanent damage. See [gpio_map.md](gpio_map.md#-critical-constraint) for details.
+
 All expansion boards communicate over the I2C bus on GPIO 21 (SDA) and GPIO 47 (SCL).
 
 ## Boards

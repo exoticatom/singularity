@@ -2,6 +2,8 @@
 
 > 🔗 [AliExpress — Current To Voltage Module 0/4-20mA to 0-3.3V/0-5V/0-10V](https://de.aliexpress.com/item/1005003402577144.html)
 
+**⚠️ FOR SINGULARITY: 0–3.3V OUTPUT ONLY.** The ESP32 is a 3.3V device. This converter **must** be configured for 0–3.3V output (J1 jumpers OPEN). Applying 5V or 10V to the ADS1115 input will destroy the module. See [gpio_map.md](gpio_map.md#-critical-constraint) for details.
+
 Used to convert the 4-20mA analog outputs of industrial sensors ([SM6004](sm6004.md) flow meter) to a 0-3.3V voltage signal readable by the [ADS1115](expansion_boards.md) ADC.
 
 <img src="https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ConvertorModule.jpg" width="50%"/>
