@@ -1,7 +1,7 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  esp32_singularity.yaml                                                      ║
 # ║  singularity Brewing Controller — ESP32-S3-N16R8                             ║
-# ║  Firmware v1.1.5                                                              ║
+# ║  Firmware v1.1.6                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 #
 # WHAT THIS FILE IS:
@@ -104,7 +104,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.5"
+    version: "1.1.6"
 
   # on_boot: runs once after the ESP32 finishes booting
   # priority: -100 means it runs after all hardware is initialised
@@ -168,13 +168,16 @@ logger:
 #
 # The ESPHome native API lets HA talk directly to the ESP32 over WiFi.
 # The encryption key prevents anyone else on the network from connecting.
-# reboot_timeout: if HA hasn't connected for 3 minutes, reboot the ESP32.
-# This prevents the ESP32 from getting stuck in a disconnected state.
+# reboot_timeout: 0s — NEVER reboot just because HA is unreachable.
+# Autonomy principle: an HA outage must never stop or degrade a brew in progress.
+# The API timer fires precisely when HA is gone, so any non-zero value would reboot
+# the controller mid-brew (dropping the heater and resetting the PID integral).
+# WiFi self-healing is handled separately by the wifi: reboot_timeout (default 15min).
 #
 api:
   encryption:
     key: !secret singularity_api_encryption_key
-  reboot_timeout: 3min
+  reboot_timeout: 0s
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -662,6 +665,29 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — AN2 Flow Offset: %.2f L/min", x);
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # PID MIN FLOW — RIMS dry-fire / scorch protection threshold
+  # ─────────────────────────────────────────────────────────────────────────
+  # Minimum RIMS recirculation flow (an1_rate) required for the heater to fire.
+  # Only enforced when switch.singularity_flow_interlock_enable is ON.
+  # Leave the interlock OFF until the AN1 flow meter is commissioned against
+  # the SM6004 display, then turn it ON before the first RIMS load test.
+  - platform: template
+    name: "PID Min Flow"           # → number.singularity_pid_min_flow
+    id: pid_min_flow
+    min_value: 0.0
+    max_value: 20.0
+    step: 0.5
+    restore_value: true
+    initial_value: 2.0
+    optimistic: true
+    unit_of_measurement: "L/min"
+    icon: "mdi:water-alert"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — PID Min Flow: %.2f L/min", x);
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SENSORS — Everything the ESP32 reads and publishes to HA
@@ -673,7 +699,7 @@ sensor:
   # UPTIME — counts seconds since last boot
   # ─────────────────────────────────────────────────────────────────────────
   # This is not displayed on the dashboard but is used by the HA template
-  # sensor (binary_sensor.esp32_fast_status) to detect if the ESP32 is online.
+  # sensor (binary_sensor.singularity_esp32_fast_status) to detect if the ESP32 is online.
   # If this value stops updating for 10 seconds, HA shows the offline banner.
   - platform: uptime
     name: "Uptime"                 # → sensor.singularity_uptime
@@ -937,6 +963,10 @@ sensor:
     state_class: measurement
     update_interval: 1s
     filters:
+      - median:                # match AN1 rate chain — spike rejection before conversion
+          window_size: 5
+          send_every: 1
+          send_first_at: 1
       - lambda: |-
           // AN2 (A3) is not yet connected. Unconnected ADS1115 inputs float to
           // ~0.1V on this hardware, which × slope would give ~0.8 L/min false reading.
@@ -1039,6 +1069,23 @@ interval:
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — temp %.1f°C > 90°C hard limit, heater OFF", temp);
             return;
+          }
+
+          // SAFETY CHECK 3: RIMS flow interlock — dry-fire / scorch protection
+          // A RIMS element heats water flowing through a tube; NTC1 is at the
+          // tube OUTLET and lags the element surface. If flow stops (pump fail,
+          // kinked hose, airlock) the element can scorch the wort before the
+          // 90°C outlet guard reacts. Require minimum recirculation flow while
+          // heating. Only enforced when the interlock is explicitly enabled —
+          // keep it OFF until the AN1 flow meter is commissioned (default OFF).
+          if (id(flow_interlock_enable).state) {
+            float flow = id(an1_rate).state;
+            if (std::isnan(flow) || flow < id(pid_min_flow).state) {
+              id(rims_heater_pwm).set_level(0.0f);
+              ESP_LOGW("singularity", "RIMS SAFETY — flow %.2f L/min < %.2f min, heater OFF",
+                       flow, id(pid_min_flow).state);
+              return;
+            }
           }
 
           // PID CALCULATION
@@ -1147,6 +1194,21 @@ switch:
             id(pid_last_error) = 0.0f;
             ESP_LOGI("singularity", "RIMS PID OFF — heater output 0%%");
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # FLOW INTERLOCK ENABLE — arms the RIMS dry-fire / scorch protection
+  # ─────────────────────────────────────────────────────────────────────────
+  # When ON, the PID loop refuses to heat unless RIMS flow (an1_rate) is at or
+  # above number.singularity_pid_min_flow. Fails safe: heater holds off each
+  # cycle while flow is low and resumes automatically once flow returns.
+  # RESTORE_DEFAULT_OFF: ships dormant. Turn ON only after the AN1 flow meter is
+  # verified against the SM6004 display, and before the first RIMS load test.
+  - platform: template
+    name: "Flow Interlock Enable"  # → switch.singularity_flow_interlock_enable
+    id: flow_interlock_enable
+    icon: "mdi:water-check"
+    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: true
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BUTTONS — One-shot actions exposed to HA
@@ -1205,5 +1267,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.5"};
+      return {"v1.1.6"};
     update_interval: 10s

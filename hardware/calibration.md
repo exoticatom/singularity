@@ -239,3 +239,22 @@ For fast heat-up to strike temperature where precision is less critical:
 | Max Duty | 80% |
 
 High Kp with zero Ki/Kd saturates output to Max Duty when far from setpoint, then tapers naturally on approach — no overshoot, no scorching.
+
+### RIMS Flow Interlock — dry-fire / scorch protection
+
+A RIMS element heats wort flowing through a tube. If recirculation stops (pump failure, kinked hose, airlock) the water at the element can boil and scorch before `NTC1-RIMS` — which sits at the tube **outlet** and lags the element surface — trips the 90°C guard. The flow interlock is the primary protection against this; the 90°C guard is a backstop.
+
+The interlock runs **on the ESP32**, inside the same 2s PID loop that drives the SSR, so it holds even if Home Assistant / Node-RED / WiFi is offline. It is **not** a Node-RED responsibility — a network-dependent safety guard is no guard at all.
+
+| Entity | Default | Purpose |
+|---|---|---|
+| `switch.singularity_flow_interlock_enable` | **OFF** | Arms the interlock. Ships dormant. |
+| `number.singularity_pid_min_flow` | 2.0 L/min | Minimum RIMS flow (`an1_rate`) required to heat. |
+
+**Behaviour when enabled:** each 2s cycle, if `an1_rate` is NAN or below `pid_min_flow`, the heater output is forced to 0% for that cycle. It resumes automatically once flow returns — fail-safe, no relay chatter.
+
+**Commissioning procedure:**
+1. Leave the interlock **OFF** until the AN1 flow meter is calibrated (see [SM6004 ZERO/SPAN](#sm6004--4-20ma-converter--zerospan-calibration)) and `sensor.singularity_an1_rate` is verified against the SM6004 display at steady flow.
+2. Set `number.singularity_pid_min_flow` to a safe floor for your pump (2.0 L/min default; raise toward the dashboard's 3 L/min red-alarm line if your element demands more).
+3. Turn `switch.singularity_flow_interlock_enable` **ON** — this must be done **before the first RIMS element load test**.
+4. Confirm in the ESPHome log that heating is blocked at zero flow (`RIMS SAFETY — flow ... < ... min, heater OFF`) and resumes once the pump runs.

@@ -1,10 +1,10 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-07** — Firmware v1.1.5 · Dashboard v1.3.9 · Copilot Rules updated
+> **Last updated: 2026-09-07** — Firmware v1.1.6 · Dashboard v1.3.9 · Copilot Rules updated
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)
-- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.5
+- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.6
 - 📊 [Dashboard](singularity_dashboard.yaml) — v1.3.9
 - 📋 [Project Status](#project-status)
 - 🧪 [Calibration Guide](hardware/calibration.md)
@@ -232,7 +232,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 |---|---|---|
 | [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" touchscreen | ✅ Active | Tested, connected to singularity dashboard as default |
 | [Raspberry Pi 4](hardware/display_kiosk.md) 2GB — kiosk | ✅ Active | Chromium kiosk mode, cloned image ready |
-| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.5 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
+| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.6 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
 | [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |
 | [NTC2-MASH thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A1 |
@@ -253,12 +253,14 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.1.5 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.1.6 | ✅ Active | OTA updates working |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
 | PID RIMS heater control | ✅ Implemented | Kp=10 Ki=0.2 Kd=5 — not load tested |
 | 90°C runaway safety guard | ✅ Implemented | Heater off if NTC > 90°C |
+| RIMS flow interlock (dry-fire guard) | ✅ Implemented | Heater off if RIMS flow < min (default 2 L/min). Dormant by default — enable `switch.singularity_flow_interlock_enable` after AN1 commissioning, before first load test |
+| HA-outage autonomy (`reboot_timeout: 0s`) | ✅ Implemented | ESP32 no longer reboots when HA is unreachable — brew continues uninterrupted (WiFi self-heal unchanged) |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
 | HA dashboard v1.3.9 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
@@ -288,6 +290,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Date | Change |
 |---|---|
+| 2026-09-07 | Firmware v1.1.6 — safety audit fixes: RIMS flow interlock (dry-fire guard, `pid_min_flow` default 2 L/min + `flow_interlock_enable` switch, dormant by default); `api reboot_timeout` 3min→0s (HA-outage autonomy); AN2 rate median filter (parity with AN1); dashboard entity-ID fix (`esp32_fast_status`→`singularity_esp32_fast_status`) |
 | 2026-08-25 | Initial setup: ESPHome config, dashboard, CI/CD pipeline |
 | 2026-08-25 | CI/CD: Tailscale + rsync to HAOS — all steps green |
 | 2026-08-26 | Steinhart-Hart NTC calibration on ESP32 — all params configurable from dashboard |

@@ -268,7 +268,7 @@ views:
         title: Activity Log
         hours_to_show: 24
         entities:
-          - binary_sensor.esp32_fast_status
+          - binary_sensor.singularity_esp32_fast_status
           - sensor.singularity_build
 
       - type: history-graph

@@ -24,7 +24,7 @@ This page documents everything configured in [Home Assistant](https://www.home-a
                            │
                 ┌──────────▼──────────┐
                 │     ESP32-S3        │
-                │  singularity v1.1.5 │
+                │  singularity v1.1.6 │
                 └─────────────────────┘
 ```
 
@@ -88,6 +88,7 @@ PID Control:
   number.singularity_pid_ki                   Integral gain (default: 0.2)
   number.singularity_pid_kd                   Derivative gain (default: 5.0)
   number.singularity_pid_max_duty_cycle  %    Heater output cap (default: 100)
+  number.singularity_pid_min_flow        L/min RIMS min-flow interlock threshold (default: 2.0) — only enforced when flow interlock enabled
 
 Flow Calibration:
   number.singularity_an1_flow_offset    L/min  AN1 RIMS flow offset (default: 0.0)
@@ -97,8 +98,9 @@ Flow Calibration:
 ### Switches (read/write, persisted on ESP32 flash)
 
 ```
-switch.singularity_rims_heater    ON/OFF   Enables PID control loop → SSR2 (GPIO42)
-switch.singularity_ssr1           ON/OFF   SSR1 direct control (GPIO41)
+switch.singularity_rims_heater             ON/OFF   Enables PID control loop → SSR2 (GPIO42)
+switch.singularity_ssr1                    ON/OFF   SSR1 direct control (GPIO41)
+switch.singularity_flow_interlock_enable   ON/OFF   Arms RIMS dry-fire guard — heater refuses to fire below pid_min_flow. Default OFF (dormant until AN1 flow meter commissioned)
 ```
 
 ### Buttons
@@ -131,7 +133,7 @@ Layer 1 — Native ESPHome (slow)
   Source: ESPHome native API keepalive
 
 Layer 2 — Fast template (fast)
-  binary_sensor.esp32_fast_status
+  binary_sensor.singularity_esp32_fast_status
   Detection time: ~10s after disconnect
   Source: monitors sensor.singularity_uptime (1s heartbeat)
   Logic: if uptime not updated for >10s → offline
@@ -443,7 +445,8 @@ These entities exist in the HA registry from old firmware versions and are no lo
 │  Log connect/disconnect     │  Apply DS18B20 offsets          │
 │  Re-send calibration on     │  Accumulate flow totals         │
 │    reconnect                │  Publish uptime heartbeat (1s)  │
-│  Run fast-status template   │  Operates independently of HA   │
+│  Run fast-status template   │  Enforce flow + over-temp guards│
+│                             │  Operates independently of HA   │
 └─────────────────────────────┴─────────────────────────────────┘
 ```
 
