@@ -173,7 +173,7 @@ Complex brewing sequences (mash schedules, step mashing, automated valve control
 
 ## Dashboard
 
-Five tabs, auto-deployed on every push to `main`:
+Six tabs, auto-deployed on every push to `main`:
 
 | Tab | Description |
 |---|---|
