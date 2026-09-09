@@ -307,7 +307,7 @@ views:
       - type: grid
         cards:
           - type: logbook
-            title: Activity Log
+            title: Activity Log (last 24h)
             hours_to_show: 24
             entities:
               # Safety events — published by the ESP32 into HA, so trips stay
