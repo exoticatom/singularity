@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.3
+# singularity_dashboard.yaml  v1.5.4
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -40,6 +40,7 @@
 #   v1.5.1 — Duplicate RIMS Heater — PID Control card onto the main Brewing tab
 #   v1.5.2 — Drop Kp/Ki/Kd rows from the main-tab RIMS card (tuning stays in Settings)
 #   v1.5.3 — Merge the two main-tab RIMS cards into one "RIMS Heater (SSR2)" card
+#   v1.5.4 — Show Target Temperature + DC Power always (drop mode conditionals)
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -204,24 +205,12 @@ views:
           - entity: select.singularity_rims_mode
             name: Mode (PID / DC)
             icon: mdi:tune-variant
-          # PID mode → show target temperature only
-          - type: conditional
-            conditions:
-              - entity: select.singularity_rims_mode
-                state: "PID"
-            row:
-              entity: number.singularity_pid_setpoint
-              name: Target Temperature (°C)
-              icon: mdi:target
-          # DC mode → show fixed power % only (settable, default 80%)
-          - type: conditional
-            conditions:
-              - entity: select.singularity_rims_mode
-                state: "DC"
-            row:
-              entity: number.singularity_rims_dc_power
-              name: DC Power (%)
-              icon: mdi:percent
+          - entity: number.singularity_pid_setpoint
+            name: Target Temperature (°C)
+            icon: mdi:target
+          - entity: number.singularity_rims_dc_power
+            name: DC Power (%)
+            icon: mdi:percent
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: custom:apexcharts-card
