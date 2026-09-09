@@ -117,26 +117,36 @@ The system lives in two physical units:
 singularity/
 ├── home_assistant.md                 # Home Assistant integration — entities, dashboard, automations
 ├── installation.md                   # Installation guide — end user and developer
-├── esp32_singularity.yaml        # ESPHome firmware configuration
-├── singularity_dashboard.yaml    # Home Assistant Lovelace dashboard (auto-deployed)
-├── assets/                       # Hardware reference images and datasheets
-├── hardware/                     # Hardware documentation
-│   ├── README.md                 # Hardware index
-│   ├── display_kiosk.md          # Joy-IT RB-LCD10-2 display + Pi 4 kiosk setup
+├── esp32_singularity.yaml            # ESPHome firmware configuration
+├── singularity_dashboard.yaml        # Home Assistant Lovelace dashboard (auto-deployed)
+├── assets/                           # Hardware reference images and datasheets
+├── docs/                             # Project documentation
+│   ├── ARCHITECTURE.md               # Ground-truth architecture reference (single source of truth)
+│   ├── ARCHITECTURE_EXECUTIVE_SUMMARY.md  # One-page stakeholder overview
+│   ├── ARCHITECTURE_TECHNICAL_DEEP_DIVE.md # Developer reference (firmware internals)
+│   ├── ARCHITECTURE_VERIFICATION.md  # QA verification checklist (verified against firmware)
+│   └── SESSION_REPORT_*.md           # Session reports for continuity
+├── schematics/                        # Electrical schematics
+│   ├── schematic.md                  # Schematic index and notes
+│   ├── schematic.svg                 # Main schematic SVG
+│   └── singularity_schematic.drawio  # Editable draw.io source
+├── hardware/                          # Hardware documentation
+│   ├── README.md                     # Hardware index
+│   ├── display_kiosk.md              # Joy-IT RB-LCD10-2 display + Pi 4 kiosk setup
 │   ├── scripts/
-│   │   └── kiosk.sh              # Chromium kiosk launch script (deploy to Pi ~/kiosk.sh)
-│   ├── esp32.md                  # ESP32-S3 board overview and pinout
-│   ├── esp32_expansion_board.md  # Expansion adapter board
-│   ├── gpio_map.md               # GPIO pin rules and bus assignments
-│   ├── ntc.md                    # NTC thermistor wiring and S-H calibration
-│   ├── ds18b20.md                # DS18B20 wiring and ROM address discovery
-│   ├── expansion_boards.md       # I2C boards (ADS1115, MCP4728, MCP23017)
-│   ├── current_to_voltage.md     # 4-20mA → 0-3.3V converter module
-│   ├── sm6004.md                 # IFM SM6004 magnetic flow sensor
-│   ├── yf_s200.md                # YF-S200 pulse flow sensor
-│   └── calibration.md            # Calibration guide — NTC, DS18B20, ADS1115, SM6004, PID
+│   │   └── kiosk.sh                  # Chromium kiosk launch script (deploy to Pi ~/kiosk.sh)
+│   ├── esp32.md                      # ESP32-S3 board overview and pinout
+│   ├── esp32_expansion_board.md      # Expansion adapter board
+│   ├── gpio_map.md                   # GPIO pin rules and bus assignments
+│   ├── ntc.md                        # NTC thermistor wiring and S-H calibration
+│   ├── ds18b20.md                    # DS18B20 wiring and ROM address discovery
+│   ├── expansion_boards.md           # I2C boards (ADS1115, MCP4728, MCP23017)
+│   ├── current_to_voltage.md         # 4-20mA → 0-3.3V converter module
+│   ├── sm6004.md                     # IFM SM6004 magnetic flow sensor
+│   ├── yf_s200.md                    # YF-S200 pulse flow sensor
+│   └── calibration.md                # Calibration guide — NTC, DS18B20, ADS1115, SM6004, PID
 ├── .gitignore
-└── .github/workflows/deploy.yml  # CI/CD — auto-deploys to HA on push to main
+└── .github/workflows/deploy.yml      # CI/CD — auto-deploys to HA on push to main
 ```
 
 ---
@@ -237,7 +247,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 |---|---|---|
 | [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" touchscreen | ✅ Active | Tested, connected to singularity dashboard as default |
 | [Raspberry Pi 4](hardware/display_kiosk.md) 2GB — kiosk | ✅ Active | Chromium kiosk mode, cloned image ready |
-| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.8 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
+| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.2.0 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
 | [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |
 | [NTC2-MASH thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A1 |
@@ -259,7 +269,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.1.8 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.2.0 | ✅ Active | OTA updates working — compiled, not yet flashed |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
@@ -269,7 +279,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | RIMS flow interlock (dry-fire guard) | ✅ Implemented | Heater off if RIMS flow < min (default 2 L/min). Uses a fast unfiltered safety-voltage read (`an1_flow_safety_v`), not the smoothed `an1_rate`. Dormant by default — enable `switch.singularity_flow_interlock_enable` after AN1 commissioning, before first load test |
 | HA-outage autonomy (`reboot_timeout: 0s`) | ✅ Implemented | ESP32 no longer reboots when HA is unreachable — brew continues uninterrupted (WiFi self-heal unchanged) |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.4.0 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
+| HA dashboard v1.6.1 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | ✅ Implemented | AN1 (RIMS, A2) + AN2 (Sparge, A3) — rate + total + offset + reset |

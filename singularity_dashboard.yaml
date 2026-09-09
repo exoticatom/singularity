@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.6.0
+# singularity_dashboard.yaml  v1.6.1
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -626,7 +626,7 @@ views:
                 </tr>
                 <tr style="background:#1a1a2e;">
                   <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-                  <td style="padding:8px; color:#81c784; font-weight:bold;">v1.4.0</td>
+                  <td style="padding:8px; color:#81c784; font-weight:bold;">v1.6.1</td>
                   <td style="padding:8px; color:#81c784;">● Deployed</td>
                 </tr>
               </table>
