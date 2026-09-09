@@ -2,12 +2,16 @@
 
 This folder contains all hardware-related documentation for the singularity brewing controller.
 
+> 🏛️ For the system-level design — compute boundary, safety model, and implemented-vs-planned status — see the authoritative **[Architecture & Ground Truth](../docs/ARCHITECTURE.md)**. For the single-sheet wiring overview see the **[Electrical Schematic](../schematics/schematic.md)**.
+
 ---
 
 ## Contents
 
 | Page | Description |
 |---|---|
+| 🏛️ [Architecture & Ground Truth](../docs/ARCHITECTURE.md) | System compute boundary, safety mechanisms, what's built vs planned |
+| 🔌 [Electrical Schematic](../schematics/schematic.md) | Single-sheet schematic derived from the firmware YAML |
 | 🔧 [ESP32-S3 Boards](esp32.md) | Board overview, pinout diagrams, wiring summary (Board 1 Waveshare + Board 2 44-pin, active) |
 | 🔌 [ESP32-S3 Expansion Board](esp32_expansion_board.md) | Screw terminal breakout adapter for all 44 pins |
 | 📌 [GPIO Map](gpio_map.md) | ESP32-S3 pin rules, bus assignments, reserved pins, sensor pin map |

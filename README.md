@@ -1,11 +1,13 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-09** — Firmware v1.1.8 · Dashboard v1.5.9 · Copilot Rules updated
+> **Last updated: 2026-09-09** — Firmware v1.2.0 · Dashboard v1.6.1 · Copilot Rules updated
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)
-- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.8
-- 📊 [Dashboard](singularity_dashboard.yaml) — v1.5.9
+- 🏛️ [Architecture & Ground Truth](docs/ARCHITECTURE.md) — compute boundary, safety model, planned vs built
+- 🔌 [Electrical Schematic](schematics/schematic.md)
+- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.2.0
+- 📊 [Dashboard](singularity_dashboard.yaml) — v1.6.1
 - 📋 [Project Status](#project-status)
 - 🧪 [Calibration Guide](hardware/calibration.md)
 - 🏠 [Home Assistant Integration](home_assistant.md)
@@ -28,7 +30,9 @@ Restores Amigas and ZX Spectrums. Automates everything. Brews the rest.
 
 ## What is singularity?
 
-singularity is an [ESP32-S3](hardware/esp32.md) based brewing controller integrated with [Home Assistant](home_assistant.md). It monitors temperatures across the brewing process, controls heating elements via SSR relays, and is designed to be extended with flow meters, proportional valves and automated brewing logic via Node-RED.
+singularity is an [ESP32-S3](hardware/esp32.md) based brewing controller integrated with [Home Assistant](home_assistant.md). The **ESP32-S3 is a fully autonomous safety controller**: it reads the temperature and flow sensors, runs the Steinhart-Hart conversions and the PID heating loop locally in firmware, and enforces every thermal safety interlock on-device — continuing to run a brew even if Home Assistant is offline. Home Assistant provides display, configuration and logging only. The system is designed to be extended with flow meters, proportional valves and automated brewing logic (Node-RED phase orchestration — *planned*).
+
+> 🏛️ **The authoritative design reference is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — compute boundary, safety model, and implemented-vs-planned status. See also the [electrical schematic](schematics/schematic.md).
 
 Configuration is managed as code, version-controlled in Git, and automatically deployed to [Home Assistant](home_assistant.md) via GitHub Actions over a Tailscale VPN tunnel.
 
@@ -54,7 +58,7 @@ The system lives in two physical units:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     Node-RED (planned)                  │
-│  Process automation — mash schedules, PID, sequences    │
+│  Phase orchestration — mash schedules, sequences, alarms│
 │  Reads sensors from HA, sends commands to ESP32         │
 └────────────────────────┬────────────────────────────────┘
                          │ reads entities / calls services
@@ -68,19 +72,20 @@ The system lives in two physical units:
 └────────────────────────┬────────────────────────────────┘
                          │ ESPHome native API
 ┌────────────────────────▼────────────────────────────────┐
-│                    ESP32-S3                             │
+│              ESP32-S3 (autonomous controller)           │
 │  Reads NTC voltage, runs S-H calc, publishes °C         │
 │  Reads DS18B20 digital temp, publishes °C               │
+│  Runs the PID heating loop + all safety interlocks (2s) │
 │  NTC calibration params stored on flash (persist reboot)│
-│  Controls SSR relays on command                         │
+│  Drives SSR relays; runs even if HA is offline          │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**ESP32** runs the NTC Steinhart-Hart calculation locally using parameters stored in flash. Even if HA is unavailable the controller continues with last known calibration values.
+**ESP32** runs the NTC Steinhart-Hart calculation, the PID heating loop, and every thermal safety interlock locally, using parameters stored in flash. Even if HA is unavailable the controller continues heating and protecting the brew with last known calibration values.
 
 **[Home Assistant](home_assistant.md)** is display and configuration only. [DS18B20](hardware/ds18b20.md) offsets are written to [ESP32](hardware/esp32.md) `number` entities (stored on flash). [NTC](hardware/ntc.md) calibration parameters are also on flash. HA shows live readings, logs events, and provides a settings UI — the ESP32 runs the brew independently.
 
-**Node-RED** (planned) implements brewing sequences and PID control at the highest level.
+**Node-RED** (planned) implements high-level brewing sequences and phase orchestration (Idle → Strike → Mash → Sparge → Boil). The PID loop and all safety interlocks stay on the ESP32 — Node-RED never runs the control loop.
 
 ---
 
