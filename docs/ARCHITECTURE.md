@@ -111,7 +111,7 @@ All thermal protection lives in the ESP32's 2 s PID loop, evaluated **before** a
 
 ### ⚠️ Standing safety gap (required before first load test)
 
-All thermal protection today is in **one place** — the ESP32 firmware. That is a single point of failure: a firmware hang, a crashed MCU with the SSR latched, or a GPIO stuck HIGH defeats every software guard at once. A **hardware high-limit cutoff independent of the ESP32** (self-resetting klixon / high-limit thermostat or one-shot thermal fuse, ~95–100 °C at the element) must be wired **in series with the SSR mains-switching load** — not the control side — before the first RIMS load test. Tracked in [README Project Status](../README.md#project-status) and [`hardware/gpio_map.md`](../hardware/gpio_map.md#ssr-gate-circuit-gpio-41--42--pulldown-required).
+All thermal protection today is in **one place** — the ESP32 firmware. That is a single point of failure: a firmware hang, a crashed MCU with the SSR latched, or a GPIO stuck HIGH defeats every software guard at once. A **hardware high-limit cutoff independent of the ESP32** (bimetallic snap-disc / Klixon ~90–95 °C, or a one-shot thermal fuse), clamped to the RIMS element body, must be wired **in series with the SSR AC mains load** — not the control side — and installed **before mains power is connected to the element** and before the first RIMS load test. Planned as a single one-time install. Tracked in [README Project Status](../README.md#project-status) and [`hardware/gpio_map.md`](../hardware/gpio_map.md#ssr-gate-circuit-gpio-41--42--pulldown-required).
 
 ---
 

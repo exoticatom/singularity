@@ -241,7 +241,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | [DS18B20](hardware/ds18b20.md)-HLT | ✅ Tested | ROM `0x3100000c31dd5a28` confirmed |
 | SSR1 (GPIO41) | ⏳ Wired | Not load tested — add 10kΩ gate pulldown to GND (holds OFF during boot) |
 | SSR2 — RIMS heater (GPIO42) | ⏳ Wired | PID ready, not load tested — add 10kΩ gate pulldown to GND (holds OFF during boot) |
-| Independent hardware high-limit cutoff | 🔲 Required | ⚠️ **Fit before first RIMS load test.** Thermal fuse / klixon in series with the SSR heater load, independent of the ESP32 — closes the single-point-of-failure where all thermal protection lives in firmware. See [gpio_map.md → SSR Gate Circuit](hardware/gpio_map.md#ssr-gate-circuit-gpio-41--42--pulldown-required) |
+| Independent hardware high-limit cutoff | 🔲 Required | ⚠️ **Fit before first RIMS load test.** Bimetallic snap-disc / klixon (~90–95°C) or thermal fuse, wired in series with the SSR **AC mains** line and clamped to the RIMS element body, independent of the ESP32. **Install before connecting mains power to the element.** Closes the single-point-of-failure where all thermal protection lives in firmware. Planned as a one-time install. See [gpio_map.md → SSR Gate Circuit](hardware/gpio_map.md#ssr-gate-circuit-gpio-41--42--pulldown-required) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#-standing-safety-gap-required-before-first-load-test) |
 | [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing | Connected, calibrated — AN1 (A2 RIMS) + AN2 (A3 Sparge). Firmware implemented v1.0.9. |
 | Relay board — pump control | 🔲 Planned | Via [MCP23017](hardware/expansion_boards.md) GPIO expander |
 | [MCP23017](hardware/expansion_boards.md) GPIO expander | 🔲 Planned | I2C 0x20 |
