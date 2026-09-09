@@ -37,6 +37,7 @@
 #   v1.4.0 — Settings tab: RIMS Flow Interlock safety card (flow_interlock_enable + pid_min_flow)
 #   v1.5.0 — RIMS PID/DC mode select + DC Power % on main + Settings tabs;
 #             removed PID Max Duty Cycle (PID now always 0–100%)
+#   v1.5.1 — Duplicate RIMS Heater — PID Control card onto the main Brewing tab
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -217,6 +218,35 @@ views:
               entity: number.singularity_rims_dc_power
               name: DC Power (%)
               icon: mdi:percent
+
+      # RIMS heater — PID control (duplicated from Settings for quick access)
+      - type: entities
+        title: RIMS Heater — PID Control
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "PID on ntc1_rims → SSR2 (GPIO42). Active when Mode = PID. Output ranges 0–100%. For fixed-power heat-up/boil use Mode = DC."
+          - entity: switch.singularity_rims_heater
+            name: RIMS Heater
+            icon: mdi:toggle-switch
+          - entity: select.singularity_rims_mode
+            name: Mode (PID / DC)
+            icon: mdi:tune-variant
+          - entity: number.singularity_rims_dc_power
+            name: "DC Power (default: 80%)"
+            icon: mdi:percent
+          - entity: number.singularity_pid_setpoint
+            name: "Setpoint (default: 66.0°C)"
+            icon: mdi:target
+          - entity: number.singularity_pid_kp
+            name: "Kp Proportional (default: 10.0)"
+            icon: mdi:alpha-p-circle
+          - entity: number.singularity_pid_ki
+            name: "Ki Integral (default: 0.2)"
+            icon: mdi:alpha-i-circle
+          - entity: number.singularity_pid_kd
+            name: "Kd Derivative (default: 5.0)"
+            icon: mdi:alpha-d-circle
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: custom:apexcharts-card
