@@ -44,7 +44,7 @@ Five premises commonly stated about this system do **not** match what the source
 
 **DS18B20 ROMs (installation-specific):** Boil `0x750000105cbe3528`, HLT `0x3100000c31dd5a28`.
 
-**Board-count decision:** a second ADS1115 was considered and **rejected** — all four channels fit on one chip at 0x48. Only one ADC is on the bus.
+**Board-count decision:** a second ADS1115 at `0x49` was tested and **rejected** (voltage drift). All four channels fit on the one chip at 0x48; only one ADC is on the bus.
 
 **Boot-safety hardware:** 10 kΩ pulldowns on GPIO41/42 hold the SSR gates LOW through reset/boot — the window before firmware runs, which `RESTORE_DEFAULT_OFF` cannot cover. Neither pin is a strapping pin, so the pulldowns don't affect boot mode.
 
