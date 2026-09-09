@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.4
+# singularity_dashboard.yaml  v1.5.5
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -41,6 +41,7 @@
 #   v1.5.2 — Drop Kp/Ki/Kd rows from the main-tab RIMS card (tuning stays in Settings)
 #   v1.5.3 — Merge the two main-tab RIMS cards into one "RIMS Heater (SSR2)" card
 #   v1.5.4 — Show Target Temperature + DC Power always (drop mode conditionals)
+#   v1.5.5 — Main tab: move RIMS Heater (SSR2) up under temps; graph stays last
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -136,6 +137,25 @@ views:
             tap_action:
               action: more-info
 
+      - type: entities
+        title: RIMS Heater (SSR2)
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: "SSR2 (GPIO42) on ntc1_rims. PID = hold Setpoint (0–100%). DC = fixed power for heat-up/boil."
+          - entity: switch.singularity_rims_heater
+            name: RIMS Heater
+            icon: mdi:fire
+          - entity: select.singularity_rims_mode
+            name: Mode (PID / DC)
+            icon: mdi:tune-variant
+          - entity: number.singularity_pid_setpoint
+            name: Target Temperature (°C)
+            icon: mdi:target
+          - entity: number.singularity_rims_dc_power
+            name: DC Power (%)
+            icon: mdi:percent
+
       # ── Flow Sensors ────────────────────────────────────────────────────────
       - type: horizontal-stack
         cards:
@@ -192,25 +212,6 @@ views:
                     entity_id: button.singularity_an2_reset_total
                 layout: vertical
                 fill_container: true
-
-      - type: entities
-        title: RIMS Heater (SSR2)
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "SSR2 (GPIO42) on ntc1_rims. PID = hold Setpoint (0–100%). DC = fixed power for heat-up/boil."
-          - entity: switch.singularity_rims_heater
-            name: RIMS Heater
-            icon: mdi:fire
-          - entity: select.singularity_rims_mode
-            name: Mode (PID / DC)
-            icon: mdi:tune-variant
-          - entity: number.singularity_pid_setpoint
-            name: Target Temperature (°C)
-            icon: mdi:target
-          - entity: number.singularity_rims_dc_power
-            name: DC Power (%)
-            icon: mdi:percent
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: custom:apexcharts-card
