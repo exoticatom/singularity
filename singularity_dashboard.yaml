@@ -271,12 +271,12 @@ views:
                 yaxis_id: temp
               - entity: sensor.singularity_ds18b20_boil
                 name: DS18B20-Boil
-                color: "#ff7043"
+                color: "#fdd835"
                 stroke_width: 2
                 yaxis_id: temp
               - entity: sensor.singularity_ds18b20_hlt
                 name: DS18B20-HLT
-                color: "#26c6da"
+                color: "#4caf50"
                 stroke_width: 2
                 yaxis_id: temp
 
