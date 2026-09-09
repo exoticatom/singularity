@@ -142,7 +142,7 @@ esphome:
             id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
             id(pid_kd).state);
           ESP_LOGI("singularity", "RIMS Mode: %s  DC Power=%.0f%%",
-            id(rims_mode).state.c_str(), id(rims_dc_power).state);
+            id(rims_mode).current_option().c_str(), id(rims_dc_power).state);
           ESP_LOGI("singularity", "RIMS Heater: %s", id(rims_heater).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "AN1 Flow Offset: %.2f L/min", id(an1_flow_offset).state);
@@ -1177,7 +1177,7 @@ interval:
           // DC MODE: fixed-power output, temperature-independent. All safety
           // checks 0–3 above already ran, so DC still honours staleness, NAN,
           // the 90°C hard limit and the flow interlock.
-          if (id(rims_mode).state == "DC") {
+          if (id(rims_mode).current_option() == "DC") {
             float duty = id(rims_dc_power).state / 100.0f;
             if (duty < 0.0f) duty = 0.0f;
             if (duty > 1.0f) duty = 1.0f;
