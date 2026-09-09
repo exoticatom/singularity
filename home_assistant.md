@@ -24,7 +24,7 @@ This page documents everything configured in [Home Assistant](https://www.home-a
                            │
                 ┌──────────▼──────────┐
                 │     ESP32-S3        │
-                │  singularity v1.1.9 │
+                │  singularity v1.2.0 │
                 └─────────────────────┘
 ```
 
@@ -50,7 +50,9 @@ sensor.singularity_an2_total          L      Sparge flow session total (resets o
 sensor.singularity_build              str    Firmware version string (e.g. "v1.1.4") — updates every 10s
 sensor.singularity_safety_event       str    Last RIMS safety event — published by ESP32, stored in HA logbook (offline-persistent)
 sensor.singularity_uptime             s      Seconds since last boot — updates every 1s (heartbeat)
-sensor.singularity_wifi_signal        dBm    WiFi RSSI — updates every 60s (diagnostic)
+sensor.singularity_rims_heater_pwm_duty      %      Heater output duty cycle — updated every 2s PID cycle (diagnostic/logging)
+sensor.singularity_an1_reset_event          str    AN1 flow total reset event — published on button press
+sensor.singularity_an2_reset_event          str    AN2 flow total reset event — published on button press
 ```
 
 ### Binary Sensors
@@ -505,6 +507,7 @@ These entities exist in the HA registry from old firmware versions and are no lo
 | v1.3.9 | PID setpoint: text input box, max 78°C |
 | v1.4.0 | Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
 | v1.6.0 | Log tab: Activity Log = safety events + UI actions; RIMS Mode added to activity graph. Pairs with firmware v1.1.9 `sensor.singularity_safety_event` (offline-persistent safety trips) |
+| v1.6.1 | Activity Log expanded: calibration/tuning changes (NTC1/2 S-H coeffs, offsets, PID gains, flow offsets), flow resets, WiFi signal, heater PWM duty. Pairs with firmware v1.2.0 |
 
 ---
 

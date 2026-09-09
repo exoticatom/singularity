@@ -310,16 +310,40 @@ views:
             title: Activity Log (last 24h)
             hours_to_show: 24
             entities:
-              # Safety events — published by the ESP32 into HA, so trips stay
-              # visible in the logbook even after the controller goes offline.
+              # Safety events
               - sensor.singularity_safety_event
-              # UI actions — every control/config change recorded by HA.
+              # UI actions — control
               - switch.singularity_rims_heater
-              - switch.singularity_ssr1
-              - switch.singularity_flow_interlock_enable
               - select.singularity_rims_mode
               - number.singularity_pid_setpoint
-              # System — connectivity + firmware build.
+              - switch.singularity_ssr1
+              - switch.singularity_flow_interlock_enable
+              # Calibration & tuning — audit trail
+              - number.singularity_ntc1_r_fixed
+              - number.singularity_ntc1_v_ref
+              - number.singularity_ntc1_sh_a
+              - number.singularity_ntc1_sh_b
+              - number.singularity_ntc1_sh_c
+              - number.singularity_ntc1_offset
+              - number.singularity_ntc2_r_fixed
+              - number.singularity_ntc2_v_ref
+              - number.singularity_ntc2_sh_a
+              - number.singularity_ntc2_sh_b
+              - number.singularity_ntc2_sh_c
+              - number.singularity_ntc2_offset
+              - number.singularity_ds18b20_boil_offset
+              - number.singularity_ds18b20_hlt_offset
+              - number.singularity_pid_kp
+              - number.singularity_pid_ki
+              - number.singularity_pid_kd
+              - number.singularity_an1_flow_offset
+              - number.singularity_an2_flow_offset
+              # Flow resets
+              - sensor.singularity_an1_reset_event
+              - sensor.singularity_an2_reset_event
+              # Network & system
+              - sensor.singularity_wifi_signal
+              - sensor.singularity_rims_heater_pwm_duty
               - binary_sensor.singularity_esp32_fast_status
               - sensor.singularity_build
 

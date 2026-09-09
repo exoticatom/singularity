@@ -1,7 +1,7 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  esp32_singularity.yaml                                                      ║
 # ║  singularity Brewing Controller — ESP32-S3-N16R8                             ║
-# ║  Firmware v1.1.9                                                              ║
+# ║  Firmware v1.2.0                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 #
 # WHAT THIS FILE IS:
@@ -102,6 +102,11 @@ globals:
     restore_value: false
     initial_value: '0'
 
+  # RIMS heater PWM duty cycle (0–100%), published to HA for logging
+  - id: rims_heater_pwm_duty_pct
+    type: float
+    initial_value: '0.0'
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ESPHOME — Basic device identity
@@ -117,7 +122,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.9"
+    version: "1.2.0"
 
   # on_boot: runs once after the ESP32 finishes booting
   # priority: -100 means it runs after all hardware is initialised
@@ -1043,6 +1048,15 @@ sensor:
       return id(an2_total_litres);
     update_interval: 1s
 
+  - platform: template
+    name: "RIMS Heater PWM Duty"   # → sensor.singularity_rims_heater_pwm_duty
+    id: rims_heater_pwm_duty
+    unit_of_measurement: "%"
+    icon: "mdi:percent"
+    lambda: |-
+      return id(rims_heater_pwm_duty_pct);
+    update_interval: 2s
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BINARY SENSOR — ESP32 connectivity status (native ESPHome)
@@ -1102,6 +1116,7 @@ interval:
           // If the heater switch is OFF, force output to 0% and stop here
           if (!id(rims_heater).state) {
             id(rims_heater_pwm).set_level(0.0f);
+            id(rims_heater_pwm_duty_pct) = 0.0f;
             return;
           }
 
@@ -1114,6 +1129,7 @@ interval:
           uint32_t stale_ms = millis() - id(ntc1_last_update_ms);
           if (stale_ms > 8000) {
             id(rims_heater_pwm).set_level(0.0f);
+            id(rims_heater_pwm_duty_pct) = 0.0f;
             ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims stale %ums, heater OFF", stale_ms);
             if (id(safety_event).state != "Sensor stale — heater OFF")
               id(safety_event).publish_state("Sensor stale — heater OFF");
@@ -1127,6 +1143,7 @@ interval:
           // shorted, or outside 0-100°C range). Shut heater off immediately.
           if (std::isnan(temp)) {
             id(rims_heater_pwm).set_level(0.0f);
+            id(rims_heater_pwm_duty_pct) = 0.0f;
             ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims NAN, heater OFF");
             if (id(safety_event).state != "Sensor fault (NAN) — heater OFF")
               id(safety_event).publish_state("Sensor fault (NAN) — heater OFF");
@@ -1138,6 +1155,7 @@ interval:
           // shorted sensor reading falsely low, etc). Shut off immediately.
           if (temp > 90.0f) {
             id(rims_heater_pwm).set_level(0.0f);
+            id(rims_heater_pwm_duty_pct) = 0.0f;
             ESP_LOGW("singularity", "RIMS SAFETY — temp %.1f°C > 90°C hard limit, heater OFF", temp);
             if (id(safety_event).state != "Over-temp >90°C — heater OFF")
               id(safety_event).publish_state("Over-temp >90°C — heater OFF");
@@ -1159,6 +1177,7 @@ interval:
             float flow = std::isnan(sv) ? NAN : (sv * 7.57f) + id(an1_flow_offset).state;
             if (std::isnan(flow) || flow < id(pid_min_flow).state) {
               id(rims_heater_pwm).set_level(0.0f);
+              id(rims_heater_pwm_duty_pct) = 0.0f;
               ESP_LOGW("singularity", "RIMS SAFETY — flow %.2f L/min < %.2f min, heater OFF",
                        flow, id(pid_min_flow).state);
               if (id(safety_event).state != "Low flow — heater OFF")
@@ -1182,6 +1201,7 @@ interval:
             if (duty < 0.0f) duty = 0.0f;
             if (duty > 1.0f) duty = 1.0f;
             id(rims_heater_pwm).set_level(duty);
+            id(rims_heater_pwm_duty_pct) = duty * 100.0f;
             ESP_LOGI("singularity", "RIMS DC   temp=%.2f°C  duty=%.0f%%", temp, duty * 100.0f);
             return;
           }
@@ -1216,6 +1236,7 @@ interval:
           if (output > 1.0f) output = 1.0f;    // never above 100%
 
           id(rims_heater_pwm).set_level(output);
+          id(rims_heater_pwm_duty_pct) = output * 100.0f;
 
           // Log every cycle so you can watch PID behaviour in ESPHome logs
           ESP_LOGI("singularity", "RIMS PID  temp=%.2f°C  err=%.2f  I=%.4f  D=%.4f  out=%.1f%%",
@@ -1318,6 +1339,7 @@ switch:
       then:
         - lambda: |-
             id(rims_heater_pwm).set_level(0.0f);  // immediately cut heater power
+            id(rims_heater_pwm_duty_pct) = 0.0f;
             id(pid_integral)   = 0.0f;
             id(pid_last_error) = 0.0f;
             ESP_LOGI("singularity", "RIMS PID OFF — heater output 0%%");
@@ -1356,6 +1378,7 @@ button:
       - lambda: |-
           id(an1_total_litres) = 0.0f;  // zero the RIMS flow total
           ESP_LOGI("singularity", "AN1 total reset to 0.0 L");
+          id(an1_reset_event).publish_state("AN1 total reset to 0.0 L");
 
   - platform: template
     name: "AN2 Reset Total"        # → button.singularity_an2_reset_total
@@ -1365,6 +1388,7 @@ button:
       - lambda: |-
           id(an2_total_litres) = 0.0f;  // zero the Sparge flow total
           ESP_LOGI("singularity", "AN2 total reset to 0.0 L");
+          id(an2_reset_event).publish_state("AN2 total reset to 0.0 L");
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1395,7 +1419,7 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.9"};
+      return {"v1.2.0"};
     update_interval: 10s
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -1415,3 +1439,16 @@ text_sensor:
     name: "Safety Event"           # → sensor.singularity_safety_event
     id: safety_event
     icon: "mdi:shield-alert"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # FLOW RESET EVENTS — log when totals are reset
+  # ─────────────────────────────────────────────────────────────────────────
+  - platform: template
+    name: "AN1 Reset Event"        # → sensor.singularity_an1_reset_event
+    id: an1_reset_event
+    icon: "mdi:restart"
+
+  - platform: template
+    name: "AN2 Reset Event"        # → sensor.singularity_an2_reset_event
+    id: an2_reset_event
+    icon: "mdi:restart"
