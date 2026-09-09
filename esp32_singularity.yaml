@@ -1,7 +1,7 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  esp32_singularity.yaml                                                      ║
 # ║  singularity Brewing Controller — ESP32-S3-N16R8                             ║
-# ║  Firmware v1.1.8                                                              ║
+# ║  Firmware v1.1.9                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 #
 # WHAT THIS FILE IS:
@@ -117,7 +117,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.8"
+    version: "1.1.9"
 
   # on_boot: runs once after the ESP32 finishes booting
   # priority: -100 means it runs after all hardware is initialised
@@ -148,6 +148,9 @@ esphome:
           ESP_LOGI("singularity", "AN1 Flow Offset: %.2f L/min", id(an1_flow_offset).state);
           ESP_LOGI("singularity", "AN2 Flow Offset: %.2f L/min", id(an2_flow_offset).state);
           ESP_LOGI("singularity", "=============================================");
+          // Register the safety_event entity in HA and mark the boot in the
+          // logbook. Guards re-publish their own state the moment they trip.
+          id(safety_event).publish_state("Boot — controller started");
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1112,6 +1115,8 @@ interval:
           if (stale_ms > 8000) {
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims stale %ums, heater OFF", stale_ms);
+            if (id(safety_event).state != "Sensor stale — heater OFF")
+              id(safety_event).publish_state("Sensor stale — heater OFF");
             return;
           }
 
@@ -1123,6 +1128,8 @@ interval:
           if (std::isnan(temp)) {
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims NAN, heater OFF");
+            if (id(safety_event).state != "Sensor fault (NAN) — heater OFF")
+              id(safety_event).publish_state("Sensor fault (NAN) — heater OFF");
             return;
           }
 
@@ -1132,6 +1139,8 @@ interval:
           if (temp > 90.0f) {
             id(rims_heater_pwm).set_level(0.0f);
             ESP_LOGW("singularity", "RIMS SAFETY — temp %.1f°C > 90°C hard limit, heater OFF", temp);
+            if (id(safety_event).state != "Over-temp >90°C — heater OFF")
+              id(safety_event).publish_state("Over-temp >90°C — heater OFF");
             return;
           }
 
@@ -1152,9 +1161,17 @@ interval:
               id(rims_heater_pwm).set_level(0.0f);
               ESP_LOGW("singularity", "RIMS SAFETY — flow %.2f L/min < %.2f min, heater OFF",
                        flow, id(pid_min_flow).state);
+              if (id(safety_event).state != "Low flow — heater OFF")
+                id(safety_event).publish_state("Low flow — heater OFF");
               return;
             }
           }
+
+          // Safety cleared — every guard passed this cycle. Publish once (edge-
+          // guarded) so the logbook records recovery after a fault, then heating
+          // proceeds via the mode branch below.
+          if (id(safety_event).state != "OK — heating")
+            id(safety_event).publish_state("OK — heating");
 
           // ── MODE BRANCH ────────────────────────────────────────────────
           // DC MODE: fixed-power output, temperature-independent. All safety
@@ -1378,5 +1395,23 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.8"};
+      return {"v1.1.9"};
     update_interval: 10s
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # SAFETY EVENT — last safety-relevant event, mirrored into Home Assistant
+  # ─────────────────────────────────────────────────────────────────────────
+  # The PID loop's safety guards (staleness, NAN, over-temp, flow interlock)
+  # previously logged ONLY to the serial console via ESP_LOGW — those lines are
+  # ephemeral and vanish the instant the ESP32 goes offline. This text_sensor
+  # publishes each event into HA, where the recorder stores it in the logbook on
+  # the Pi. That history survives an ESP32 reboot, power cut, or WiFi outage.
+  #
+  # No lambda / no update_interval → it updates ONLY when the firmware calls
+  # publish_state(). Messages are static (no varying numbers) so the same
+  # condition does not spam the logbook every 2s cycle; the detailed numeric
+  # values still go to the serial log via ESP_LOGW for live debugging.
+  - platform: template
+    name: "Safety Event"           # → sensor.singularity_safety_event
+    id: safety_event
+    icon: "mdi:shield-alert"

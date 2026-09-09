@@ -24,7 +24,7 @@ This page documents everything configured in [Home Assistant](https://www.home-a
                            │
                 ┌──────────▼──────────┐
                 │     ESP32-S3        │
-                │  singularity v1.1.7 │
+                │  singularity v1.1.9 │
                 └─────────────────────┘
 ```
 
@@ -48,6 +48,7 @@ sensor.singularity_an2_raw_voltage    V      ADS1115 A3 raw voltage — Sparge f
 sensor.singularity_an2_rate           L/min  Sparge flow rate (SM6004 #2 via XY-IT0V, ADS1115 A3)
 sensor.singularity_an2_total          L      Sparge flow session total (resets on reboot or button)
 sensor.singularity_build              str    Firmware version string (e.g. "v1.1.4") — updates every 10s
+sensor.singularity_safety_event       str    Last RIMS safety event — published by ESP32, stored in HA logbook (offline-persistent)
 sensor.singularity_uptime             s      Seconds since last boot — updates every 1s (heartbeat)
 sensor.singularity_wifi_signal        dBm    WiFi RSSI — updates every 60s (diagnostic)
 ```
@@ -214,7 +215,12 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 ```
 ┌────────────────────────────────────────────┐
 │  Activity Log (logbook 24h)                │
+│   • Safety events (offline-persistent)     │
+│   • UI actions: heater, mode, setpoint,    │
+│     SSR1, flow interlock                   │
+│   • Connectivity + firmware build          │
 │  SSR / RIMS Activity (history-graph 24h)   │
+│   • SSR1, RIMS Heater, RIMS Mode           │
 └────────────────────────────────────────────┘
 ```
 
@@ -273,7 +279,76 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
 
 ---
 
-## Configuration Files on Pi
+## Logging & Activity Log
+
+The Log tab is an **activity log**, not a sensor archive. It records discrete
+events and user actions — never streamed sensor values (temperatures and flow
+are already covered by the history graphs / recorder).
+
+### Design principle — offline persistence
+
+```
+┌─ ESP32 serial log (ESP_LOGI / ESP_LOGW) ─────────────────────┐
+│  Ephemeral. Lives only on the USB console / ESPHome viewer.   │
+│  GONE the instant the ESP32 reboots, loses WiFi, or powers    │
+│  down. Detailed numbers (PID cycle, stale ms, temp, flow).    │
+└──────────────────────────────────────────────────────────────┘
+┌─ HA recorder database (on the Pi) ───────────────────────────┐
+│  Durable. Every logged item is a Home Assistant ENTITY state  │
+│  change, stored on the Pi independently of the ESP32.         │
+│  Survives an ESP32 reboot / power cut / WiFi outage.          │
+│  Retention: HA recorder default (10 days).                    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+> **Rule:** anything that must be visible while the ESP32 is offline has to be a
+> Home Assistant entity state change. Serial-only logs do not qualify.
+
+### What is logged (all HA-side → offline-persistent)
+
+| Category | Source entity | Notes |
+|---|---|---|
+| Safety events | `sensor.singularity_safety_event` | Stale / NAN / over-temp / low-flow trips, recovery, boot |
+| RIMS heater on/off | `switch.singularity_rims_heater` | UI action |
+| RIMS mode (PID/DC) | `select.singularity_rims_mode` | UI action |
+| PID setpoint change | `number.singularity_pid_setpoint` | UI action |
+| SSR1 on/off | `switch.singularity_ssr1` | UI action |
+| Flow interlock arm | `switch.singularity_flow_interlock_enable` | UI action |
+| Connectivity | `binary_sensor.singularity_esp32_fast_status` | Online/offline transitions |
+| Firmware build | `sensor.singularity_build` | Version string |
+
+### What is deliberately NOT logged
+
+- Temperatures (NTC1/2, DS18B20) and flow rate/total — history graphs cover these.
+- Per-cycle PID output (`temp / err / I / D / out`) — serial-only; far too noisy
+  for a logbook (~43k rows/day).
+
+### Safety event entity — `sensor.singularity_safety_event`
+
+A firmware `text_sensor` (no lambda / no self-update) that the PID loop publishes
+to when a guard trips. It bridges the serial-only `ESP_LOGW` safety warnings into
+HA so trips remain in the logbook after the controller goes offline.
+
+```
+Guard (every 2s PID cycle)          Logbook message
+─────────────────────────────────   ─────────────────────────────
+sensor staleness (I2C wedged)    →   "Sensor stale — heater OFF"
+sensor NAN / disconnect          →   "Sensor fault (NAN) — heater OFF"
+over-temp > 90°C hard limit      →   "Over-temp >90°C — heater OFF"
+flow interlock (low flow)        →   "Low flow — heater OFF"
+all guards passed (recovery)     →   "OK — heating"
+boot                             →   "Boot — controller started"
+```
+
+**Edge-guarded publishing:** each message is published only when it differs from
+the current state (`if (id(safety_event).state != msg) …`). A persistent fault
+logs **once**, not every 2 s cycle. Messages are intentionally static (no varying
+numbers) so a condition cannot spam the logbook; the detailed numeric values
+(stale ms, exact temp, exact flow) still go to the serial `ESP_LOGW` for live
+debugging. A boot publish registers the entity in HA and marks each restart.
+
+---
+
 
 ```
 /config/
@@ -429,6 +504,7 @@ These entities exist in the HA registry from old firmware versions and are no lo
 | v1.3.8 | Diag tab: removed graphs, entities only |
 | v1.3.9 | PID setpoint: text input box, max 78°C |
 | v1.4.0 | Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
+| v1.6.0 | Log tab: Activity Log = safety events + UI actions; RIMS Mode added to activity graph. Pairs with firmware v1.1.9 `sensor.singularity_safety_event` (offline-persistent safety trips) |
 
 ---
 

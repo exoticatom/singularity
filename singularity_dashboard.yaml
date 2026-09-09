@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.9
+# singularity_dashboard.yaml  v1.6.0
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -46,6 +46,10 @@
 #   v1.5.7 — Main tab: converted to Sections view (auto-width, responsive columns)
 #   v1.5.8 — All tabs → Sections view; Settings split into 3 sections; flows moved
 #             into main-tab temperature column
+#   v1.6.0 — Log tab: Activity Log expanded to safety events + UI actions
+#             (RIMS heater/mode/setpoint, SSR1, flow interlock); history graph adds
+#             RIMS Mode. Pairs with firmware v1.1.9 sensor.singularity_safety_event,
+#             so safety trips persist in the logbook even when the ESP32 is offline.
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -306,6 +310,16 @@ views:
             title: Activity Log
             hours_to_show: 24
             entities:
+              # Safety events — published by the ESP32 into HA, so trips stay
+              # visible in the logbook even after the controller goes offline.
+              - sensor.singularity_safety_event
+              # UI actions — every control/config change recorded by HA.
+              - switch.singularity_rims_heater
+              - switch.singularity_ssr1
+              - switch.singularity_flow_interlock_enable
+              - select.singularity_rims_mode
+              - number.singularity_pid_setpoint
+              # System — connectivity + firmware build.
               - binary_sensor.singularity_esp32_fast_status
               - sensor.singularity_build
 
@@ -319,6 +333,8 @@ views:
                 name: SSR1
               - entity: switch.singularity_rims_heater
                 name: RIMS Heater
+              - entity: select.singularity_rims_mode
+                name: RIMS Mode
 
   # ── Tab 3: Settings ──────────────────────────────────────────────────────────
   - title: Settings
