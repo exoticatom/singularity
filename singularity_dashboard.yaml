@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.4.0
+# singularity_dashboard.yaml  v1.5.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -38,6 +38,7 @@
 #   v1.5.0 — RIMS PID/DC mode select + DC Power % on main + Settings tabs;
 #             removed PID Max Duty Cycle (PID now always 0–100%)
 #   v1.5.1 — Duplicate RIMS Heater — PID Control card onto the main Brewing tab
+#   v1.5.2 — Drop Kp/Ki/Kd rows from the main-tab RIMS card (tuning stays in Settings)
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -238,15 +239,6 @@ views:
           - entity: number.singularity_pid_setpoint
             name: "Setpoint (default: 66.0°C)"
             icon: mdi:target
-          - entity: number.singularity_pid_kp
-            name: "Kp Proportional (default: 10.0)"
-            icon: mdi:alpha-p-circle
-          - entity: number.singularity_pid_ki
-            name: "Ki Integral (default: 0.2)"
-            icon: mdi:alpha-i-circle
-          - entity: number.singularity_pid_kd
-            name: "Kd Derivative (default: 5.0)"
-            icon: mdi:alpha-d-circle
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: custom:apexcharts-card
