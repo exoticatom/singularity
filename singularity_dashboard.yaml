@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.8
+# singularity_dashboard.yaml  v1.5.9
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -546,29 +546,6 @@ views:
       - type: grid
         cards:
           - type: markdown
-            title: singularity — System Versions
-            content: |
-              <table style="width:100%; border-collapse:collapse;">
-                <tr style="background:#1a1a2e;">
-                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Component</th>
-                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Version</th>
-                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Status</th>
-                </tr>
-                <tr style="background:#16213e;">
-                  <td style="padding:8px; color:#e0e0e0;">🔧 ESP32 Firmware</td>
-                  <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_build') }}</td>
-                  <td style="padding:8px; color:#81c784;">● Live</td>
-                </tr>
-                <tr style="background:#1a1a2e;">
-                  <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-                  <td style="padding:8px; color:#81c784; font-weight:bold;">v1.4.0</td>
-                  <td style="padding:8px; color:#81c784;">● Deployed</td>
-                </tr>
-              </table>
-
-      - type: grid
-        cards:
-          - type: markdown
             title: singularity — About
             content: |
               ![Vitamin B](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/Vitamin-Bv.0.1.png)
@@ -590,6 +567,29 @@ views:
               | AN2 — Sparge Flow | ADS1115 A3 | slope 7.57 L/min per V |
               | SSR1 | GPIO 41 | RESTORE_DEFAULT_OFF |
               | SSR2 | GPIO 42 | RESTORE_DEFAULT_OFF |
+
+      - type: grid
+        cards:
+          - type: markdown
+            title: singularity — System Versions
+            content: |
+              <table style="width:100%; border-collapse:collapse;">
+                <tr style="background:#1a1a2e;">
+                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Component</th>
+                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Version</th>
+                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Status</th>
+                </tr>
+                <tr style="background:#16213e;">
+                  <td style="padding:8px; color:#e0e0e0;">🔧 ESP32 Firmware</td>
+                  <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_build') }}</td>
+                  <td style="padding:8px; color:#81c784;">● Live</td>
+                </tr>
+                <tr style="background:#1a1a2e;">
+                  <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
+                  <td style="padding:8px; color:#81c784; font-weight:bold;">v1.4.0</td>
+                  <td style="padding:8px; color:#81c784;">● Deployed</td>
+                </tr>
+              </table>
 
   # ── Tab 5: Hardware ──────────────────────────────────────────────────────────
   - title: Hardware
