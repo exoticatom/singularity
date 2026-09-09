@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.5
+# singularity_dashboard.yaml  v1.5.6
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -42,6 +42,7 @@
 #   v1.5.3 — Merge the two main-tab RIMS cards into one "RIMS Heater (SSR2)" card
 #   v1.5.4 — Show Target Temperature + DC Power always (drop mode conditionals)
 #   v1.5.5 — Main tab: move RIMS Heater (SSR2) up under temps; graph stays last
+#   v1.5.6 — Main tab: 3-column layout [Temps] [RIMS+Flows] [Graph] via stacks
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -97,171 +98,180 @@ views:
               <span style="background:#b71c1c; border-radius:8px; padding:6px 14px; color:#ef9a9a; font-weight:bold; font-size:14px;">🔴 singularity.local — Offline ⚠️</span>
             </div>
 
+      # ── Three-column layout: [Temps] [RIMS + Flows] [Graph] ──────────────────
       - type: horizontal-stack
         cards:
-          - type: custom:mushroom-template-card
-            entity: sensor.singularity_ntc1_rims
-            primary: "{{ states(entity) | round(1) }} °C"
-            secondary: NTC1-RIMS
-            icon: mdi:thermometer-water
-            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
-            tap_action:
-              action: more-info
 
-          - type: custom:mushroom-template-card
-            entity: sensor.singularity_ntc2_mash
-            primary: "{{ states(entity) | round(1) }} °C"
-            secondary: NTC2-MASH
-            icon: mdi:thermometer
-            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
-            tap_action:
-              action: more-info
-
-      - type: horizontal-stack
-        cards:
-          - type: custom:mushroom-template-card
-            entity: sensor.singularity_ds18b20_boil
-            primary: "{{ states(entity) | round(1) }} °C"
-            secondary: DS18B20-Boil
-            icon: mdi:thermometer-lines
-            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 92 %}blue{% elif t < 99 %}orange{% else %}red{% endif %}"
-            tap_action:
-              action: more-info
-
-          - type: custom:mushroom-template-card
-            entity: sensor.singularity_ds18b20_hlt
-            primary: "{{ states(entity) | round(1) }} °C"
-            secondary: DS18B20-HLT
-            icon: mdi:thermometer-lines
-            icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 70 %}green{% elif t < 85 %}orange{% else %}red{% endif %}"
-            tap_action:
-              action: more-info
-
-      - type: entities
-        title: RIMS Heater (SSR2)
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "SSR2 (GPIO42) on ntc1_rims. PID = hold Setpoint (0–100%). DC = fixed power for heat-up/boil."
-          - entity: switch.singularity_rims_heater
-            name: RIMS Heater
-            icon: mdi:fire
-          - entity: select.singularity_rims_mode
-            name: Mode (PID / DC)
-            icon: mdi:tune-variant
-          - entity: number.singularity_pid_setpoint
-            name: Target Temperature (°C)
-            icon: mdi:target
-          - entity: number.singularity_rims_dc_power
-            name: DC Power (%)
-            icon: mdi:percent
-
-      # ── Flow Sensors ────────────────────────────────────────────────────────
-      - type: horizontal-stack
-        cards:
-          # AN1 — RIMS flow grouped with reset
+          # ── Column 1: Temperature sensors ────────────────────────────────────
           - type: vertical-stack
             cards:
               - type: custom:mushroom-template-card
-                entity: sensor.singularity_an1_rate
-                primary: "{{ states(entity) | float(0) | round(2) }} L/min"
-                secondary: "Total: {{ states('sensor.singularity_an1_total') | float(0) | round(2) }} L"
-                icon: mdi:water-pump
-                icon_color: "{% set r = states(entity) | float(0) %}{% if r < 0.1 %}disabled{% elif r < 3 %}red{% else %}blue{% endif %}"
+                entity: sensor.singularity_ntc1_rims
+                primary: "{{ states(entity) | round(1) }} °C"
+                secondary: NTC1-RIMS
+                icon: mdi:thermometer-water
+                icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
                 tap_action:
                   action: more-info
-                layout: vertical
-                fill_container: true
-              - type: custom:mushroom-template-card
-                entity: button.singularity_an1_reset_total
-                primary: Reset AN1
-                secondary: RIMS total → 0 L
-                icon: mdi:restore
-                icon_color: grey
-                tap_action:
-                  action: call-service
-                  service: button.press
-                  target:
-                    entity_id: button.singularity_an1_reset_total
-                layout: vertical
-                fill_container: true
 
-          # AN2 — Sparge flow grouped with reset
+              - type: custom:mushroom-template-card
+                entity: sensor.singularity_ntc2_mash
+                primary: "{{ states(entity) | round(1) }} °C"
+                secondary: NTC2-MASH
+                icon: mdi:thermometer
+                icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
+                tap_action:
+                  action: more-info
+
+              - type: custom:mushroom-template-card
+                entity: sensor.singularity_ds18b20_boil
+                primary: "{{ states(entity) | round(1) }} °C"
+                secondary: DS18B20-Boil
+                icon: mdi:thermometer-lines
+                icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 92 %}blue{% elif t < 99 %}orange{% else %}red{% endif %}"
+                tap_action:
+                  action: more-info
+
+              - type: custom:mushroom-template-card
+                entity: sensor.singularity_ds18b20_hlt
+                primary: "{{ states(entity) | round(1) }} °C"
+                secondary: DS18B20-HLT
+                icon: mdi:thermometer-lines
+                icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 70 %}green{% elif t < 85 %}orange{% else %}red{% endif %}"
+                tap_action:
+                  action: more-info
+
+          # ── Column 2: RIMS Heater (SSR2) + Flow sensors ──────────────────────
           - type: vertical-stack
             cards:
-              - type: custom:mushroom-template-card
-                entity: sensor.singularity_an2_total
-                primary: "{{ states(entity) | float(0) | round(2) }} L"
-                secondary: "Flow: {{ states('sensor.singularity_an2_rate') | float(0) | round(2) }} L/min"
-                icon: mdi:water
-                icon_color: "{% set t = states(entity) | float(0) %}{% if t < 0.1 %}disabled{% elif t < 10 %}blue{% else %}green{% endif %}"
-                tap_action:
-                  action: more-info
-                layout: vertical
-                fill_container: true
-              - type: custom:mushroom-template-card
-                entity: button.singularity_an2_reset_total
-                primary: Reset AN2
-                secondary: Sparge total → 0 L
-                icon: mdi:restore
-                icon_color: grey
-                tap_action:
-                  action: call-service
-                  service: button.press
-                  target:
-                    entity_id: button.singularity_an2_reset_total
-                layout: vertical
-                fill_container: true
+              - type: entities
+                title: RIMS Heater (SSR2)
+                show_header_toggle: false
+                entities:
+                  - type: section
+                    label: "SSR2 (GPIO42) on ntc1_rims. PID = hold Setpoint (0–100%). DC = fixed power for heat-up/boil."
+                  - entity: switch.singularity_rims_heater
+                    name: RIMS Heater
+                    icon: mdi:fire
+                  - entity: select.singularity_rims_mode
+                    name: Mode (PID / DC)
+                    icon: mdi:tune-variant
+                  - entity: number.singularity_pid_setpoint
+                    name: Target Temperature (°C)
+                    icon: mdi:target
+                  - entity: number.singularity_rims_dc_power
+                    name: DC Power (%)
+                    icon: mdi:percent
 
-      # ── Brewing Graphs ──────────────────────────────────────────────────────
-      - type: custom:apexcharts-card
-        header:
-          show: true
-          title: Brewing Temperatures
-          show_states: true
-          colorize_states: true
-        graph_span: 1h
-        update_interval: 5s
-        yaxis:
-          - id: temp
-            min: 0
-            max: 100
-            decimals: 1
-        apex_config:
-          chart:
-            height: 280
-          annotations:
-            yaxis:
-              - y: "[[[ return states['number.singularity_pid_setpoint'].state ]]]"
-                borderColor: "#ff9800"
-                borderWidth: 1
-                strokeDashArray: 4
-                label:
-                  text: Setpoint
-                  style:
-                    color: "#ff9800"
-                    background: transparent
-        series:
-          - entity: sensor.singularity_ntc1_rims
-            name: NTC1-RIMS
-            color: "#ef5350"
-            stroke_width: 2
-            yaxis_id: temp
-          - entity: sensor.singularity_ntc2_mash
-            name: NTC2-MASH
-            color: "#42a5f5"
-            stroke_width: 2
-            yaxis_id: temp
-          - entity: sensor.singularity_ds18b20_boil
-            name: DS18B20-Boil
-            color: "#ff7043"
-            stroke_width: 2
-            yaxis_id: temp
-          - entity: sensor.singularity_ds18b20_hlt
-            name: DS18B20-HLT
-            color: "#26c6da"
-            stroke_width: 2
-            yaxis_id: temp
+              # ── Flow Sensors ──────────────────────────────────────────────────
+              - type: horizontal-stack
+                cards:
+                  # AN1 — RIMS flow grouped with reset
+                  - type: vertical-stack
+                    cards:
+                      - type: custom:mushroom-template-card
+                        entity: sensor.singularity_an1_rate
+                        primary: "{{ states(entity) | float(0) | round(2) }} L/min"
+                        secondary: "Total: {{ states('sensor.singularity_an1_total') | float(0) | round(2) }} L"
+                        icon: mdi:water-pump
+                        icon_color: "{% set r = states(entity) | float(0) %}{% if r < 0.1 %}disabled{% elif r < 3 %}red{% else %}blue{% endif %}"
+                        tap_action:
+                          action: more-info
+                        layout: vertical
+                        fill_container: true
+                      - type: custom:mushroom-template-card
+                        entity: button.singularity_an1_reset_total
+                        primary: Reset AN1
+                        secondary: RIMS total → 0 L
+                        icon: mdi:restore
+                        icon_color: grey
+                        tap_action:
+                          action: call-service
+                          service: button.press
+                          target:
+                            entity_id: button.singularity_an1_reset_total
+                        layout: vertical
+                        fill_container: true
+
+                  # AN2 — Sparge flow grouped with reset
+                  - type: vertical-stack
+                    cards:
+                      - type: custom:mushroom-template-card
+                        entity: sensor.singularity_an2_total
+                        primary: "{{ states(entity) | float(0) | round(2) }} L"
+                        secondary: "Flow: {{ states('sensor.singularity_an2_rate') | float(0) | round(2) }} L/min"
+                        icon: mdi:water
+                        icon_color: "{% set t = states(entity) | float(0) %}{% if t < 0.1 %}disabled{% elif t < 10 %}blue{% else %}green{% endif %}"
+                        tap_action:
+                          action: more-info
+                        layout: vertical
+                        fill_container: true
+                      - type: custom:mushroom-template-card
+                        entity: button.singularity_an2_reset_total
+                        primary: Reset AN2
+                        secondary: Sparge total → 0 L
+                        icon: mdi:restore
+                        icon_color: grey
+                        tap_action:
+                          action: call-service
+                          service: button.press
+                          target:
+                            entity_id: button.singularity_an2_reset_total
+                        layout: vertical
+                        fill_container: true
+
+          # ── Column 3: Brewing Temperatures graph ─────────────────────────────
+          - type: vertical-stack
+            cards:
+              - type: custom:apexcharts-card
+                header:
+                  show: true
+                  title: Brewing Temperatures
+                  show_states: true
+                  colorize_states: true
+                graph_span: 1h
+                update_interval: 5s
+                yaxis:
+                  - id: temp
+                    min: 0
+                    max: 100
+                    decimals: 1
+                apex_config:
+                  chart:
+                    height: 280
+                  annotations:
+                    yaxis:
+                      - y: "[[[ return states['number.singularity_pid_setpoint'].state ]]]"
+                        borderColor: "#ff9800"
+                        borderWidth: 1
+                        strokeDashArray: 4
+                        label:
+                          text: Setpoint
+                          style:
+                            color: "#ff9800"
+                            background: transparent
+                series:
+                  - entity: sensor.singularity_ntc1_rims
+                    name: NTC1-RIMS
+                    color: "#ef5350"
+                    stroke_width: 2
+                    yaxis_id: temp
+                  - entity: sensor.singularity_ntc2_mash
+                    name: NTC2-MASH
+                    color: "#42a5f5"
+                    stroke_width: 2
+                    yaxis_id: temp
+                  - entity: sensor.singularity_ds18b20_boil
+                    name: DS18B20-Boil
+                    color: "#ff7043"
+                    stroke_width: 2
+                    yaxis_id: temp
+                  - entity: sensor.singularity_ds18b20_hlt
+                    name: DS18B20-HLT
+                    color: "#26c6da"
+                    stroke_width: 2
+                    yaxis_id: temp
+
 
   # ── Tab 2: Log ───────────────────────────────────────────────────────────────
   - title: Log
