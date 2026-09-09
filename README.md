@@ -1,11 +1,11 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-09** — Firmware v1.1.8 · Dashboard v1.5.2 · Copilot Rules updated
+> **Last updated: 2026-09-09** — Firmware v1.1.8 · Dashboard v1.5.3 · Copilot Rules updated
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)
 - ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.8
-- 📊 [Dashboard](singularity_dashboard.yaml) — v1.5.2
+- 📊 [Dashboard](singularity_dashboard.yaml) — v1.5.3
 - 📋 [Project Status](#project-status)
 - 🧪 [Calibration Guide](hardware/calibration.md)
 - 🏠 [Home Assistant Integration](home_assistant.md)
@@ -292,7 +292,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Date | Change |
 |---|---|
-| 2026-09-09 | Firmware v1.1.8 + Dashboard v1.5.2 — RIMS PID/DC mode: `select.rims_mode` (PID \| DC) + `number.rims_dc_power` (0–100%, default 80%, settable from dashboard & Node-RED). DC mode drives SSR2 at fixed power through all safety interlocks (staleness, NAN, 90°C, flow). Removed `pid_max_duty_cycle` (PID now always 0–100%). Dashboard: mode-conditional controls on main tab |
+| 2026-09-09 | Firmware v1.1.8 + Dashboard v1.5.3 — RIMS PID/DC mode: `select.rims_mode` (PID \| DC) + `number.rims_dc_power` (0–100%, default 80%, settable from dashboard & Node-RED). DC mode drives SSR2 at fixed power through all safety interlocks (staleness, NAN, 90°C, flow). Removed `pid_max_duty_cycle` (PID now always 0–100%). Dashboard: mode-conditional controls on main tab |
 | 2026-09-07 | Firmware v1.1.7 — re-audit fixes: sensor-staleness watchdog (SAFETY CHECK 0 — heater off if `ntc1_rims` frozen >8s); flow interlock now trips on a fast unfiltered `an1_flow_safety_v` read instead of the smoothed `an1_rate` (~4-5s faster). Docs: 10kΩ SSR gate pulldowns (GPIO 41/42); independent hardware high-limit cutoff tracked as required before first load test |
 | 2026-09-07 | Dashboard v1.4.0 — Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
 | 2026-09-07 | Firmware v1.1.6 — safety audit fixes: RIMS flow interlock (dry-fire guard, `pid_min_flow` default 2 L/min + `flow_interlock_enable` switch, dormant by default); `api reboot_timeout` 3min→0s (HA-outage autonomy); AN2 rate median filter (parity with AN1); dashboard entity-ID fix (`esp32_fast_status`→`singularity_esp32_fast_status`) |
