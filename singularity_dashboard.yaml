@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.5.7
+# singularity_dashboard.yaml  v1.5.8
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -44,6 +44,8 @@
 #   v1.5.5 — Main tab: move RIMS Heater (SSR2) up under temps; graph stays last
 #   v1.5.6 — Main tab: 3-column layout [Temps] [RIMS+Flows] [Graph] via stacks
 #   v1.5.7 — Main tab: converted to Sections view (auto-width, responsive columns)
+#   v1.5.8 — All tabs → Sections view; Settings split into 3 sections; flows moved
+#             into main-tab temperature column
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -104,7 +106,7 @@ views:
                   <span style="background:#b71c1c; border-radius:8px; padding:6px 14px; color:#ef9a9a; font-weight:bold; font-size:14px;">🔴 singularity.local — Offline ⚠️</span>
                 </div>
 
-      # ── Column 1: Temperature sensors ────────────────────────────────────────
+      # ── Column 1: Temperature sensors + Flow sensors ─────────────────────────
       - type: grid
         cards:
           - type: custom:mushroom-template-card
@@ -142,28 +144,6 @@ views:
             icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 70 %}green{% elif t < 85 %}orange{% else %}red{% endif %}"
             tap_action:
               action: more-info
-
-      # ── Column 2: RIMS Heater (SSR2) + Flow sensors ──────────────────────────
-      - type: grid
-        cards:
-          - type: entities
-            title: RIMS Heater (SSR2)
-            show_header_toggle: false
-            entities:
-              - type: section
-                label: "SSR2 (GPIO42) on ntc1_rims. PID = hold Setpoint (0–100%). DC = fixed power for heat-up/boil."
-              - entity: switch.singularity_rims_heater
-                name: RIMS Heater
-                icon: mdi:fire
-              - entity: select.singularity_rims_mode
-                name: Mode (PID / DC)
-                icon: mdi:tune-variant
-              - entity: number.singularity_pid_setpoint
-                name: Target Temperature (°C)
-                icon: mdi:target
-              - entity: number.singularity_rims_dc_power
-                name: DC Power (%)
-                icon: mdi:percent
 
           # ── Flow Sensors ──────────────────────────────────────────────────────
           - type: horizontal-stack
@@ -221,6 +201,28 @@ views:
                         entity_id: button.singularity_an2_reset_total
                     layout: vertical
                     fill_container: true
+
+      # ── Column 2: RIMS Heater (SSR2) ─────────────────────────────────────────
+      - type: grid
+        cards:
+          - type: entities
+            title: RIMS Heater (SSR2)
+            show_header_toggle: false
+            entities:
+              - type: section
+                label: "SSR2 (GPIO42) on ntc1_rims. PID = hold Setpoint (0–100%). DC = fixed power for heat-up/boil."
+              - entity: switch.singularity_rims_heater
+                name: RIMS Heater
+                icon: mdi:fire
+              - entity: select.singularity_rims_mode
+                name: Mode (PID / DC)
+                icon: mdi:tune-variant
+              - entity: number.singularity_pid_setpoint
+                name: Target Temperature (°C)
+                icon: mdi:target
+              - entity: number.singularity_rims_dc_power
+                name: DC Power (%)
+                icon: mdi:percent
 
       # ── Column 3: Brewing Temperatures graph ─────────────────────────────────
       - type: grid
@@ -280,407 +282,483 @@ views:
   - title: Log
     path: singularity-log
     icon: mdi:clipboard-text-clock
-    cards:
+    type: sections
+    max_columns: 2
+    sections:
 
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: binary_sensor.singularity_esp32_fast_status
-            state: "off"
-        card:
-          type: markdown
-          content: >
-            <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
-            ⚠️ ESP32 is offline</div>
+      - type: grid
+        column_span: 2
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.singularity_esp32_fast_status
+                state: "off"
+            card:
+              type: markdown
+              content: >
+                <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
+                ⚠️ ESP32 is offline</div>
 
-      - type: logbook
-        title: Activity Log
-        hours_to_show: 24
-        entities:
-          - binary_sensor.singularity_esp32_fast_status
-          - sensor.singularity_build
+      - type: grid
+        cards:
+          - type: logbook
+            title: Activity Log
+            hours_to_show: 24
+            entities:
+              - binary_sensor.singularity_esp32_fast_status
+              - sensor.singularity_build
 
-      - type: history-graph
-        title: SSR / RIMS Activity
-        hours_to_show: 24
-        entities:
-          - entity: switch.singularity_ssr1
-            name: SSR1
-          - entity: switch.singularity_rims_heater
-            name: RIMS Heater
+      - type: grid
+        cards:
+          - type: history-graph
+            title: SSR / RIMS Activity
+            hours_to_show: 24
+            entities:
+              - entity: switch.singularity_ssr1
+                name: SSR1
+              - entity: switch.singularity_rims_heater
+                name: RIMS Heater
 
   # ── Tab 3: Settings ──────────────────────────────────────────────────────────
   - title: Settings
     path: singularity-settings
     icon: mdi:tune
-    cards:
+    type: sections
+    max_columns: 3
+    sections:
 
-      # ── Offline warning ──────────────────────────────────────────────────────
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: binary_sensor.singularity_esp32_fast_status
-            state: "off"
-        card:
-          type: markdown
-          content: |
-            <div style="background:#b71c1c; border-radius:8px; padding:12px 16px; color:#ef9a9a;">
-            ⚠️ <strong>ESP32 is offline</strong> — settings cannot be read or changed until the controller reconnects.
-            Values shown below are unavailable. Last known values are stored on the ESP32 flash and will be restored automatically on reconnect.
-            </div>
+      # ── Offline warning (full width) ─────────────────────────────────────────
+      - type: grid
+        column_span: 3
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.singularity_esp32_fast_status
+                state: "off"
+            card:
+              type: markdown
+              content: |
+                <div style="background:#b71c1c; border-radius:8px; padding:12px 16px; color:#ef9a9a;">
+                ⚠️ <strong>ESP32 is offline</strong> — settings cannot be read or changed until the controller reconnects.
+                Values shown below are unavailable. Last known values are stored on the ESP32 flash and will be restored automatically on reconnect.
+                </div>
 
-      # DS18B20 offsets — now on ESP32 flash
-      - type: entities
-        title: DS18B20 Offsets
-        show_header_toggle: false
-        entities:
-          - entity: number.singularity_ds18b20_boil_offset
-            name: "DS18B20-Boil Offset (default: 0.0°C)"
-            icon: mdi:thermometer-plus
-          - entity: number.singularity_ds18b20_hlt_offset
-            name: "DS18B20-HLT Offset (default: 0.0°C)"
-            icon: mdi:thermometer-plus
+      # ── Section 1: Temperature Calibration ───────────────────────────────────
+      - type: grid
+        cards:
+          - type: heading
+            heading: Temperature Calibration
+            heading_style: title
+            icon: mdi:thermometer
 
-      # NTC1-RIMS calibration — ESP32 number entities (persisted to flash)
-      - type: entities
-        title: NTC1-RIMS — Steinhart-Hart Calibration
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
-          - entity: number.singularity_ntc1_r_fixed
-            name: "R-Fixed (default: 9883 Ω)"
-            icon: mdi:resistor
-          - entity: number.singularity_ntc1_v_ref
-            name: "V-Ref (default: 3.3 V)"
-            icon: mdi:sine-wave
-          - entity: number.singularity_ntc1_sh_a
-            name: "Coeff A (default: 1.207e-3)"
-            icon: mdi:alpha-a
-          - entity: number.singularity_ntc1_sh_b
-            name: "Coeff B (default: 2.183e-4)"
-            icon: mdi:alpha-b
-          - entity: number.singularity_ntc1_sh_c
-            name: "Coeff C (default: 1.764e-7)"
-            icon: mdi:alpha-c
-          - entity: number.singularity_ntc1_offset
-            name: "Offset (default: 0.0°C)"
-            icon: mdi:thermometer-plus
+          # DS18B20 offsets — now on ESP32 flash
+          - type: entities
+            title: DS18B20 Offsets
+            show_header_toggle: false
+            entities:
+              - entity: number.singularity_ds18b20_boil_offset
+                name: "DS18B20-Boil Offset (default: 0.0°C)"
+                icon: mdi:thermometer-plus
+              - entity: number.singularity_ds18b20_hlt_offset
+                name: "DS18B20-HLT Offset (default: 0.0°C)"
+                icon: mdi:thermometer-plus
 
-      # NTC2-MASH calibration — ESP32 number entities (persisted to flash)
-      - type: entities
-        title: NTC2-MASH — Steinhart-Hart Calibration
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
-          - entity: number.singularity_ntc2_r_fixed
-            name: "R-Fixed (default: 9902 Ω)"
-            icon: mdi:resistor
-          - entity: number.singularity_ntc2_v_ref
-            name: "V-Ref (default: 3.3 V)"
-            icon: mdi:sine-wave
-          - entity: number.singularity_ntc2_sh_a
-            name: "Coeff A (default: 1.210e-3)"
-            icon: mdi:alpha-a
-          - entity: number.singularity_ntc2_sh_b
-            name: "Coeff B (default: 2.173e-4)"
-            icon: mdi:alpha-b
-          - entity: number.singularity_ntc2_sh_c
-            name: "Coeff C (default: 1.848e-7)"
-            icon: mdi:alpha-c
-          - entity: number.singularity_ntc2_offset
-            name: "Offset (default: 0.0°C)"
-            icon: mdi:thermometer-plus
+          # NTC1-RIMS calibration — ESP32 number entities (persisted to flash)
+          - type: entities
+            title: NTC1-RIMS — Steinhart-Hart Calibration
+            show_header_toggle: false
+            entities:
+              - type: section
+                label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
+              - entity: number.singularity_ntc1_r_fixed
+                name: "R-Fixed (default: 9883 Ω)"
+                icon: mdi:resistor
+              - entity: number.singularity_ntc1_v_ref
+                name: "V-Ref (default: 3.3 V)"
+                icon: mdi:sine-wave
+              - entity: number.singularity_ntc1_sh_a
+                name: "Coeff A (default: 1.207e-3)"
+                icon: mdi:alpha-a
+              - entity: number.singularity_ntc1_sh_b
+                name: "Coeff B (default: 2.183e-4)"
+                icon: mdi:alpha-b
+              - entity: number.singularity_ntc1_sh_c
+                name: "Coeff C (default: 1.764e-7)"
+                icon: mdi:alpha-c
+              - entity: number.singularity_ntc1_offset
+                name: "Offset (default: 0.0°C)"
+                icon: mdi:thermometer-plus
 
-      # RIMS heater — PID control
-      - type: entities
-        title: RIMS Heater — PID Control
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "PID on ntc1_rims → SSR2 (GPIO42). Active when Mode = PID. Output ranges 0–100%. For fixed-power heat-up/boil use Mode = DC (main tab)."
-          - entity: switch.singularity_rims_heater
-            name: RIMS Heater
-            icon: mdi:toggle-switch
-          - entity: select.singularity_rims_mode
-            name: Mode (PID / DC)
-            icon: mdi:tune-variant
-          - entity: number.singularity_rims_dc_power
-            name: "DC Power (default: 80%)"
-            icon: mdi:percent
-          - entity: number.singularity_pid_setpoint
-            name: "Setpoint (default: 66.0°C)"
-            icon: mdi:target
-          - entity: number.singularity_pid_kp
-            name: "Kp Proportional (default: 10.0)"
-            icon: mdi:alpha-p-circle
-          - entity: number.singularity_pid_ki
-            name: "Ki Integral (default: 0.2)"
-            icon: mdi:alpha-i-circle
-          - entity: number.singularity_pid_kd
-            name: "Kd Derivative (default: 5.0)"
-            icon: mdi:alpha-d-circle
+          # NTC2-MASH calibration — ESP32 number entities (persisted to flash)
+          - type: entities
+            title: NTC2-MASH — Steinhart-Hart Calibration
+            show_header_toggle: false
+            entities:
+              - type: section
+                label: "R = r_fixed × V / (v_ref − V) → 1/T = A + B·ln(R) + C·ln(R)³ — stored on ESP32"
+              - entity: number.singularity_ntc2_r_fixed
+                name: "R-Fixed (default: 9902 Ω)"
+                icon: mdi:resistor
+              - entity: number.singularity_ntc2_v_ref
+                name: "V-Ref (default: 3.3 V)"
+                icon: mdi:sine-wave
+              - entity: number.singularity_ntc2_sh_a
+                name: "Coeff A (default: 1.210e-3)"
+                icon: mdi:alpha-a
+              - entity: number.singularity_ntc2_sh_b
+                name: "Coeff B (default: 2.173e-4)"
+                icon: mdi:alpha-b
+              - entity: number.singularity_ntc2_sh_c
+                name: "Coeff C (default: 1.848e-7)"
+                icon: mdi:alpha-c
+              - entity: number.singularity_ntc2_offset
+                name: "Offset (default: 0.0°C)"
+                icon: mdi:thermometer-plus
 
-      # RIMS flow interlock — dry-fire / scorch protection
-      - type: entities
-        title: RIMS Flow Interlock — Safety
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "Dry-fire guard: blocks heating when RIMS flow (an1_rate) drops below the minimum. Keep OFF until the AN1 flow meter is commissioned, then arm before the first load test."
-          - entity: switch.singularity_flow_interlock_enable
-            name: "Flow Interlock (default: OFF)"
-            icon: mdi:water-check
-          - entity: number.singularity_pid_min_flow
-            name: "Min Flow (default: 2.0 L/min)"
-            icon: mdi:water-alert
+      # ── Section 2: RIMS Control & Safety ─────────────────────────────────────
+      - type: grid
+        cards:
+          - type: heading
+            heading: RIMS Control & Safety
+            heading_style: title
+            icon: mdi:fire
 
-      # ── Flow Sensor Calibration — AN1 (RIMS) and AN2 (Sparge) ──────────────────
-      - type: entities
-        title: AN1 — RIMS Flow Calibration
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "ADS1115 A2 → slope 7.57 L/min per volt. Offset = SM6004 display − HA reading at steady flow."
-          - entity: number.singularity_an1_flow_offset
-            name: "AN1 Flow Offset (default: 0.0 L/min)"
-            icon: mdi:tune
-          - entity: button.singularity_an1_reset_total
-            name: "Reset AN1 Total (press to reset)"
-            icon: mdi:restore
+          # RIMS heater — PID control
+          - type: entities
+            title: RIMS Heater — PID Control
+            show_header_toggle: false
+            entities:
+              - type: section
+                label: "PID on ntc1_rims → SSR2 (GPIO42). Active when Mode = PID. Output ranges 0–100%. For fixed-power heat-up/boil use Mode = DC (main tab)."
+              - entity: switch.singularity_rims_heater
+                name: RIMS Heater
+                icon: mdi:toggle-switch
+              - entity: select.singularity_rims_mode
+                name: Mode (PID / DC)
+                icon: mdi:tune-variant
+              - entity: number.singularity_rims_dc_power
+                name: "DC Power (default: 80%)"
+                icon: mdi:percent
+              - entity: number.singularity_pid_setpoint
+                name: "Setpoint (default: 66.0°C)"
+                icon: mdi:target
+              - entity: number.singularity_pid_kp
+                name: "Kp Proportional (default: 10.0)"
+                icon: mdi:alpha-p-circle
+              - entity: number.singularity_pid_ki
+                name: "Ki Integral (default: 0.2)"
+                icon: mdi:alpha-i-circle
+              - entity: number.singularity_pid_kd
+                name: "Kd Derivative (default: 5.0)"
+                icon: mdi:alpha-d-circle
 
-      - type: entities
-        title: AN2 — Sparge Flow Calibration
-        show_header_toggle: false
-        entities:
-          - type: section
-            label: "ADS1115 A3 → slope 7.57 L/min per volt. Offset = SM6004 display − HA reading at steady flow."
-          - entity: number.singularity_an2_flow_offset
-            name: "AN2 Flow Offset (default: 0.0 L/min)"
-            icon: mdi:tune
-          - entity: button.singularity_an2_reset_total
-            name: "Reset AN2 Total (press to reset)"
-            icon: mdi:restore
+          # RIMS flow interlock — dry-fire / scorch protection
+          - type: entities
+            title: RIMS Flow Interlock — Safety
+            show_header_toggle: false
+            entities:
+              - type: section
+                label: "Dry-fire guard: blocks heating when RIMS flow (an1_rate) drops below the minimum. Keep OFF until the AN1 flow meter is commissioned, then arm before the first load test."
+              - entity: switch.singularity_flow_interlock_enable
+                name: "Flow Interlock (default: OFF)"
+                icon: mdi:water-check
+              - entity: number.singularity_pid_min_flow
+                name: "Min Flow (default: 2.0 L/min)"
+                icon: mdi:water-alert
 
-      # ── How calibration works — moved here as last Settings card ─────────────
-      - type: markdown
-        title: How calibration works
-        content: |
-          All calibration values are stored on the **ESP32 flash** — they survive power cuts and reboots without needing HA.
+      # ── Section 3: Flow Calibration & Help ───────────────────────────────────
+      - type: grid
+        cards:
+          - type: heading
+            heading: Flow Calibration & Help
+            heading_style: title
+            icon: mdi:water-pump
 
-          Values take effect within 1 second of being changed. You can adjust in real-time during a brew — no reflash needed.
+          - type: entities
+            title: AN1 — RIMS Flow Calibration
+            show_header_toggle: false
+            entities:
+              - type: section
+                label: "ADS1115 A2 → slope 7.57 L/min per volt. Offset = SM6004 display − HA reading at steady flow."
+              - entity: number.singularity_an1_flow_offset
+                name: "AN1 Flow Offset (default: 0.0 L/min)"
+                icon: mdi:tune
+              - entity: button.singularity_an1_reset_total
+                name: "Reset AN1 Total (press to reset)"
+                icon: mdi:restore
 
-          **If ESP32 is offline when you change a value:**
-          - HA stores the new value optimistically (displayed immediately)
-          - When ESP32 comes back online, HA automatically re-sends all values within ~3 seconds
-          - ESP32 saves them to flash and applies them
-          - No action needed — changes are never lost
+          - type: entities
+            title: AN2 — Sparge Flow Calibration
+            show_header_toggle: false
+            entities:
+              - type: section
+                label: "ADS1115 A3 → slope 7.57 L/min per volt. Offset = SM6004 display − HA reading at steady flow."
+              - entity: number.singularity_an2_flow_offset
+                name: "AN2 Flow Offset (default: 0.0 L/min)"
+                icon: mdi:tune
+              - entity: button.singularity_an2_reset_total
+                name: "Reset AN2 Total (press to reset)"
+                icon: mdi:restore
 
-          For detailed calibration procedures see the hardware documentation:
-          - **NTC thermistors** → [hardware/ntc.md](https://github.com/exoticatom/singularity/blob/main/hardware/ntc.md)
-          - **DS18B20 sensors** → [hardware/ds18b20.md](https://github.com/exoticatom/singularity/blob/main/hardware/ds18b20.md)
-          - **Flow sensors (AN1/AN2)** → [hardware/calibration.md](https://github.com/exoticatom/singularity/blob/main/hardware/calibration.md#sm6004--4-20ma-converter--zerospan-calibration)
+          # ── How calibration works ──────────────────────────────────────────────
+          - type: markdown
+            title: How calibration works
+            content: |
+              All calibration values are stored on the **ESP32 flash** — they survive power cuts and reboots without needing HA.
+
+              Values take effect within 1 second of being changed. You can adjust in real-time during a brew — no reflash needed.
+
+              **If ESP32 is offline when you change a value:**
+              - HA stores the new value optimistically (displayed immediately)
+              - When ESP32 comes back online, HA automatically re-sends all values within ~3 seconds
+              - ESP32 saves them to flash and applies them
+              - No action needed — changes are never lost
+
+              For detailed calibration procedures see the hardware documentation:
+              - **NTC thermistors** → [hardware/ntc.md](https://github.com/exoticatom/singularity/blob/main/hardware/ntc.md)
+              - **DS18B20 sensors** → [hardware/ds18b20.md](https://github.com/exoticatom/singularity/blob/main/hardware/ds18b20.md)
+              - **Flow sensors (AN1/AN2)** → [hardware/calibration.md](https://github.com/exoticatom/singularity/blob/main/hardware/calibration.md#sm6004--4-20ma-converter--zerospan-calibration)
 
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
     path: singularity-about
     icon: mdi:information-outline
-    cards:
+    type: sections
+    max_columns: 2
+    sections:
 
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: binary_sensor.singularity_esp32_fast_status
-            state: "off"
-        card:
-          type: markdown
-          content: >
-            <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
-            ⚠️ ESP32 is offline</div>
+      - type: grid
+        column_span: 2
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.singularity_esp32_fast_status
+                state: "off"
+            card:
+              type: markdown
+              content: >
+                <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
+                ⚠️ ESP32 is offline</div>
 
-      - type: markdown
-        title: singularity — System Versions
-        content: |
-          <table style="width:100%; border-collapse:collapse;">
-            <tr style="background:#1a1a2e;">
-              <th style="padding:8px; text-align:left; color:#4fc3f7;">Component</th>
-              <th style="padding:8px; text-align:left; color:#4fc3f7;">Version</th>
-              <th style="padding:8px; text-align:left; color:#4fc3f7;">Status</th>
-            </tr>
-            <tr style="background:#16213e;">
-              <td style="padding:8px; color:#e0e0e0;">🔧 ESP32 Firmware</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_build') }}</td>
-              <td style="padding:8px; color:#81c784;">● Live</td>
-            </tr>
-            <tr style="background:#1a1a2e;">
-              <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
-              <td style="padding:8px; color:#81c784; font-weight:bold;">v1.4.0</td>
-              <td style="padding:8px; color:#81c784;">● Deployed</td>
-            </tr>
-          </table>
+      - type: grid
+        cards:
+          - type: markdown
+            title: singularity — System Versions
+            content: |
+              <table style="width:100%; border-collapse:collapse;">
+                <tr style="background:#1a1a2e;">
+                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Component</th>
+                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Version</th>
+                  <th style="padding:8px; text-align:left; color:#4fc3f7;">Status</th>
+                </tr>
+                <tr style="background:#16213e;">
+                  <td style="padding:8px; color:#e0e0e0;">🔧 ESP32 Firmware</td>
+                  <td style="padding:8px; color:#81c784; font-weight:bold;">{{ states('sensor.singularity_build') }}</td>
+                  <td style="padding:8px; color:#81c784;">● Live</td>
+                </tr>
+                <tr style="background:#1a1a2e;">
+                  <td style="padding:8px; color:#e0e0e0;">📊 Dashboard</td>
+                  <td style="padding:8px; color:#81c784; font-weight:bold;">v1.4.0</td>
+                  <td style="padding:8px; color:#81c784;">● Deployed</td>
+                </tr>
+              </table>
 
-      - type: markdown
-        title: singularity — About
-        content: |
-          ![Vitamin B](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/Vitamin-Bv.0.1.png)
+      - type: grid
+        cards:
+          - type: markdown
+            title: singularity — About
+            content: |
+              ![Vitamin B](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/Vitamin-Bv.0.1.png)
 
-          **singularity** is an ESP32-S3 based brewing controller integrated with Home Assistant.
+              **singularity** is an ESP32-S3 based brewing controller integrated with Home Assistant.
 
-          **Repository:** [github.com/exoticatom/singularity](https://github.com/exoticatom/singularity)
+              **Repository:** [github.com/exoticatom/singularity](https://github.com/exoticatom/singularity)
 
-          **Design rule:** NTC Steinhart-Hart calibration runs on ESP32 (params persisted to flash).
-          DS18B20 offsets configurable in HA Settings tab. No reflash needed for calibration changes.
+              **Design rule:** NTC Steinhart-Hart calibration runs on ESP32 (params persisted to flash).
+              DS18B20 offsets configurable in HA Settings tab. No reflash needed for calibration changes.
 
-          | Sensor | GPIO / Bus | ROM / Address |
-          |---|---|---|
-          | NTC1-RIMS | ADS1115 A0 | — |
-          | NTC2-MASH | ADS1115 A1 | — |
-          | DS18B20-Boil | 1-Wire GPIO 48 | `0x750000105cbe3528` |
-          | DS18B20-HLT | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
-          | AN1 — RIMS Flow | ADS1115 A2 | slope 7.57 L/min per V |
-          | AN2 — Sparge Flow | ADS1115 A3 | slope 7.57 L/min per V |
-          | SSR1 | GPIO 41 | RESTORE_DEFAULT_OFF |
-          | SSR2 | GPIO 42 | RESTORE_DEFAULT_OFF |
+              | Sensor | GPIO / Bus | ROM / Address |
+              |---|---|---|
+              | NTC1-RIMS | ADS1115 A0 | — |
+              | NTC2-MASH | ADS1115 A1 | — |
+              | DS18B20-Boil | 1-Wire GPIO 48 | `0x750000105cbe3528` |
+              | DS18B20-HLT | 1-Wire GPIO 48 | `0x3100000c31dd5a28` |
+              | AN1 — RIMS Flow | ADS1115 A2 | slope 7.57 L/min per V |
+              | AN2 — Sparge Flow | ADS1115 A3 | slope 7.57 L/min per V |
+              | SSR1 | GPIO 41 | RESTORE_DEFAULT_OFF |
+              | SSR2 | GPIO 42 | RESTORE_DEFAULT_OFF |
 
   # ── Tab 5: Hardware ──────────────────────────────────────────────────────────
   - title: Hardware
     path: singularity-hardware
     icon: mdi:chip
-    cards:
+    type: sections
+    max_columns: 2
+    sections:
 
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: binary_sensor.singularity_esp32_fast_status
-            state: "off"
-        card:
-          type: markdown
-          content: >
-            <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
-            ⚠️ ESP32 is offline</div>
+      - type: grid
+        column_span: 2
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.singularity_esp32_fast_status
+                state: "off"
+            card:
+              type: markdown
+              content: >
+                <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
+                ⚠️ ESP32 is offline</div>
 
-      - type: markdown
-        title: ESP32-S3 — Active Board (Board 2)
-        content: |
-          ![Board 2](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3WROOM1%20N16R8%2044Pin%20Type-C%20ESP32-S3%20-%20Board%202.jpg)
+      # ── Boards ───────────────────────────────────────────────────────────────
+      - type: grid
+        cards:
+          - type: heading
+            heading: Boards
+            heading_style: title
+            icon: mdi:developer-board
 
-          **ESP32-S3-WROOM-1 N16R8 44-Pin Type-C** — currently active
+          - type: markdown
+            title: ESP32-S3 — Active Board (Board 2)
+            content: |
+              ![Board 2](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3WROOM1%20N16R8%2044Pin%20Type-C%20ESP32-S3%20-%20Board%202.jpg)
 
-          | Component | Description |
-          |---|---|
-          | Module | ESP32-S3-WROOM-1 N16R8 |
-          | USB | USB Type-C (dual port — USB + UART) |
-          | Flash | 16MB |
-          | PSRAM | 8MB |
-          | Width | 25.4mm |
-          | **Pin header span** | **25.4mm** — expansion board must match |
-          | Pin count | 44 pins |
+              **ESP32-S3-WROOM-1 N16R8 44-Pin Type-C** — currently active
 
-          > See [hardware/esp32.md](https://github.com/exoticatom/singularity/blob/main/hardware/esp32.md) for Board 1 specs and first-flash procedure.
+              | Component | Description |
+              |---|---|
+              | Module | ESP32-S3-WROOM-1 N16R8 |
+              | USB | USB Type-C (dual port — USB + UART) |
+              | Flash | 16MB |
+              | PSRAM | 8MB |
+              | Width | 25.4mm |
+              | **Pin header span** | **25.4mm** — expansion board must match |
+              | Pin count | 44 pins |
 
-      - type: markdown
-        title: Waveshare ESP32-S3-DEV-KIT-N16R8 — Board 1 (reference)
-        content: |
-          ![Board 1](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
+              > See [hardware/esp32.md](https://github.com/exoticatom/singularity/blob/main/hardware/esp32.md) for Board 1 specs and first-flash procedure.
 
-          **Waveshare ESP32-S3-DEV-KIT-N16R8** — original development board
+          - type: markdown
+            title: Waveshare ESP32-S3-DEV-KIT-N16R8 — Board 1 (reference)
+            content: |
+              ![Board 1](https://raw.githubusercontent.com/exoticatom/singularity/main/assets/ESP32-S3-Devkit-n16r8_2.jpg)
 
-          | Component | Description |
-          |---|---|
-          | Module | ESP32-S3-WROOM-1 N16R8 |
-          | Manufacturer | Waveshare |
-          | Flash | 16MB |
-          | PSRAM | 8MB |
-          | Width | 63.3 × 25.4mm |
-          | **Pin header span** | **21.8mm** — expansion board must match |
-          | Pin count | 44 pins |
+              **Waveshare ESP32-S3-DEV-KIT-N16R8** — original development board
 
-      - type: markdown
-        title: singularity — Pin Assignments
-        content: |
-          | GPIO | Function | Role | Status |
-          |---|---|---|---|
-          | GPIO 21 | SDA | I2C data — ADS1115 | ✅ in use |
-          | GPIO 47 | SCL | I2C clock — ADS1115 | ✅ in use |
-          | GPIO 48 | 1-Wire DQ | DS18B20 sensors | ✅ in use |
-          | GPIO 41 | SSR1 | Relay output | ✅ in use |
-          | GPIO 42 | SSR2 | Relay output | ✅ in use |
-          | GPIO 43 | U0TXD | UART0 TX — reserved | ❌ reserved |
-          | GPIO 44 | U0RXD | UART0 RX — reserved | ❌ reserved |
-          | GPIO 19 | USB_D− | USB data — reserved | ❌ reserved |
-          | GPIO 20 | USB_D+ | USB data — reserved | ❌ reserved |
-          | GPIO 26–32 | Flash/PSRAM | Internal — do not use | ❌ reserved |
-          | GPIO 0 | BOOT | Strapping pin | ⚠️ caution |
-          | GPIO 45 | VSPI | Strapping pin | ⚠️ caution |
-          | GPIO 46 | LOG | Strapping pin | ⚠️ caution |
+              | Component | Description |
+              |---|---|
+              | Module | ESP32-S3-WROOM-1 N16R8 |
+              | Manufacturer | Waveshare |
+              | Flash | 16MB |
+              | PSRAM | 8MB |
+              | Width | 63.3 × 25.4mm |
+              | **Pin header span** | **21.8mm** — expansion board must match |
+              | Pin count | 44 pins |
 
-      - type: markdown
-        title: I2C Bus — Connected Devices
-        content: |
-          **Bus:** SDA = GPIO 21 | SCL = GPIO 47
+      # ── Pinout & I2C ─────────────────────────────────────────────────────────
+      - type: grid
+        cards:
+          - type: heading
+            heading: Pinout & I2C
+            heading_style: title
+            icon: mdi:pin
 
-          | Address | Device | Role |
-          |---|---|---|
-          | 0x48 | ADS1115 #1 | ADC — NTC1-RIMS (A0), NTC2-MASH (A1), FLOW1 (A2, planned), FLOW2 (A3, planned) |
-          | 0x60 | MCP4728 #1 | DAC — Proportional valve + 3 spare (planned) |
-          | 0x61 | MCP4728 #2 | DAC — 4 spare outputs (planned) |
+          - type: markdown
+            title: singularity — Pin Assignments
+            content: |
+              | GPIO | Function | Role | Status |
+              |---|---|---|---|
+              | GPIO 21 | SDA | I2C data — ADS1115 | ✅ in use |
+              | GPIO 47 | SCL | I2C clock — ADS1115 | ✅ in use |
+              | GPIO 48 | 1-Wire DQ | DS18B20 sensors | ✅ in use |
+              | GPIO 41 | SSR1 | Relay output | ✅ in use |
+              | GPIO 42 | SSR2 | Relay output | ✅ in use |
+              | GPIO 43 | U0TXD | UART0 TX — reserved | ❌ reserved |
+              | GPIO 44 | U0RXD | UART0 RX — reserved | ❌ reserved |
+              | GPIO 19 | USB_D− | USB data — reserved | ❌ reserved |
+              | GPIO 20 | USB_D+ | USB data — reserved | ❌ reserved |
+              | GPIO 26–32 | Flash/PSRAM | Internal — do not use | ❌ reserved |
+              | GPIO 0 | BOOT | Strapping pin | ⚠️ caution |
+              | GPIO 45 | VSPI | Strapping pin | ⚠️ caution |
+              | GPIO 46 | LOG | Strapping pin | ⚠️ caution |
+
+          - type: markdown
+            title: I2C Bus — Connected Devices
+            content: |
+              **Bus:** SDA = GPIO 21 | SCL = GPIO 47
+
+              | Address | Device | Role |
+              |---|---|---|
+              | 0x48 | ADS1115 #1 | ADC — NTC1-RIMS (A0), NTC2-MASH (A1), FLOW1 (A2, planned), FLOW2 (A3, planned) |
+              | 0x60 | MCP4728 #1 | DAC — Proportional valve + 3 spare (planned) |
+              | 0x61 | MCP4728 #2 | DAC — 4 spare outputs (planned) |
 
   # ── Tab 6: Diag ─────────────────────────────────────────────────────────────
   - title: Diag
     path: singularity-diag
     icon: mdi:chart-line
-    cards:
+    type: sections
+    max_columns: 2
+    sections:
 
-      - type: conditional
-        conditions:
-          - condition: state
-            entity: binary_sensor.singularity_esp32_fast_status
-            state: "off"
-        card:
-          type: markdown
-          content: >
-            <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
-            ⚠️ ESP32 is offline</div>
+      - type: grid
+        column_span: 2
+        cards:
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.singularity_esp32_fast_status
+                state: "off"
+            card:
+              type: markdown
+              content: >
+                <div style="background:#b71c1c; border-radius:8px; padding:8px 14px; color:#ef9a9a; font-weight:bold;">
+                ⚠️ ESP32 is offline</div>
 
       # ── AN1 — RIMS Flow Diagnostic ──────────────────────────────────────────
-      - type: entities
-        title: "AN1 — RIMS Flow  (ADS1115 A2)"
-        show_header_toggle: false
-        entities:
-          - entity: sensor.singularity_an1_raw_voltage
-            name: "Raw Voltage A2"
-            icon: mdi:sine-wave
-          - entity: sensor.singularity_an1_rate
-            name: "Flow Rate (L/min)"
-            icon: mdi:water-pump
-          - entity: sensor.singularity_an1_total
-            name: "Total (L)"
-            icon: mdi:water
-          - entity: number.singularity_an1_flow_offset
-            name: "Flow Offset (L/min)"
-            icon: mdi:tune
-          - entity: button.singularity_an1_reset_total
-            name: "Reset Total"
-            icon: mdi:restore
+      - type: grid
+        cards:
+          - type: entities
+            title: "AN1 — RIMS Flow  (ADS1115 A2)"
+            show_header_toggle: false
+            entities:
+              - entity: sensor.singularity_an1_raw_voltage
+                name: "Raw Voltage A2"
+                icon: mdi:sine-wave
+              - entity: sensor.singularity_an1_rate
+                name: "Flow Rate (L/min)"
+                icon: mdi:water-pump
+              - entity: sensor.singularity_an1_total
+                name: "Total (L)"
+                icon: mdi:water
+              - entity: number.singularity_an1_flow_offset
+                name: "Flow Offset (L/min)"
+                icon: mdi:tune
+              - entity: button.singularity_an1_reset_total
+                name: "Reset Total"
+                icon: mdi:restore
 
       # ── AN2 — Sparge Flow Diagnostic ────────────────────────────────────────
-      - type: entities
-        title: "AN2 — Sparge Flow  (ADS1115 A3)"
-        show_header_toggle: false
-        entities:
-          - entity: sensor.singularity_an2_raw_voltage
-            name: "Raw Voltage A3"
-            icon: mdi:sine-wave
-          - entity: sensor.singularity_an2_rate
-            name: "Flow Rate (L/min)"
-            icon: mdi:water-pump
-          - entity: sensor.singularity_an2_total
-            name: "Total (L)"
-            icon: mdi:water
-          - entity: number.singularity_an2_flow_offset
-            name: "Flow Offset (L/min)"
-            icon: mdi:tune
-          - entity: button.singularity_an2_reset_total
-            name: "Reset Total"
-            icon: mdi:restore
+      - type: grid
+        cards:
+          - type: entities
+            title: "AN2 — Sparge Flow  (ADS1115 A3)"
+            show_header_toggle: false
+            entities:
+              - entity: sensor.singularity_an2_raw_voltage
+                name: "Raw Voltage A3"
+                icon: mdi:sine-wave
+              - entity: sensor.singularity_an2_rate
+                name: "Flow Rate (L/min)"
+                icon: mdi:water-pump
+              - entity: sensor.singularity_an2_total
+                name: "Total (L)"
+                icon: mdi:water
+              - entity: number.singularity_an2_flow_offset
+                name: "Flow Offset (L/min)"
+                icon: mdi:tune
+              - entity: button.singularity_an2_reset_total
+                name: "Reset Total"
+                icon: mdi:restore
