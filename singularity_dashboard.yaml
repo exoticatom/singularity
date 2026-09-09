@@ -35,6 +35,8 @@
 #   v1.3.9 — PID setpoint: reverted to standard entities card (config error fix); max 78°C
 #   v1.3.7 — Diag tab: AN1 + AN2 full diagnostic cards + live graphs; removed diag from Brewing tab
 #   v1.4.0 — Settings tab: RIMS Flow Interlock safety card (flow_interlock_enable + pid_min_flow)
+#   v1.5.0 — RIMS PID/DC mode select + DC Power % on main + Settings tabs;
+#             removed PID Max Duty Cycle (PID now always 0–100%)
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -188,15 +190,33 @@ views:
                 fill_container: true
 
       - type: entities
-        title: RIMS Heater
+        title: RIMS Heater (SSR2)
         show_header_toggle: false
         entities:
           - entity: switch.singularity_rims_heater
-            name: RIMS Heater
+            name: SSR2 Heater
             icon: mdi:fire
-          - entity: number.singularity_pid_setpoint
-            name: Target Temperature (°C)
-            icon: mdi:target
+          - entity: select.singularity_rims_mode
+            name: Mode (PID / DC)
+            icon: mdi:tune-variant
+          # PID mode → show target temperature only
+          - type: conditional
+            conditions:
+              - entity: select.singularity_rims_mode
+                state: "PID"
+            row:
+              entity: number.singularity_pid_setpoint
+              name: Target Temperature (°C)
+              icon: mdi:target
+          # DC mode → show fixed power % only (settable, default 80%)
+          - type: conditional
+            conditions:
+              - entity: select.singularity_rims_mode
+                state: "DC"
+            row:
+              entity: number.singularity_rims_dc_power
+              name: DC Power (%)
+              icon: mdi:percent
 
       # ── Brewing Graphs ──────────────────────────────────────────────────────
       - type: custom:apexcharts-card
@@ -371,10 +391,16 @@ views:
         show_header_toggle: false
         entities:
           - type: section
-            label: "PID on ntc1_rims → SSR2 (GPIO42). High Kp + Ki=0/Kd=0 = full power heat-up, tapers near setpoint."
+            label: "PID on ntc1_rims → SSR2 (GPIO42). Active when Mode = PID. Output ranges 0–100%. For fixed-power heat-up/boil use Mode = DC (main tab)."
           - entity: switch.singularity_rims_heater
             name: RIMS Heater
             icon: mdi:toggle-switch
+          - entity: select.singularity_rims_mode
+            name: Mode (PID / DC)
+            icon: mdi:tune-variant
+          - entity: number.singularity_rims_dc_power
+            name: "DC Power (default: 80%)"
+            icon: mdi:percent
           - entity: number.singularity_pid_setpoint
             name: "Setpoint (default: 66.0°C)"
             icon: mdi:target
@@ -387,9 +413,6 @@ views:
           - entity: number.singularity_pid_kd
             name: "Kd Derivative (default: 5.0)"
             icon: mdi:alpha-d-circle
-          - entity: number.singularity_pid_max_duty_cycle
-            name: "Max Duty Cycle (default: 100%)"
-            icon: mdi:percent
 
       # RIMS flow interlock — dry-fire / scorch protection
       - type: entities

@@ -1,10 +1,10 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-07** — Firmware v1.1.7 · Dashboard v1.4.0 · Copilot Rules updated
+> **Last updated: 2026-09-09** — Firmware v1.1.8 · Dashboard v1.5.0 · Copilot Rules updated
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)
-- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.7
+- ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.1.8
 - 📊 [Dashboard](singularity_dashboard.yaml) — v1.4.0
 - 📋 [Project Status](#project-status)
 - 🧪 [Calibration Guide](hardware/calibration.md)
@@ -232,7 +232,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 |---|---|---|
 | [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" touchscreen | ✅ Active | Tested, connected to singularity dashboard as default |
 | [Raspberry Pi 4](hardware/display_kiosk.md) 2GB — kiosk | ✅ Active | Chromium kiosk mode, cloned image ready |
-| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.7 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
+| [ESP32-S3-DevKitC-1](hardware/esp32.md) | ✅ Active | Firmware v1.1.8 — running on Board 2 (44-pin N16R8, 25.4mm wide) |
 | [ADS1115](hardware/expansion_boards.md) #1 (0x48) | ✅ Active | Both channels confirmed on I2C scan |
 | [NTC1-RIMS thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A0 |
 | [NTC2-MASH thermistor](hardware/ntc.md) | ✅ Tested | Reading correctly on A1 |
@@ -254,7 +254,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Feature | Status | Notes |
 |---|---|---|
-| ESPHome firmware v1.1.7 | ✅ Active | OTA updates working |
+| ESPHome firmware v1.1.8 | ✅ Active | OTA updates working |
 | NTC Steinhart-Hart calc on ESP32 | ✅ Tested | Both NTCs reading correctly |
 | DS18B20 offset correction on ESP32 | ✅ Tested | Both sensors confirmed |
 | Flash persistence (restore_value) | ✅ Tested | Survives reboot |
@@ -292,6 +292,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Date | Change |
 |---|---|
+| 2026-09-09 | Firmware v1.1.8 + Dashboard v1.5.0 — RIMS PID/DC mode: `select.rims_mode` (PID \| DC) + `number.rims_dc_power` (0–100%, default 80%, settable from dashboard & Node-RED). DC mode drives SSR2 at fixed power through all safety interlocks (staleness, NAN, 90°C, flow). Removed `pid_max_duty_cycle` (PID now always 0–100%). Dashboard: mode-conditional controls on main tab |
 | 2026-09-07 | Firmware v1.1.7 — re-audit fixes: sensor-staleness watchdog (SAFETY CHECK 0 — heater off if `ntc1_rims` frozen >8s); flow interlock now trips on a fast unfiltered `an1_flow_safety_v` read instead of the smoothed `an1_rate` (~4-5s faster). Docs: 10kΩ SSR gate pulldowns (GPIO 41/42); independent hardware high-limit cutoff tracked as required before first load test |
 | 2026-09-07 | Dashboard v1.4.0 — Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
 | 2026-09-07 | Firmware v1.1.6 — safety audit fixes: RIMS flow interlock (dry-fire guard, `pid_min_flow` default 2 L/min + `flow_interlock_enable` switch, dormant by default); `api reboot_timeout` 3min→0s (HA-outage autonomy); AN2 rate median filter (parity with AN1); dashboard entity-ID fix (`esp32_fast_status`→`singularity_esp32_fast_status`) |

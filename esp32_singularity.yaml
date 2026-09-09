@@ -1,7 +1,7 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  esp32_singularity.yaml                                                      ║
 # ║  singularity Brewing Controller — ESP32-S3-N16R8                             ║
-# ║  Firmware v1.1.7                                                              ║
+# ║  Firmware v1.1.8                                                              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 #
 # WHAT THIS FILE IS:
@@ -117,7 +117,7 @@ esphome:
   comment: "singularity brewing controller — ESP32-S3-N16R8"
   project:
     name: "exoticatom.singularity"
-    version: "1.1.7"
+    version: "1.1.8"
 
   # on_boot: runs once after the ESP32 finishes booting
   # priority: -100 means it runs after all hardware is initialised
@@ -138,9 +138,11 @@ esphome:
             id(ntc2_offset).state);
           ESP_LOGI("singularity", "DS18B20-Boil: Offset=%.1f°C", id(ds18b20_boil_offset).state);
           ESP_LOGI("singularity", "DS18B20-HLT:  Offset=%.1f°C", id(ds18b20_hlt_offset).state);
-          ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f  MaxDuty=%.0f%%",
+          ESP_LOGI("singularity", "PID: Setpoint=%.1f°C  Kp=%.2f  Ki=%.4f  Kd=%.2f",
             id(pid_setpoint).state, id(pid_kp).state, id(pid_ki).state,
-            id(pid_kd).state, id(pid_duty_cycle).state);
+            id(pid_kd).state);
+          ESP_LOGI("singularity", "RIMS Mode: %s  DC Power=%.0f%%",
+            id(rims_mode).state.c_str(), id(rims_dc_power).state);
           ESP_LOGI("singularity", "RIMS Heater: %s", id(rims_heater).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "AN1 Flow Offset: %.2f L/min", id(an1_flow_offset).state);
@@ -541,11 +543,13 @@ number:
   #           + Kd × (rate of error change) ← derivative: dampens oscillations
   #
   # TUNING GUIDE:
-  #   Start: Kp=10, Ki=0, Kd=0, MaxDuty=100%
+  #   Start: Kp=10, Ki=0, Kd=0
   #   → If temperature overshoots setpoint:  reduce Kp
   #   → If temperature never quite reaches setpoint: increase Ki
   #   → If temperature oscillates around setpoint: increase Kd
   #
+  # PID always drives 0–100% output. For fixed-power heating (heat-up, boil),
+  # use DC mode via select.singularity_rims_mode + number.singularity_rims_dc_power.
   # The PID runs every 2 seconds (dt=2s) and drives GPIO42 via slow_pwm.
 
   - platform: template
@@ -617,24 +621,30 @@ number:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — PID Kd: %.2f", x);
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # RIMS DC POWER — fixed-power output for DC (duty cycle) mode
+  # ─────────────────────────────────────────────────────────────────────────
+  # When select.singularity_rims_mode = "DC", the heater runs at this fixed
+  # duty (0–100%) regardless of temperature — used for heat-up and boil.
+  # Settable from the dashboard and from Node-RED (number.set_value).
+  # Has NO effect in PID mode. Default 80%. The 90°C hard limit and flow
+  # interlock still apply in DC mode.
   - platform: template
-    name: "PID Max Duty Cycle"    # → number.singularity_pid_max_duty_cycle
-    id: pid_duty_cycle
-    # Hard cap on heater output as a percentage (0–100%).
-    # Setting to 80% protects the heating element from overheating.
-    # At 100% the PID has full control.
+    name: "RIMS DC Power"          # → number.singularity_rims_dc_power
+    id: rims_dc_power
     min_value: 0
     max_value: 100
     step: 1
     restore_value: true
-    initial_value: 100
+    initial_value: 80
     optimistic: true
     unit_of_measurement: "%"
     icon: "mdi:percent"
+    mode: box
     on_value:
       then:
         - lambda: |-
-            ESP_LOGI("singularity", "FLASH SAVED — PID Max Duty Cycle: %.0f%%", x);
+            ESP_LOGI("singularity", "FLASH SAVED — RIMS DC Power: %.0f%%", x);
 
   # ─────────────────────────────────────────────────────────────────────────
   # FLOW SENSOR OFFSETS — AN1 (RIMS) and AN2 (Sparge)
@@ -1146,12 +1156,25 @@ interval:
             }
           }
 
+          // ── MODE BRANCH ────────────────────────────────────────────────
+          // DC MODE: fixed-power output, temperature-independent. All safety
+          // checks 0–3 above already ran, so DC still honours staleness, NAN,
+          // the 90°C hard limit and the flow interlock.
+          if (id(rims_mode).state == "DC") {
+            float duty = id(rims_dc_power).state / 100.0f;
+            if (duty < 0.0f) duty = 0.0f;
+            if (duty > 1.0f) duty = 1.0f;
+            id(rims_heater_pwm).set_level(duty);
+            ESP_LOGI("singularity", "RIMS DC   temp=%.2f°C  duty=%.0f%%", temp, duty * 100.0f);
+            return;
+          }
+
+          // PID MODE (default)
           // PID CALCULATION
           float setpoint  = id(pid_setpoint).state;
           float kp        = id(pid_kp).state;
           float ki        = id(pid_ki).state;
           float kd        = id(pid_kd).state;
-          float max_duty  = id(pid_duty_cycle).state / 100.0f;  // convert % to 0.0–1.0
 
           // Error: how far we are from the target temperature
           float error = setpoint - temp;
@@ -1159,9 +1182,10 @@ interval:
           // Integral: accumulates error over time
           id(pid_integral) += error * dt;
 
-          // Anti-windup: prevent integral from growing without limit
-          // If Ki is 0, set a large clamp to avoid divide-by-zero
-          float max_i = (ki > 0.0f) ? (max_duty / ki) : 1000.0f;
+          // Anti-windup: prevent integral from growing without limit.
+          // Output maxes at 100% (1.0); if Ki is 0, use a large clamp to avoid
+          // divide-by-zero.
+          float max_i = (ki > 0.0f) ? (1.0f / ki) : 1000.0f;
           if (id(pid_integral) >  max_i) id(pid_integral) =  max_i;
           if (id(pid_integral) < -max_i) id(pid_integral) = -max_i;
 
@@ -1169,10 +1193,10 @@ interval:
           float derivative   = (error - id(pid_last_error)) / dt;
           id(pid_last_error) = error;  // remember for next cycle
 
-          // Final output: sum of P + I + D terms, clamped to [0, max_duty]
+          // Final output: sum of P + I + D terms, clamped to [0, 1.0] (0–100%)
           float output = kp * error + ki * id(pid_integral) + kd * derivative;
-          if (output < 0.0f)     output = 0.0f;       // never negative
-          if (output > max_duty) output = max_duty;    // never above max
+          if (output < 0.0f) output = 0.0f;    // never negative
+          if (output > 1.0f) output = 1.0f;    // never above 100%
 
           id(rims_heater_pwm).set_level(output);
 
@@ -1201,6 +1225,35 @@ interval:
           if (!std::isnan(r2) && r2 > 0.05f) {
             id(an2_total_litres) += r2 / 60.0f;
           }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SELECT — RIMS control mode (PID vs DC), exposed to HA
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Chooses which algorithm drives the SSR2 (GPIO42) duty while the RIMS Heater
+# switch is ON. Exclusive by construction — exactly one option is active:
+#   "PID" → closed-loop temperature control toward pid_setpoint (default)
+#   "DC"  → fixed-power output at rims_dc_power %, temperature-independent
+# Settable from the dashboard and from Node-RED (select.select_option).
+# Switching modes resets PID state so PID always resumes from a clean start.
+select:
+  - platform: template
+    name: "RIMS Mode"              # → select.singularity_rims_mode
+    id: rims_mode
+    icon: "mdi:tune-variant"
+    optimistic: true
+    restore_value: true
+    options:
+      - "PID"
+      - "DC"
+    initial_option: "PID"
+    on_value:
+      then:
+        - lambda: |-
+            id(pid_integral)   = 0.0f;   // clean PID start on any mode change
+            id(pid_last_error) = 0.0f;
+            ESP_LOGI("singularity", "RIMS Mode → %s", x.c_str());
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1325,5 +1378,5 @@ text_sensor:
     id: firmware_version
     icon: "mdi:tag-outline"
     lambda: |-
-      return {"v1.1.7"};
+      return {"v1.1.8"};
     update_interval: 10s
