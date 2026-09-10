@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.6.1
+# singularity_dashboard.yaml  v1.6.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -50,6 +50,8 @@
 #             (RIMS heater/mode/setpoint, SSR1, flow interlock); history graph adds
 #             RIMS Mode. Pairs with firmware v1.1.9 sensor.singularity_safety_event,
 #             so safety trips persist in the logbook even when the ESP32 is offline.
+#   v1.6.1 — Activity Log title shows "(last 24h)"; graph colors: Boil yellow (#fdd835), HLT green (#4caf50)
+#   v1.6.2 — Top indicator: mushroom card showing "singularity" with green dot (online) / red dot (offline)
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -81,6 +83,36 @@ views:
     type: sections
     max_columns: 3
     sections:
+
+      # ── ESP32 Connectivity Indicator (Persistent top-left) ──────────────────
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            primary: singularity
+            icon: |
+              {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}
+                mdi:circle
+              {% else %}
+                mdi:circle
+              {% endif %}
+            icon_color: |
+              {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}
+                green
+              {% else %}
+                red
+              {% endif %}
+            secondary: |
+              {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}
+                Online
+              {% else %}
+                Offline
+              {% endif %}
+            layout: vertical
+            multi_tap_action:
+              tap_action:
+                action: navigate
+                navigation_path: singularity-temps
 
       # ── Full-width status banner ─────────────────────────────────────────────
       - type: grid
