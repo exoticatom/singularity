@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.6.6
+# singularity_dashboard.yaml  v1.6.7
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -66,6 +66,8 @@
 #   v1.6.6 — Tab-bar badge dot now green (online) / red (offline): replaced the
 #             templated color (ignored by the entity badge → grey dot) with two
 #             visibility-gated badges using static colors. Shows "singularity".
+#   v1.6.7 — Added "AN1 · RIMS" / "AN2 · Sparge" title headers above the two
+#             flow sensor boxes (mushroom-title-card, centered).
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -164,6 +166,9 @@ views:
               # AN1 — RIMS flow grouped with reset
               - type: vertical-stack
                 cards:
+                  - type: custom:mushroom-title-card
+                    subtitle: AN1 · RIMS
+                    alignment: center
                   - type: custom:mushroom-template-card
                     entity: sensor.singularity_an1_rate
                     primary: "{{ states(entity) | float(0) | round(2) }} L/min"
@@ -191,6 +196,9 @@ views:
               # AN2 — Sparge flow grouped with reset
               - type: vertical-stack
                 cards:
+                  - type: custom:mushroom-title-card
+                    subtitle: AN2 · Sparge
+                    alignment: center
                   - type: custom:mushroom-template-card
                     entity: sensor.singularity_an2_total
                     primary: "{{ states(entity) | float(0) | round(2) }} L"
