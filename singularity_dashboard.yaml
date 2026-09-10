@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.7.1
+# singularity_dashboard.yaml  v1.7.2
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -78,6 +78,8 @@
 #             vertical-stack wrappers. One self-contained mushroom card per AN.
 #   v1.7.1 — "hold to reset" moved to its own second line in both flow cards
 #             (multiline_secondary: true).
+#   v1.7.2 — Added a native "Refresh" chip (top-right of the Brewing tab) that
+#             re-navigates to this view (soft refresh, relative path, no HACS).
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -130,6 +132,21 @@ views:
     type: sections
     max_columns: 3
     sections:
+
+      # ── Refresh (soft re-navigate to this view) ──────────────────────────────
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mushroom-chips-card
+            alignment: end
+            chips:
+              - type: template
+                icon: mdi:refresh
+                content: Refresh
+                icon_color: blue
+                tap_action:
+                  action: navigate
+                  navigation_path: singularity-temps
 
       # ── Column 1: Temperature sensors + Flow sensors ─────────────────────────
       - type: grid
