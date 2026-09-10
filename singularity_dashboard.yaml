@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.6.4
+# singularity_dashboard.yaml  v1.6.5
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -61,6 +61,8 @@
 #             sensor). The old binary_sensor.singularity_esp32_fast_status was a
 #             planned HA template helper that was never created, so it silently
 #             hid the banners and errored the badge.
+#   v1.6.5 — Moved the online/offline banner from the full-width top row to the
+#             bottom of Column 1, directly under the flow sensor cards.
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -99,34 +101,6 @@ views:
     type: sections
     max_columns: 3
     sections:
-
-      # ── Full-width status banner ─────────────────────────────────────────────
-      - type: grid
-        column_span: 3
-        cards:
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: binary_sensor.singularity_esp32_status
-                state: "on"
-            card:
-              type: markdown
-              content: |
-                <div style="display:flex; justify-content:flex-end;">
-                  <span style="background:#1b5e20; border-radius:8px; padding:6px 14px; color:#a5d6a7; font-weight:bold; font-size:14px;">🟢 singularity.local — Online</span>
-                </div>
-
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: binary_sensor.singularity_esp32_status
-                state: "off"
-            card:
-              type: markdown
-              content: |
-                <div style="display:flex; justify-content:flex-end;">
-                  <span style="background:#b71c1c; border-radius:8px; padding:6px 14px; color:#ef9a9a; font-weight:bold; font-size:14px;">🔴 singularity.local — Offline ⚠️</span>
-                </div>
 
       # ── Column 1: Temperature sensors + Flow sensors ─────────────────────────
       - type: grid
@@ -223,6 +197,31 @@ views:
                         entity_id: button.singularity_an2_reset_total
                     layout: vertical
                     fill_container: true
+
+          # ── Online/Offline status banner (under the flow sensors) ─────────────
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.singularity_esp32_status
+                state: "on"
+            card:
+              type: markdown
+              content: |
+                <div style="display:flex; justify-content:center;">
+                  <span style="background:#1b5e20; border-radius:8px; padding:6px 14px; color:#a5d6a7; font-weight:bold; font-size:14px;">🟢 singularity.local — Online</span>
+                </div>
+
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.singularity_esp32_status
+                state: "off"
+            card:
+              type: markdown
+              content: |
+                <div style="display:flex; justify-content:center;">
+                  <span style="background:#b71c1c; border-radius:8px; padding:6px 14px; color:#ef9a9a; font-weight:bold; font-size:14px;">🔴 singularity.local — Offline ⚠️</span>
+                </div>
 
       # ── Column 2: RIMS Heater (SSR2) ─────────────────────────────────────────
       - type: grid
