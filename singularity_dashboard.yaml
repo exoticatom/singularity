@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.7.4
+# singularity_dashboard.yaml  v1.7.5
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -85,6 +85,10 @@
 #   v1.7.4 — Fix HA template errors: the 4 temperature cards' primary used
 #             round(1) with no default and threw on 'unknown'/'unavailable'.
 #             Now guarded — show "N/A" when the sensor has no numeric value.
+#   v1.7.5 — Removed the soft-refresh chip from the main tab. Added a "Refresh
+#             page" chip under the flow sensors that calls browser_mod.refresh
+#             for a true full browser reload (requires the browser_mod HACS
+#             integration to be installed).
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -137,21 +141,6 @@ views:
     type: sections
     max_columns: 3
     sections:
-
-      # ── Refresh (soft re-navigate to this view) ──────────────────────────────
-      - type: grid
-        column_span: 3
-        cards:
-          - type: custom:mushroom-chips-card
-            alignment: end
-            chips:
-              - type: template
-                icon: mdi:refresh
-                content: Refresh
-                icon_color: blue
-                tap_action:
-                  action: navigate
-                  navigation_path: singularity-temps
 
       # ── Column 1: Temperature sensors + Flow sensors ─────────────────────────
       - type: grid
@@ -234,6 +223,18 @@ views:
                     entity_id: button.singularity_an2_reset_total
                 layout: vertical
                 fill_container: true
+
+          # ── Refresh page (browser_mod — full browser reload) ─────────────────
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:refresh
+                content: Refresh page
+                icon_color: blue
+                tap_action:
+                  action: call-service
+                  service: browser_mod.refresh
 
           # ── Online/Offline status banner (under the flow sensors) ─────────────
           - type: conditional
