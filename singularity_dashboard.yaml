@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.6.2
+# singularity_dashboard.yaml  v1.6.3
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -51,7 +51,11 @@
 #             RIMS Mode. Pairs with firmware v1.1.9 sensor.singularity_safety_event,
 #             so safety trips persist in the logbook even when the ESP32 is offline.
 #   v1.6.1 — Activity Log title shows "(last 24h)"; graph colors: Boil yellow (#fdd835), HLT green (#4caf50)
-#   v1.6.2 — Dashboard header: mushroom card showing "singularity" with green dot (online) / red dot (offline)
+#   v1.6.2 — (reverted) attempted custom:button-card header indicator — caused a
+#             config error (button-card not installed as a HACS resource)
+#   v1.6.3 — Reverted the broken button-card block. Online/offline now shown as a
+#             native view-level badge (green/red dot + "singularity") in the strip
+#             directly under the tab bar, on every tab. No custom resources needed.
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -79,42 +83,17 @@ views:
   # ── Tab 1: Brewing Temperatures ─────────────────────────────────────────────
   - title: Brewing Temperatures
     path: singularity-temps
+    badges:
+      - type: entity
+        entity: binary_sensor.singularity_esp32_fast_status
+        name: singularity
+        icon: mdi:circle
+        color: >-
+          {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}green{% else %}red{% endif %}
     icon: mdi:thermometer
     type: sections
     max_columns: 3
     sections:
-
-      # ── ESP32 Status Indicator (top-right corner, header-style) ──────────────
-      - type: grid
-        column_span: 3
-        cards:
-          - type: custom:button-card
-            entity: binary_sensor.singularity_esp32_fast_status
-            name: "singularity"
-            state:
-              - value: "on"
-                icon: mdi:circle
-                color: green
-                label: "🟢 Online"
-              - value: "off"
-                icon: mdi:circle
-                color: red
-                label: "🔴 Offline"
-            styles:
-              card:
-                - height: 32px
-                - padding: 0px 12px
-                - background-color: 'rgba(0,0,0,0.2)'
-                - border-radius: 8px
-                - font-size: 12px
-              icon:
-                - width: 8px
-                - height: 8px
-              name:
-                - font-size: 12px
-                - font-weight: bold
-              label:
-                - font-size: 10px
 
       # ── Full-width status banner ─────────────────────────────────────────────
       - type: grid
@@ -319,6 +298,13 @@ views:
   # ── Tab 2: Log ───────────────────────────────────────────────────────────────
   - title: Log
     path: singularity-log
+    badges:
+      - type: entity
+        entity: binary_sensor.singularity_esp32_fast_status
+        name: singularity
+        icon: mdi:circle
+        color: >-
+          {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}green{% else %}red{% endif %}
     icon: mdi:clipboard-text-clock
     type: sections
     max_columns: 2
@@ -397,6 +383,13 @@ views:
   # ── Tab 3: Settings ──────────────────────────────────────────────────────────
   - title: Settings
     path: singularity-settings
+    badges:
+      - type: entity
+        entity: binary_sensor.singularity_esp32_fast_status
+        name: singularity
+        icon: mdi:circle
+        color: >-
+          {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}green{% else %}red{% endif %}
     icon: mdi:tune
     type: sections
     max_columns: 3
@@ -598,6 +591,13 @@ views:
   # ── Tab 4: About ────────────────────────────────────────────────────────────
   - title: About
     path: singularity-about
+    badges:
+      - type: entity
+        entity: binary_sensor.singularity_esp32_fast_status
+        name: singularity
+        icon: mdi:circle
+        color: >-
+          {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}green{% else %}red{% endif %}
     icon: mdi:information-outline
     type: sections
     max_columns: 2
@@ -668,6 +668,13 @@ views:
   # ── Tab 5: Hardware ──────────────────────────────────────────────────────────
   - title: Hardware
     path: singularity-hardware
+    badges:
+      - type: entity
+        entity: binary_sensor.singularity_esp32_fast_status
+        name: singularity
+        icon: mdi:circle
+        color: >-
+          {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}green{% else %}red{% endif %}
     icon: mdi:chip
     type: sections
     max_columns: 2
@@ -772,6 +779,13 @@ views:
   # ── Tab 6: Diag ─────────────────────────────────────────────────────────────
   - title: Diag
     path: singularity-diag
+    badges:
+      - type: entity
+        entity: binary_sensor.singularity_esp32_fast_status
+        name: singularity
+        icon: mdi:circle
+        color: >-
+          {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}green{% else %}red{% endif %}
     icon: mdi:chart-line
     type: sections
     max_columns: 2
