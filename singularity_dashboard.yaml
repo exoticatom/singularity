@@ -74,28 +74,6 @@
 # Tabs: Brewing Temperatures | Log | Settings | About | Hardware | Diag
 
 title: singularity
-header:
-  - type: custom:mushroom-template-card
-    primary: singularity
-    icon: |
-      {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}
-        mdi:circle
-      {% else %}
-        mdi:circle
-      {% endif %}
-    icon_color: |
-      {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}
-        green
-      {% else %}
-        red
-      {% endif %}
-    secondary: |
-      {% if is_state('binary_sensor.singularity_esp32_fast_status', 'on') %}
-        Online
-      {% else %}
-        Offline
-      {% endif %}
-    layout: vertical
 views:
 
   # ── Tab 1: Brewing Temperatures ─────────────────────────────────────────────
@@ -105,6 +83,38 @@ views:
     type: sections
     max_columns: 3
     sections:
+
+      # ── ESP32 Status Indicator (top-right corner, header-style) ──────────────
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:button-card
+            entity: binary_sensor.singularity_esp32_fast_status
+            name: "singularity"
+            state:
+              - value: "on"
+                icon: mdi:circle
+                color: green
+                label: "🟢 Online"
+              - value: "off"
+                icon: mdi:circle
+                color: red
+                label: "🔴 Offline"
+            styles:
+              card:
+                - height: 32px
+                - padding: 0px 12px
+                - background-color: 'rgba(0,0,0,0.2)'
+                - border-radius: 8px
+                - font-size: 12px
+              icon:
+                - width: 8px
+                - height: 8px
+              name:
+                - font-size: 12px
+                - font-weight: bold
+              label:
+                - font-size: 10px
 
       # ── Full-width status banner ─────────────────────────────────────────────
       - type: grid
