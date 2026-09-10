@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.7.0
+# singularity_dashboard.yaml  v1.7.1
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -76,6 +76,8 @@
 #   v1.7.0 — Folded the AN1 · RIMS / AN2 · Sparge names into the flow cards'
 #             secondary line; removed the separate title cards and the
 #             vertical-stack wrappers. One self-contained mushroom card per AN.
+#   v1.7.1 — "hold to reset" moved to its own second line in both flow cards
+#             (multiline_secondary: true).
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -175,7 +177,10 @@ views:
               - type: custom:mushroom-template-card
                 entity: sensor.singularity_an1_rate
                 primary: "{{ states(entity) | float(0) | round(2) }} L/min"
-                secondary: "AN1 · RIMS — Total {{ states('sensor.singularity_an1_total') | float(0) | round(2) }} L · hold to reset"
+                secondary: |-
+                  AN1 · RIMS — Total {{ states('sensor.singularity_an1_total') | float(0) | round(2) }} L
+                  hold to reset
+                multiline_secondary: true
                 icon: mdi:water-pump
                 icon_color: "{% set r = states(entity) | float(0) %}{% if r < 0.1 %}disabled{% elif r < 3 %}red{% else %}blue{% endif %}"
                 tap_action:
@@ -192,7 +197,10 @@ views:
               - type: custom:mushroom-template-card
                 entity: sensor.singularity_an2_total
                 primary: "{{ states(entity) | float(0) | round(2) }} L"
-                secondary: "AN2 · Sparge — Flow {{ states('sensor.singularity_an2_rate') | float(0) | round(2) }} L/min · hold to reset"
+                secondary: |-
+                  AN2 · Sparge — Flow {{ states('sensor.singularity_an2_rate') | float(0) | round(2) }} L/min
+                  hold to reset
+                multiline_secondary: true
                 icon: mdi:water
                 icon_color: "{% set t = states(entity) | float(0) %}{% if t < 0.1 %}disabled{% elif t < 10 %}blue{% else %}green{% endif %}"
                 tap_action:
