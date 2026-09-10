@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.7.3
+# singularity_dashboard.yaml  v1.7.4
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -82,6 +82,9 @@
 #             re-navigates to this view (soft refresh, relative path, no HACS).
 #   v1.7.3 — Log tab: Activity Log card made longer — full width, taller
 #             (grid_options rows: 16) and window extended to 48h.
+#   v1.7.4 — Fix HA template errors: the 4 temperature cards' primary used
+#             round(1) with no default and threw on 'unknown'/'unavailable'.
+#             Now guarded — show "N/A" when the sensor has no numeric value.
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -155,7 +158,7 @@ views:
         cards:
           - type: custom:mushroom-template-card
             entity: sensor.singularity_ntc1_rims
-            primary: "{{ states(entity) | round(1) }} °C"
+            primary: "{% set v = states(entity) | float(none) %}{{ (v | round(1) ~ ' °C') if v is not none else 'N/A' }}"
             secondary: NTC1-RIMS
             icon: mdi:thermometer-water
             icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
@@ -164,7 +167,7 @@ views:
 
           - type: custom:mushroom-template-card
             entity: sensor.singularity_ntc2_mash
-            primary: "{{ states(entity) | round(1) }} °C"
+            primary: "{% set v = states(entity) | float(none) %}{{ (v | round(1) ~ ' °C') if v is not none else 'N/A' }}"
             secondary: NTC2-MASH
             icon: mdi:thermometer
             icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 69 %}green{% elif t < 75 %}orange{% else %}red{% endif %}"
@@ -173,7 +176,7 @@ views:
 
           - type: custom:mushroom-template-card
             entity: sensor.singularity_ds18b20_boil
-            primary: "{{ states(entity) | round(1) }} °C"
+            primary: "{% set v = states(entity) | float(none) %}{{ (v | round(1) ~ ' °C') if v is not none else 'N/A' }}"
             secondary: DS18B20-Boil
             icon: mdi:thermometer-lines
             icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 92 %}blue{% elif t < 99 %}orange{% else %}red{% endif %}"
@@ -182,7 +185,7 @@ views:
 
           - type: custom:mushroom-template-card
             entity: sensor.singularity_ds18b20_hlt
-            primary: "{{ states(entity) | round(1) }} °C"
+            primary: "{% set v = states(entity) | float(none) %}{{ (v | round(1) ~ ' °C') if v is not none else 'N/A' }}"
             secondary: DS18B20-HLT
             icon: mdi:thermometer-lines
             icon_color: "{% set t = states(entity) | float(-1) %}{% if t < 0 %}disabled{% elif t < 50 %}blue{% elif t < 70 %}green{% elif t < 85 %}orange{% else %}red{% endif %}"
