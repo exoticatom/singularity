@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.6.5
+# singularity_dashboard.yaml  v1.6.6
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -63,6 +63,9 @@
 #             hid the banners and errored the badge.
 #   v1.6.5 — Moved the online/offline banner from the full-width top row to the
 #             bottom of Column 1, directly under the flow sensor cards.
+#   v1.6.6 — Tab-bar badge dot now green (online) / red (offline): replaced the
+#             templated color (ignored by the entity badge → grey dot) with two
+#             visibility-gated badges using static colors. Shows "singularity".
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -95,8 +98,22 @@ views:
         entity: binary_sensor.singularity_esp32_status
         name: singularity
         icon: mdi:circle
-        color: >-
-          {% if is_state('binary_sensor.singularity_esp32_status', 'on') %}green{% else %}red{% endif %}
+        color: green
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "on"
+      - type: entity
+        entity: binary_sensor.singularity_esp32_status
+        name: singularity
+        icon: mdi:circle
+        color: red
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
     icon: mdi:thermometer
     type: sections
     max_columns: 3
@@ -307,8 +324,22 @@ views:
         entity: binary_sensor.singularity_esp32_status
         name: singularity
         icon: mdi:circle
-        color: >-
-          {% if is_state('binary_sensor.singularity_esp32_status', 'on') %}green{% else %}red{% endif %}
+        color: green
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "on"
+      - type: entity
+        entity: binary_sensor.singularity_esp32_status
+        name: singularity
+        icon: mdi:circle
+        color: red
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
     icon: mdi:clipboard-text-clock
     type: sections
     max_columns: 2
@@ -392,8 +423,22 @@ views:
         entity: binary_sensor.singularity_esp32_status
         name: singularity
         icon: mdi:circle
-        color: >-
-          {% if is_state('binary_sensor.singularity_esp32_status', 'on') %}green{% else %}red{% endif %}
+        color: green
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "on"
+      - type: entity
+        entity: binary_sensor.singularity_esp32_status
+        name: singularity
+        icon: mdi:circle
+        color: red
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
     icon: mdi:tune
     type: sections
     max_columns: 3
@@ -600,8 +645,22 @@ views:
         entity: binary_sensor.singularity_esp32_status
         name: singularity
         icon: mdi:circle
-        color: >-
-          {% if is_state('binary_sensor.singularity_esp32_status', 'on') %}green{% else %}red{% endif %}
+        color: green
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "on"
+      - type: entity
+        entity: binary_sensor.singularity_esp32_status
+        name: singularity
+        icon: mdi:circle
+        color: red
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
     icon: mdi:information-outline
     type: sections
     max_columns: 2
@@ -677,8 +736,22 @@ views:
         entity: binary_sensor.singularity_esp32_status
         name: singularity
         icon: mdi:circle
-        color: >-
-          {% if is_state('binary_sensor.singularity_esp32_status', 'on') %}green{% else %}red{% endif %}
+        color: green
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "on"
+      - type: entity
+        entity: binary_sensor.singularity_esp32_status
+        name: singularity
+        icon: mdi:circle
+        color: red
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
     icon: mdi:chip
     type: sections
     max_columns: 2
@@ -788,8 +861,22 @@ views:
         entity: binary_sensor.singularity_esp32_status
         name: singularity
         icon: mdi:circle
-        color: >-
-          {% if is_state('binary_sensor.singularity_esp32_status', 'on') %}green{% else %}red{% endif %}
+        color: green
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "on"
+      - type: entity
+        entity: binary_sensor.singularity_esp32_status
+        name: singularity
+        icon: mdi:circle
+        color: red
+        state_content: name
+        visibility:
+          - condition: state
+            entity: binary_sensor.singularity_esp32_status
+            state: "off"
     icon: mdi:chart-line
     type: sections
     max_columns: 2
