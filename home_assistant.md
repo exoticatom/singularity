@@ -58,9 +58,15 @@ sensor.singularity_an2_reset_event          str    AN2 flow total reset event �
 ### Binary Sensors
 
 ```
-binary_sensor.singularity_esp32_status       on/off  Native ESPHome connectivity (slow — ~30-60s)
-binary_sensor.singularity_esp32_fast_status  on/off  Template sensor — offline within 10s (see below)
+binary_sensor.singularity_esp32_status       on/off  Native ESPHome connectivity — THE connectivity source of truth
 ```
+
+> **Note:** `binary_sensor.singularity_esp32_fast_status` was a *planned* HA template
+> helper (defined in `singularity_templates/singularity_templates.yaml`) but was
+> never activated in HA — referencing it threw "Entity not found". The dashboard
+> connectivity badge and all offline banners use the real ESPHome
+> `binary_sensor.singularity_esp32_status` instead. The template file is retained
+> for a future fast-detection implementation but is not currently wired in.
 
 ### Number Entities (read/write, persisted on ESP32 flash)
 
@@ -86,12 +92,16 @@ DS18B20 Offsets:
   number.singularity_ds18b20_hlt_offset   °C  Offset for HLT sensor (default: 0.0)
 
 PID Control:
-  number.singularity_pid_setpoint       °C    Target temperature (default: 66.0, range 0-80)
+  number.singularity_pid_setpoint       °C    Target temperature (default: 66.0, range 0-78)
   number.singularity_pid_kp                   Proportional gain (default: 10.0)
   number.singularity_pid_ki                   Integral gain (default: 0.2)
   number.singularity_pid_kd                   Derivative gain (default: 5.0)
-  number.singularity_pid_max_duty_cycle  %    Heater output cap (default: 100)
   number.singularity_pid_min_flow        L/min RIMS min-flow interlock threshold (default: 2.0) — only enforced when flow interlock enabled
+  (pid_max_duty_cycle removed in v1.1.8 — PID now always 0–100%)
+
+RIMS Mode (v1.1.8):
+  select.singularity_rims_mode                PID | DC — chooses heater duty source (see Switches/Selects below)
+  number.singularity_rims_dc_power       %    Fixed duty when rims_mode = DC (0–100%, default 80%)
 
 Flow Calibration:
   number.singularity_an1_flow_offset    L/min  AN1 RIMS flow offset (default: 0.0)
@@ -127,15 +137,21 @@ automation.singularity_push_calibration_values_on_esp32_reconnect
 
 ## Connectivity Detection
 
-Two-layer connectivity detection:
+**Current (active):** single-layer, native ESPHome connectivity.
 
 ```
-Layer 1 — Native ESPHome (slow)
-  binary_sensor.singularity_esp32_status
+binary_sensor.singularity_esp32_status
   Detection time: ~30-60s after disconnect
   Source: ESPHome native API keepalive
+  Used by: dashboard tab-bar connectivity badge (green/red dot on every tab)
+```
 
-Layer 2 — Fast template (fast)
+**Planned (not active):** the fast 10s template layer below is defined in
+`singularity_templates/singularity_templates.yaml` but is NOT currently wired
+into HA. Retained for a future fast-detection implementation.
+
+```
+Layer 2 — Fast template (PLANNED, not active)
   binary_sensor.singularity_esp32_fast_status
   Detection time: ~10s after disconnect
   Source: monitors sensor.singularity_uptime (1s heartbeat)
@@ -175,7 +191,13 @@ Defined in `/config/singularity_templates/singularity_templates.yaml`:
         offline_seconds: "{{ (now() - states.sensor.singularity_uptime.last_updated).total_seconds() | int }}"
 ```
 
-> **Entity ID Rule:** Always reference `binary_sensor.singularity_esp32_fast_status` in automations and dashboards — never the bare form. HA auto-generates entity IDs with the `singularity_` prefix; this prevents collision with other projects.
+> **Entity ID Rule:** Always use the full `singularity_`-prefixed entity IDs in
+> automations and dashboards — never a bare form. HA auto-generates entity IDs
+> with the `singularity_` prefix; this prevents collision with other projects.
+>
+> **Connectivity:** use `binary_sensor.singularity_esp32_status` (the real,
+> active ESPHome sensor). The `..._fast_status` template above is not currently
+> active in HA.
 
 ---
 
@@ -316,7 +338,7 @@ are already covered by the history graphs / recorder).
 | PID setpoint change | `number.singularity_pid_setpoint` | UI action |
 | SSR1 on/off | `switch.singularity_ssr1` | UI action |
 | Flow interlock arm | `switch.singularity_flow_interlock_enable` | UI action |
-| Connectivity | `binary_sensor.singularity_esp32_fast_status` | Online/offline transitions |
+| Connectivity | `binary_sensor.singularity_esp32_status` | Online/offline transitions |
 | Firmware build | `sensor.singularity_build` | Version string |
 
 ### What is deliberately NOT logged
@@ -508,6 +530,13 @@ These entities exist in the HA registry from old firmware versions and are no lo
 | v1.4.0 | Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
 | v1.6.0 | Log tab: Activity Log = safety events + UI actions; RIMS Mode added to activity graph. Pairs with firmware v1.1.9 `sensor.singularity_safety_event` (offline-persistent safety trips) |
 | v1.6.1 | Activity Log expanded: calibration/tuning changes (NTC1/2 S-H coeffs, offsets, PID gains, flow offsets), flow resets, WiFi signal, heater PWM duty. Pairs with firmware v1.2.0 |
+| v1.6.2–v1.6.6 | Connectivity indicator iterations; repointed from non-existent `esp32_fast_status` to real `binary_sensor.singularity_esp32_status`; two visibility-gated badges (green when on, red when off) |
+| v1.6.5–v1.7.1 | AN1/AN2 flow cards redesigned — self-contained mushroom cards, hold-to-reset, rate-driven icon colour, multiline secondary |
+| v1.5.6–v1.5.9 | All tabs migrated to responsive Sections layout (auto-width columns, mobile reflow) |
+| v1.7.2, v1.7.5–v1.7.8 | Page-refresh chip — final: browser_mod full reload, last card under the graph in Column 3 |
+| v1.7.3 | Activity Log full-width, 48h window |
+| v1.7.4 | Template error fix — temperature cards guarded with `float(none)` → show "N/A" instead of erroring on unknown/unavailable |
+| v1.7.9 | Removed redundant online/offline banner — single tab-bar badge (green/red dot) on every tab is the connectivity indicator |
 
 ---
 

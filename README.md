@@ -1,13 +1,13 @@
 # singularity — Vitamin B Brewing Controller
 
-> **Last updated: 2026-09-09** — Firmware v1.2.0 · Dashboard v1.6.1 · Copilot Rules updated
+> **Last updated: 2026-09-11** — Firmware v1.2.0 · Dashboard v1.7.9
 
 - 📌 [GPIO Map](hardware/gpio_map.md)
 - 🔧 [Hardware Docs](hardware/README.md)
 - 🏛️ [Architecture & Ground Truth](docs/ARCHITECTURE.md) — compute boundary, safety model, planned vs built
 - 🔌 [Electrical Schematic](schematics/schematic.md)
 - ⚡ [ESPHome Config](esp32_singularity.yaml) — v1.2.0
-- 📊 [Dashboard](singularity_dashboard.yaml) — v1.6.1
+- 📊 [Dashboard](singularity_dashboard.yaml) — v1.7.9
 - 📋 [Project Status](#project-status)
 - 🧪 [Calibration Guide](hardware/calibration.md)
 - 🏠 [Home Assistant Integration](home_assistant.md)
@@ -279,7 +279,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | RIMS flow interlock (dry-fire guard) | ✅ Implemented | Heater off if RIMS flow < min (default 2 L/min). Uses a fast unfiltered safety-voltage read (`an1_flow_safety_v`), not the smoothed `an1_rate`. Dormant by default — enable `switch.singularity_flow_interlock_enable` after AN1 commissioning, before first load test |
 | HA-outage autonomy (`reboot_timeout: 0s`) | ✅ Implemented | ESP32 no longer reboots when HA is unreachable — brew continues uninterrupted (WiFi self-heal unchanged) |
 | CI/CD auto-deploy via GitHub Actions | ✅ Active | Push to main → Pi via Tailscale |
-| HA dashboard v1.6.1 | ✅ Active | 6 tabs — Brewing Temps, Log, Settings, About, Hardware, Diag |
+| HA dashboard v1.7.9 | ✅ Active | 6 tabs, Sections layout (responsive), tab-bar connectivity badge, browser_mod refresh chip |
 | Uptime heartbeat (1s) | ✅ Active | Fast 10s offline detection via template |
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | ✅ Implemented | AN1 (RIMS, A2) + AN2 (Sparge, A3) — rate + total + offset + reset |
@@ -307,6 +307,8 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 
 | Date | Change |
 |---|---|
+| 2026-09-11 | Dashboard v1.6.1→v1.7.9 — UX overhaul: all tabs converted to responsive Sections layout; RIMS card consolidated; AN1/AN2 flow cards redesigned with hold-to-reset; single tab-bar connectivity badge on all tabs (driven by `binary_sensor.singularity_esp32_status`); browser_mod full-page refresh chip; temperature cards guarded against `unknown`/`unavailable` (show "N/A", no more template errors); Activity Log 48h + full-width |
+| 2026-09-11 | Connectivity fix — `binary_sensor.singularity_esp32_fast_status` never existed (planned template helper, never created). All banners/badges repointed to the real ESPHome `binary_sensor.singularity_esp32_status` |
 | 2026-09-09 | Firmware v1.1.8 + Dashboard v1.5.9 — RIMS PID/DC mode: `select.rims_mode` (PID \| DC) + `number.rims_dc_power` (0–100%, default 80%, settable from dashboard & Node-RED). DC mode drives SSR2 at fixed power through all safety interlocks (staleness, NAN, 90°C, flow). Removed `pid_max_duty_cycle` (PID now always 0–100%). Dashboard: mode-conditional controls on main tab |
 | 2026-09-07 | Firmware v1.1.7 — re-audit fixes: sensor-staleness watchdog (SAFETY CHECK 0 — heater off if `ntc1_rims` frozen >8s); flow interlock now trips on a fast unfiltered `an1_flow_safety_v` read instead of the smoothed `an1_rate` (~4-5s faster). Docs: 10kΩ SSR gate pulldowns (GPIO 41/42); independent hardware high-limit cutoff tracked as required before first load test |
 | 2026-09-07 | Dashboard v1.4.0 — Settings tab: RIMS Flow Interlock safety card (`flow_interlock_enable` + `pid_min_flow`) |
