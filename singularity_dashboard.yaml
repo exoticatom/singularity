@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.7.7
+# singularity_dashboard.yaml  v1.7.8
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -93,6 +93,8 @@
 #             top row on the main tab, right-aligned (top-right corner).
 #   v1.7.7 — Moved the "Refresh page" chip to the bottom — now the last item on
 #             the main tab (full-width row under the graph, centered).
+#   v1.7.8 — Refresh page chip moved inside Column 3 as the last card directly
+#             under the temperature graph (no longer a full-width row).
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -327,10 +329,7 @@ views:
                 stroke_width: 2
                 yaxis_id: temp
 
-      # ── Bottom row: Refresh page button (last item, browser_mod full reload) ──
-      - type: grid
-        column_span: 3
-        cards:
+          # ── Refresh page button (last item in Column 3, browser_mod reload) ──
           - type: custom:mushroom-chips-card
             alignment: center
             chips:
