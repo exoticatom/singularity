@@ -1,4 +1,4 @@
-# singularity_dashboard.yaml  v1.7.8
+# singularity_dashboard.yaml  v1.7.9
 #
 # Project: singularity
 # Purpose: Home Assistant Lovelace dashboard for the singularity brewing controller.
@@ -95,6 +95,9 @@
 #             the main tab (full-width row under the graph, centered).
 #   v1.7.8 — Refresh page chip moved inside Column 3 as the last card directly
 #             under the temperature graph (no longer a full-width row).
+#   v1.7.9 — Removed the redundant online/offline banner under the flows. The
+#             tab-bar badge (green/red dot + "singularity") is the single
+#             connectivity indicator now (same entity, shown on every tab).
 #
 # Sensor naming convention:
 #   sensor.singularity_ntc1_rims      — corrected °C (S-H calculated on ESP32)
@@ -229,31 +232,6 @@ views:
                     entity_id: button.singularity_an2_reset_total
                 layout: vertical
                 fill_container: true
-
-          # ── Online/Offline status banner (under the flow sensors) ─────────────
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: binary_sensor.singularity_esp32_status
-                state: "on"
-            card:
-              type: markdown
-              content: |
-                <div style="display:flex; justify-content:center;">
-                  <span style="background:#1b5e20; border-radius:8px; padding:6px 14px; color:#a5d6a7; font-weight:bold; font-size:14px;">🟢 singularity.local — Online</span>
-                </div>
-
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: binary_sensor.singularity_esp32_status
-                state: "off"
-            card:
-              type: markdown
-              content: |
-                <div style="display:flex; justify-content:center;">
-                  <span style="background:#b71c1c; border-radius:8px; padding:6px 14px; color:#ef9a9a; font-weight:bold; font-size:14px;">🔴 singularity.local — Offline ⚠️</span>
-                </div>
 
       # ── Column 2: RIMS Heater (SSR2) ─────────────────────────────────────────
       - type: grid
