@@ -34,7 +34,7 @@
 
 * **Filtering:** Apply an `exponential_moving_average` filter with an `alpha` of `0.25` to all analog sensor inputs to suppress noise — including raw voltage diagnostic sensors (AN1/AN2).
 
-* **Entity ID Convention:** All entities must follow the `singularity_` prefix pattern. HA entity IDs are auto-generated as `<platform>.singularity_<entity_name>`. Never reference bare `esp32_*` entity IDs in dashboards or automations — always use the full `singularity_esp32_*` form (e.g. `binary_sensor.singularity_esp32_fast_status`).
+* **Entity ID Convention:** All entities must follow the `singularity_` prefix pattern. HA entity IDs are auto-generated as `<platform>.singularity_<entity_name>`. Never reference bare `esp32_*` entity IDs in dashboards or automations — always use the full `singularity_esp32_*` form (e.g. `binary_sensor.singularity_esp32_status`, the native ESPHome connectivity sensor).
 
 * **Dynamic Routing:** Do not hardcode specific sensor roles to physical pins in the firmware. Define generic ports (e.g., `adc_port_a0` on the ADS1115) and map them dynamically via Home Assistant `input_select` dropdown helpers.
 

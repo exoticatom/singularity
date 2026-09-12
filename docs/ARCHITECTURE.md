@@ -2,7 +2,12 @@
 
 **Role of this document:** single source of truth for the system's design, compute placement, and safety posture. Cross-referenced against the live source — [`esp32_singularity.yaml`](../esp32_singularity.yaml) (firmware v1.2.0), [`singularity_dashboard.yaml`](../singularity_dashboard.yaml), [`hardware/gpio_map.md`](../hardware/gpio_map.md), and [`home_assistant.md`](../home_assistant.md).
 
-**Project:** singularity brewing controller · **Firmware:** v1.2.0 · **ESPHome:** 2026.8.1 · **Last updated:** 2026-09-09
+**Project:** singularity brewing controller · **Firmware:** v1.2.0 · **ESPHome:** 2026.8.1 · **Last updated:** 2026-09-12
+
+**Companion documents:**
+- [`ARCHITECTURE_EXECUTIVE_SUMMARY.md`](ARCHITECTURE_EXECUTIVE_SUMMARY.md) — one-page stakeholder overview
+- [`ARCHITECTURE_TECHNICAL_DEEP_DIVE.md`](ARCHITECTURE_TECHNICAL_DEEP_DIVE.md) — developer reference (firmware internals)
+- [`ARCHITECTURE_VERIFICATION.md`](ARCHITECTURE_VERIFICATION.md) — QA checklist verifying this doc against firmware
 
 ---
 
@@ -16,7 +21,7 @@ Five premises commonly stated about this system do **not** match what the source
 | 2 | "Temperature is computed in HA templates." | **False.** Steinhart–Hart (`1/T = A + B·ln R + C·(ln R)³`) runs in the ESP32 sensor lambda (`esp32_singularity.yaml`, NTC1/NTC2 filters). HA never sees raw voltage-to-°C math. |
 | 3 | "Dynamic sensor routing via `input_select` is implemented." | **Planned, not built.** The only routing control that exists is `select.singularity_rims_mode` (PID vs DC). There is no input_select-driven sensor multiplexing in firmware. |
 | 4 | "A Node-RED state machine sequences the brew (Idle→Strike→Mash→Sparge→Boil)." | **Does not exist.** No such flow is in the repo. Node-RED is a planned orchestration layer. Today the ESP32 exposes primitives (mode select, setpoint, DC power, switches) that a future Node-RED layer can drive via the HA API. |
-| 5 | "Connectivity is tracked by `sensor.singularity_system_uptime`." | **Wrong entity.** It is `sensor.singularity_uptime` (1 s heartbeat) feeding `binary_sensor.singularity_esp32_fast_status`, which flips offline after >10 s of no update. |
+| 5 | "Connectivity is tracked by `sensor.singularity_system_uptime`, feeding a fast-status watchdog." | **Wrong entity / not active.** Live connectivity is the native ESPHome `binary_sensor.singularity_esp32_status` (`platform: status` — true while the ESP32 holds the HA API connection). A `sensor.singularity_uptime` 1 s heartbeat exists. The `binary_sensor.singularity_esp32_fast_status` 10 s uptime-watchdog is defined only as an **unwired template** in [`singularity_templates/`](../singularity_templates/singularity_templates.yaml) — it is **not loaded into the running HA**, so do not reference it in dashboards or automations. |
 
 **Design axiom that follows:** *Calculations and state that must survive a reboot live on the ESP32. Configuration and display live in HA. Sequences and scheduling live in Node-RED (planned).*
 
@@ -65,7 +70,7 @@ Three tiers, strictly separated:
 **Tier 2 — Home Assistant (display + configuration):**
 - Renders dashboard tabs; hosts the recorder DB on the Pi (10-day retention) → offline-persistent logbook.
 - Number/select/switch entities push config down to the ESP32.
-- `binary_sensor.singularity_esp32_fast_status` derived from `sensor.singularity_uptime` (offline at >10 s).
+- Connectivity is the native `binary_sensor.singularity_esp32_status` (ESPHome `platform: status`, true while the ESP32 holds the HA API connection). A `sensor.singularity_uptime` heartbeat also exists; the `esp32_fast_status` uptime-watchdog is defined only as an unwired template in `singularity_templates/` and is not active in HA.
 
 **Tier 3 — Node-RED (planned):**
 - Intended home for brew sequencing/scheduling. Drives the ESP32 primitives (`select.select_option`, `number.set_value`) over the HA API.
@@ -121,7 +126,7 @@ All thermal protection today is in **one place** — the ESP32 firmware. That is
 - ESP32 firmware v1.2.0: NTC ×2 (S-H), DS18B20 ×2, AN1/AN2 flow + totals, PID + DC modes, 4-guard safety chain.
 - Flash-persisted calibration/tuning; live-editable from HA (no reflash).
 - Offline-persistent logging: `safety_event`, `an1/an2_reset_event`, `rims_heater_pwm_duty`, WiFi signal; 24 h Activity Log.
-- Fast offline detection (`esp32_fast_status`, 10 s).
+- Native connectivity indicator (`binary_sensor.singularity_esp32_status`, ESPHome status platform).
 - Single-sheet electrical schematic ([`schematics/`](../schematics/schematic.md)).
 
 **Pending / planned:**
