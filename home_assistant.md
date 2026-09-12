@@ -479,6 +479,27 @@ HA publishes these selections to the ESP32 as `number` entities; the firmware ap
 
 These entities exist in the HA registry from old firmware versions and are no longer used.
 
+> **Audit provenance & scope.** The firmware-derived rows below (removed `sensor.*`,
+> `number.*`, `switch.*` entities) were reconciled against git history on
+> **2026-09-12**: every distinct ESPHome `name:` that ever existed in
+> `esp32_singularity.yaml` was diffed against the current firmware. Removal
+> versions are taken from the commit that dropped each entity. The HA-helper rows
+> (`input_number.*`, `input_text.*`, `update.*`) and old integration entities
+> (`sensor.singularity_version`, `cpu_percent`, `binary_sensor.singularity_running`,
+> `switch.project_singularity`, …) were never ESPHome entities, so they are tracked
+> here by hand.
+>
+> **This list is "would-be orphaned if ever flashed" — not a live-registry dump.**
+> Whether a given entity is *actually* present in your HA registry right now depends
+> on which firmware versions this device was flashed with. Per
+> `.kiro/steering/entity_sync.md` (Rule 2), confirm against the live registry on the
+> Pi before deleting:
+> ```bash
+> grep -o '"entity_id":"[^"]*singularity[^"]*"' /config/.storage/core.entity_registry | sort
+> ```
+> Cross-reference that output against the current firmware entities; delete only the
+> ones that appear in the registry but not in `esp32_singularity.yaml`.
+
 ### Cleanup Instructions
 
 1. **One-time cleanup:** Go to **Settings → Devices & Services → Entities** and search for each entity below
@@ -493,8 +514,10 @@ These entities exist in the HA registry from old firmware versions and are no lo
 | `input_number.singularity_ntc1_*` / `ntc2_*` | Replaced by `number.*` entities on ESP32 flash |
 | `input_number.singularity_offset_*` | Replaced by `number.*` entities |
 | `input_text.singularity_ssr1_name` / `ssr2_name` | Old UI helpers, never used |
-| `number.singularity_rims_direct_duty_cycle` | Old DIRECT mode removed v1.0.5 |
-| `number.singularity_rims_pid_switch_threshold` | Old DIRECT mode removed v1.0.5 |
+| `number.singularity_pid_duty_cycle` | Early manual duty control, removed v1.0.3 |
+| `number.singularity_pid_max_duty_cycle` | PID duty limiter, removed v1.1.8 (PID now always 0–100%) |
+| `number.singularity_rims_direct_duty_cycle` | Old DIRECT mode, removed v1.0.6 |
+| `number.singularity_rims_pid_switch_threshold` | Old DIRECT mode, removed v1.0.6 |
 | `switch.singularity_an1_reset_total` / `an2_reset_total` | Replaced by `button.*` entities |
 | `switch.singularity_ssr2` / `ssr2_rims_heater` / `ssr1_spare` | Old SSR names |
 | `sensor.singularity_ntc1_rims_raw` / `ntc2_mash_raw` | Old RAW sensors removed |
