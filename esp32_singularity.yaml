@@ -1195,7 +1195,7 @@ interval:
           if (stale_ms > 8000) {
             id(rims_heater_pwm).set_level(0.0f);
             id(rims_heater_pwm_duty_pct) = 0.0f;
-            ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims stale %ums, heater OFF", stale_ms);
+            ESP_LOGW("singularity", "RIMS SAFETY — ntc1_rims stale %lums, heater OFF", (unsigned long) stale_ms);
             if (id(safety_event).state != "Sensor stale — heater OFF")
               id(safety_event).publish_state("Sensor stale — heater OFF");
             return;
