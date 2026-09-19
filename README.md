@@ -99,7 +99,7 @@ The system lives in two physical units:
 | **Display & Kiosk** *(optional)* | [Joy-IT RB-LCD10-2](hardware/display_kiosk.md) 10.1" IPS touchscreen + [Raspberry Pi 4](hardware/display_kiosk.md) 2GB running Chromium kiosk → singularity dashboard |
 | **Temperature** | [NTC](hardware/ntc.md) 10kΩ thermistors × 2 (via [ADS1115](hardware/expansion_boards.md) ADC), [DS18B20](hardware/ds18b20.md) 1-Wire sensors × 2 |
 | **Flow** | IFM [SM6004](hardware/sm6004.md) magnetic flow meters × 2 (🔬 Testing), [YF-S200](hardware/yf_s200.md) pulse sensors (planned) |
-| **Analog I/O** | [ADS1115](hardware/expansion_boards.md) 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), [MCP4728](hardware/expansion_boards.md) 12-bit DAC × 2 (planned) |
+| **Analog I/O** | [ADS1115](hardware/expansion_boards.md) 16-bit ADC × 1 (0x48 — NTC1 A0, NTC2 A1, FLOW1 A2, FLOW2 A3), [MCP4728](hardware/expansion_boards.md) 12-bit DAC × 2 (#1 firmware-integrated for proportional valve, hardware not yet wired; #2 spare) |
 | **GPIO expansion** | [MCP23017](hardware/expansion_boards.md) 16-bit I2C expander (planned) |
 | **Outputs** | SSR relays × 2 (RIMS heater + spare) |
 | **Signal conversion** | [4-20mA → 0-3.3V converter modules](hardware/current_to_voltage.md) for industrial sensors |
@@ -260,7 +260,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing | Connected, calibrated — AN1 (A2 RIMS) + AN2 (A3 Sparge). Firmware implemented v1.0.9. |
 | Relay board — pump control | 🔲 Planned | Via [MCP23017](hardware/expansion_boards.md) GPIO expander |
 | [MCP23017](hardware/expansion_boards.md) GPIO expander | 🔲 Planned | I2C 0x20 |
-| [MCP4728](hardware/expansion_boards.md) DAC | 🔲 Planned | Proportional valve, I2C 0x60 |
+| [MCP4728](hardware/expansion_boards.md) DAC | ⏳ Firmware ready | Proportional valve, I2C 0x60 — firmware integrated (`number.singularity_proportional_valve`), hardware not yet wired |
 | Alarm/buzzer | 🔲 Planned | Hardware + HA notification |
 
 > **Note — ADS1115 #2 floating input issue:** Two boards were tested. One drifted **negative** (below GND) — ESPHome correctly returns `unavailable`. The other drifted **positive** (~0.58V) — produced false temperature readings (~64°C) with nothing connected. A PID relying on a false 64°C reading could behave dangerously. Root cause not confirmed — may be board-specific. 6 more boards ordered for testing. **Decision: all 4 channels (A0–A3) stay on ADS1115 #1 (0x48). ADS1115 #2 is not in scope** — flow meters will also use #1 A2/A3.
@@ -284,7 +284,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | Reconnect automation | ✅ Active | Re-pushes calibration on ESP32 reconnect |
 | Flow meter firmware (SM6004) | ✅ Implemented | AN1 (RIMS, A2) + AN2 (Sparge, A3) — rate + total + offset + reset |
 | Pump relay control | 🔲 Planned | MCP23017 |
-| Proportional valve control | 🔲 Planned | MCP4728 DAC |
+| Proportional valve control | ⏳ Firmware ready | MCP4728 DAC ch A → `number.singularity_proportional_valve` (0–100% slider). Hardware not yet wired |
 | Node-RED mash schedules + timers | 🔲 Planned | Mash step automation, alarms |
 
 ---
@@ -296,7 +296,7 @@ See [installation.md](installation.md#️-developer-setup) for full setup steps.
 | Item | Status |
 |---|---|
 | [ADS1115](hardware/expansion_boards.md) A2/A3 + [SM6004](hardware/sm6004.md) flow meters × 2 | 🔬 Testing — calibrated, firmware implemented |
-| [MCP4728](hardware/expansion_boards.md) × 2 — DAC for proportional valve | Planned |
+| [MCP4728](hardware/expansion_boards.md) × 2 — DAC for proportional valve | #1 firmware-integrated (hardware not wired) · #2 planned |
 | [MCP23017](hardware/expansion_boards.md) — GPIO expander | Planned |
 | [YF-S200](hardware/yf_s200.md) pulse flow sensors | Planned |
 | Node-RED — process automation (PID, mash schedules, step sequences) | Future |

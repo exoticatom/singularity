@@ -16,11 +16,13 @@
 #   • Reads 4 temperature sensors (2× NTC thermistors, 2× DS18B20 digital)
 #   • Reads 2 flow meters (SM6004 via 4-20mA converter → ADS1115 ADC)
 #   • Runs a PID control loop to heat wort via a RIMS heating element (SSR)
+#   • Drives a proportional valve via MCP4728 DAC (channel A, 0–100% → 0–5V) — hardware not yet wired
 #   • Publishes all readings to Home Assistant over WiFi
 #   • Stores calibration and settings in flash memory — survives power cuts
 #
 # HARDWARE CONNECTED:
 #   GPIO 21 (SDA) + GPIO 47 (SCL) → I2C bus → ADS1115 ADC chip
+#                                  (also MCP4728 DAC 0x60 → proportional valve — not yet physically wired)
 #   GPIO 48                        → 1-Wire bus → 2× DS18B20 temperature sensors
 #   GPIO 41                        → SSR1 relay output (spare)
 #   GPIO 42                        → SSR2 relay output (RIMS heater, PWM)
@@ -150,12 +152,19 @@ esphome:
             id(rims_mode).current_option().c_str(), id(rims_dc_power).state);
           ESP_LOGI("singularity", "RIMS Heater: %s", id(rims_heater).state ? "ON" : "OFF");
           ESP_LOGI("singularity", "SSR1: %s", id(ssr1).state ? "ON" : "OFF");
+          ESP_LOGI("singularity", "Proportional Valve: %.0f%%", id(proportional_valve).state);
           ESP_LOGI("singularity", "AN1 Flow Offset: %.2f L/min", id(an1_flow_offset).state);
           ESP_LOGI("singularity", "AN2 Flow Offset: %.2f L/min", id(an2_flow_offset).state);
           ESP_LOGI("singularity", "=============================================");
           // Register the safety_event entity in HA and mark the boot in the
           // logbook. Guards re-publish their own state the moment they trip.
           id(safety_event).publish_state("Boot — controller started");
+      # Re-apply the restored valve position to the MCP4728 DAC (template on_value
+      # does not re-fire on flash restore, so the physical output would otherwise
+      # stay at 0 until the slider is next moved).
+      - output.set_level:
+          id: valve_output
+          level: !lambda "return id(proportional_valve).state / 100.0f;"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -270,6 +279,26 @@ ads1115:
     i2c_id: bus_a
     id: ads1115_0x48
     continuous_mode: false
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MCP4728 — 12-bit Quad DAC (analog outputs)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# The MCP4728 is a 4-channel Digital-to-Analog Converter on the I2C bus. Where the
+# ADS1115 READS analog voltages, the MCP4728 WRITES them. Channel A drives the
+# proportional valve: output = fraction × VDD, so with the board powered from 5V
+# (via the I2C level shifter — see hardware/expansion_boards.md) 0.0→0V, 1.0→5V.
+#
+# address: 0x60 — the chip's default I2C address (stored in its EEPROM).
+# NOTE: hardware is PLANNED / not yet wired. Until the MCP4728 is present on the
+# bus, ESPHome logs a setup warning and DAC writes are harmless no-ops — the rest
+# of the firmware is unaffected.
+#
+mcp4728:
+  - id: mcp4728_hub
+    address: 0x60
+    i2c_id: bus_a
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -653,6 +682,35 @@ number:
       then:
         - lambda: |-
             ESP_LOGI("singularity", "FLASH SAVED — RIMS DC Power: %.0f%%", x);
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # PROPORTIONAL VALVE — MCP4728 DAC channel A (0–100% → 0–5 V)
+  # ─────────────────────────────────────────────────────────────────────────
+  #
+  # Slider that steers the proportional valve from the dashboard. The value is
+  # saved to flash (restore_value) and restored on reboot — see on_boot, which
+  # re-applies the restored value to the DAC. 0% = valve closed (0V),
+  # 100% = valve fully open (5V). NOTE: MCP4728 hardware is not yet wired; until
+  # then the DAC write is a harmless no-op.
+  - platform: template
+    name: "Proportional Valve"     # → number.singularity_proportional_valve
+    id: proportional_valve
+    min_value: 0
+    max_value: 100
+    step: 1
+    restore_value: true
+    initial_value: 0
+    optimistic: true
+    unit_of_measurement: "%"
+    icon: "mdi:valve"
+    mode: slider
+    on_value:
+      then:
+        - output.set_level:
+            id: valve_output
+            level: !lambda "return x / 100.0f;"
+        - lambda: |-
+            ESP_LOGI("singularity", "FLASH SAVED — Proportional Valve: %.0f%%", x);
 
   # ─────────────────────────────────────────────────────────────────────────
   # FLOW SENSOR OFFSETS — AN1 (RIMS) and AN2 (Sparge)
@@ -1089,6 +1147,13 @@ output:
     pin: GPIO42
     id: rims_heater_pwm
     period: 2s
+
+  # MCP4728 channel A → proportional valve (0.0–1.0 → 0–VDD → 0–5 V).
+  # Driven by number.singularity_proportional_valve (0–100%). See mcp4728 hub above.
+  - platform: mcp4728
+    mcp4728_id: mcp4728_hub
+    id: valve_output
+    channel: A
 
 
 # ══════════════════════════════════════════════════════════════════════════════

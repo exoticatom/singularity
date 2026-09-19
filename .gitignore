@@ -13,5 +13,8 @@ secrets.yaml
 # macOS
 .DS_Store
 
+# Claude Code personal permission overrides (not shared)
+.claude/settings.local.json
+
 # ESP32 info source images (copied to assets/ for documentation)
 esp32info/

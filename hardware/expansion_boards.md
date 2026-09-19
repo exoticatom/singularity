@@ -51,7 +51,7 @@ If signal quality issues occur with long wires, drop back to 100kHz.
 | `0x20` | MCP23017 #1 | Planned |
 | `0x48` | ADS1115 #1 | Active — NTC1 (A0), NTC2 (A1), FLOW1 (A2), FLOW2 (A3) |
 | `0x49` | ADS1115 #2 | On hold — all channels on #1 (0x48); floating input issue on #2 (see README for details) |
-| `0x60` | MCP4728 #1 | Planned |
+| `0x60` | MCP4728 #1 | Firmware ready (channel A → proportional valve, `number.singularity_proportional_valve`) — hardware not yet wired |
 | `0x61` | MCP4728 #2 | Planned (address reprogrammed) |
 
 ---
@@ -192,6 +192,7 @@ Proportional valve GND ──→ GND (common)
 
 #### Important notes
 - Only the MCP4728 for the proportional valve needs 5V + level shifter
+- **Firmware:** integrated in `esp32_singularity.yaml` (`mcp4728` hub @ 0x60 → `output` channel A → `number.singularity_proportional_valve`, a 0–100 % slider on the main dashboard). Hardware is not yet physically wired, so DAC writes are no-ops until the board is installed.
 - All other I2C devices (ADS1115, MCP23017) stay on 3.3V — do not connect them to the 5V side of the shifter
 - The level shifter must be **bi-directional** (BSS138 type) — uni-directional shifters will not work for I2C
 - MCP4728 EEPROM stores the last DAC value — output is restored automatically on power-up

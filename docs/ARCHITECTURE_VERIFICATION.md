@@ -105,7 +105,7 @@ This document line-by-line verifies `docs/ARCHITECTURE.md` against the live firm
 | Flow interlock arming | Implemented (switch); requires AN1 commissioning before arming | ✅ Verified |
 | Node-RED orchestration | NOT implemented, planned | ✅ Verified (correctly marked pending) |
 | `input_select` routing | NOT implemented, planned | ✅ Verified (correctly marked pending) |
-| MCP4728 DAC outputs | Documented, not wired | ✅ Verified |
+| MCP4728 DAC outputs | Firmware integrated, hardware not wired | ✅ Verified |
 | YF-S200 pulse flow | Documented, not wired | ✅ Verified |
 
 ---

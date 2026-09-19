@@ -403,11 +403,13 @@ ESP32 GPIO 42 ──┬──────────────► SSR2 contro
 
 ### [MCP4728](expansion_boards.md) DAC — Analog Outputs
 
+Firmware-integrated (channel A drives `number.singularity_proportional_valve`, a 0–100% dashboard slider); MCP4728 board not yet physically wired.
+
 | Item | Detail |
 |---|---|
-| MCP4728 #1 | `0x60` (default) — DAC_Port_0 proportional valve, D1-D3 spare |
+| MCP4728 #1 | `0x60` (default) — DAC_Port_0 (ch A) proportional valve, D1-D3 spare |
 | MCP4728 #2 | `0x61` (reprogrammed via Arduino IDE) — DAC_Port_4–7 spare |
-| Output signal | 0-3.3V → external V-to-I module for 4-20mA valve control |
+| Output signal | MCP4728 on +5V (via BSS138 I2C level shifter) → direct **0–5V** VOUT A to the valve. 0% = 0V (closed), 100% = 5V (open). See [expansion_boards.md](expansion_boards.md#proportional-valve-wiring--mcp4728-on-5v-with-i2c-level-shifter) |
 
 ---
 

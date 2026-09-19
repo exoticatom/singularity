@@ -134,7 +134,7 @@ All thermal protection today is in **one place** — the ESP32 firmware. That is
 - AN2 sparge flow wiring + commissioning; arm flow interlock after AN1 verified vs SM6004.
 - Node-RED orchestration / brew state machine.
 - `input_select`-driven dynamic sensor routing.
-- MCP4728 DAC analog outputs; YF-S200 pulse flow (both documented, not wired).
+- MCP4728 DAC analog outputs — firmware integrated (channel A → `number.singularity_proportional_valve` 0–100% slider), hardware not yet wired; YF-S200 pulse flow documented, not wired.
 - Firmware v1.2.0 is committed/compiled but **not yet flashed** to the running controller (which is on an older build).
 
 ---

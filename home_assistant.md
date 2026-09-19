@@ -106,6 +106,9 @@ RIMS Mode (v1.1.8):
 Flow Calibration:
   number.singularity_an1_flow_offset    L/min  AN1 RIMS flow offset (default: 0.0)
   number.singularity_an2_flow_offset    L/min  AN2 Sparge flow offset (default: 0.0)
+
+Proportional Valve (control, not calibration):
+  number.singularity_proportional_valve  %    MCP4728 DAC ch A → valve (0–100%, default 0). Firmware integrated; hardware not yet wired
 ```
 
 ### Switches (read/write, persisted on ESP32 flash)
